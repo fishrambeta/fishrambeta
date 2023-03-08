@@ -1,3 +1,13 @@
+use std::io::{ self, Write };
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+pub struct Args{
+    //The equation to solve formatted in LaTeX
+    #[arg(short, long)]
+    equation : String,
+}
+
 fn main() {
-    println!("Hello, world!");
+    let args = Args::parse();
 }
