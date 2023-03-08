@@ -1,4 +1,3 @@
-use std::io::{ self, Write };
 use clap::Parser;
 
 #[derive(Parser, Debug)]
