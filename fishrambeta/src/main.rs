@@ -1,4 +1,5 @@
 mod math;
+mod parser;
 
 use clap::Parser;
 use math::Equation;
