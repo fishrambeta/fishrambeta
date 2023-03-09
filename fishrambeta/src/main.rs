@@ -2,6 +2,7 @@ mod math;
 mod parser;
 
 use clap::Parser;
+use crate::math::{Constant, Equation, Variable};
 
 #[derive(Parser, Debug)]
 pub struct Args{
@@ -12,4 +13,5 @@ pub struct Args{
 
 fn main() {
     let args = Args::parse();
+    Equation::Addition(vec!(Equation::Variable(Vari)))
 }
