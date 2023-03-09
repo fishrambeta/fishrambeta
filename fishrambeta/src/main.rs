@@ -2,7 +2,7 @@ mod math;
 mod parser;
 
 use clap::Parser;
-use crate::math::{Constant, Equation, Variable};
+use crate::math::{Constant, Equation, Symbol, Variable};
 
 #[derive(Parser, Debug)]
 pub struct Args{
@@ -12,6 +12,11 @@ pub struct Args{
 }
 
 fn main() {
-    let args = Args::parse();
-    Equation::Addition(vec!(Equation::Variable(Vari)))
+    Equation::Addition(
+        vec!(
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI))
+        )
+    ).simplify();
+    //let args = Args::parse();
 }
