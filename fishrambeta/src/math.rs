@@ -11,6 +11,7 @@ pub enum Variable{
     Integer(u32),
     Float(f32),
     Rational((u32,u32)),
+    Constant(Constant),
 }
 ///Mathematical constants
 pub enum Constant{
