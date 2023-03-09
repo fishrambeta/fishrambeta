@@ -1,6 +1,8 @@
 mod math;
 
 use clap::Parser;
+use math::Equation;
+use math::Equation::Variable;
 
 #[derive(Parser, Debug)]
 pub struct Args{
