@@ -29,7 +29,7 @@ fn main() {
             Equation::Variable(Variable::Constant(Constant::PI)),
             Equation::Variable(Variable::Constant(Constant::PI)),
         )
-    ).simplify();
+    ).simplify().simplify();
     println!("{:?}", simplified)
     //let args = Args::parse();
 }
