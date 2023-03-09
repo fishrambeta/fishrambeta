@@ -1,7 +1,10 @@
 ///Represents a generic math object
 pub enum Equation{
     Variable(Variable),
-    Polynomial(Vec<Equation>),
+    Addition(Vec<Equation>),
+    Subtraction(Vec<Equation>),
+    Multiplication(Vec<Equation>),
+    Division(Box<(Equation, Equation)>)
 }
 ///Represents a single number
 pub enum Variable{
@@ -9,7 +12,7 @@ pub enum Variable{
     Float(f32),
     Rational((u32,u32)),
 }
-///Mathematical consts
+///Mathematical constants
 pub enum Constant{
     PI,
     E,
@@ -17,9 +20,13 @@ pub enum Constant{
 impl Symbol for Equation{
     fn simplify(self) -> Self {
         match self{
-            Equation::Variable(variable) => { return variable }
-            Equation::Polynomial(_) => {}
+            Equation::Variable(variable) => { return Equation::Variable(variable) }
+            Equation::Addition(_) => {}
+            Equation::Subtraction(_) => {}
+            Equation::Multiplication(_) => {}
+            Equation::Division(_) => {}
         }
+        return self
     }
 }
 trait Symbol{
