@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 ///Represents a generic math object
-#[derive(PartialEq)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub enum Equation{
     Variable(Variable),
     Addition(Vec<Equation>),
@@ -8,15 +10,14 @@ pub enum Equation{
     Division(Box<(Equation, Equation)>)
 }
 ///Represents a single number
-#[derive(PartialEq)]
+#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
 pub enum Variable{
-    Integer(u32),
-    Float(f32),
-    Rational((u32,u32)),
+    Integer(i32),
+    Rational((i32,i32)),
     Constant(Constant),
 }
 ///Mathematical constants
-#[derive(PartialEq)]
+#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
 pub enum Constant{
     PI,
     E,
@@ -38,13 +39,19 @@ pub trait Symbol{
 }
 
 fn simpilify_addition(addition: Vec<Equation>) -> Equation{
-    let mut simplified_addition: Vec<Equation> = Vec::new();
-    for equation in addition.iter(){
-        for equation2 in addition.iter(){
-            if equation == equation2{
-                println!("Duplicate")
+    let mut terms: HashMap<Equation, i32> = HashMap::new();
+    for (i, equation) in addition.iter().enumerate(){
+        terms.insert(equation.clone(), *terms.get(equation).unwrap_or(&1));
+        for (j, equation2) in addition.iter().enumerate(){
+            if equation == equation2 && i == j{
+                terms.insert(equation.clone(), terms[equation]+1);
             }
         } 
     }
-    return Equation::Addition(addition);
+    let mut simplified_addition: Vec<Equation> = Vec::new();
+    for (equation, count) in terms.iter()  {
+        simplified_addition.push(
+            Equation::Multiplication(vec!(Equation::Variable(Variable::Integer(count-1)), equation.clone())));
+    }
+    return Equation::Addition(simplified_addition);
 }

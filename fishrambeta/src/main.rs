@@ -12,11 +12,24 @@ pub struct Args{
 }
 
 fn main() {
-    Equation::Addition(
+    let simplified = Equation::Addition(
         vec!(
             Equation::Variable(Variable::Constant(Constant::PI)),
-            Equation::Variable(Variable::Constant(Constant::PI))
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::E)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::E)),
+            Equation::Variable(Variable::Constant(Constant::E)),
+            Equation::Variable(Variable::Constant(Constant::E)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
+            Equation::Variable(Variable::Constant(Constant::PI)),
         )
     ).simplify();
+    println!("{:?}", simplified)
     //let args = Args::parse();
 }
