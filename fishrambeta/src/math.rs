@@ -55,6 +55,10 @@ fn simpilify_addition(addition: Vec<Equation>) -> Equation{
                 Equation::Multiplication(vec!(Equation::Variable(Variable::Integer(*count)), equation.clone())));
         }
     }
+
+    if simplified_addition.len() == 1 {
+        return simplified_addition[0].clone();
+    }
     return Equation::Addition(simplified_addition);
 }
 
@@ -73,6 +77,10 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation{
             simplified_multiplication.push(
                 Equation::Power(Box::new((equation.clone(), Equation::Variable(Variable::Integer(*count))))));
         }
+    }
+    
+    if simplified_multiplication.len() == 1 {
+        return simplified_multiplication[0].clone();
     }
     return Equation::Multiplication(simplified_multiplication);
 }

@@ -18,14 +18,14 @@ fn main() {
             Equation::Variable(Variable::Constant(Constant::PI)),
         )
     );
-    let multiplication = Equation::Multiplication(
+    let multiplication = Equation::Addition(
         vec!(
             addition.clone(),
             addition.clone(),
         )
     );
 
-    let simplified = multiplication.simplify().simplify().simplify();
+    let simplified = multiplication.simplify().simplify();
 
     println!("{:?}", simplified)
     //let args = Args::parse();
