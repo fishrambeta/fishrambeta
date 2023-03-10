@@ -12,7 +12,7 @@ pub struct Args{
 }
 
 fn main() {
-    let simplified = Equation::Addition(
+    let simplified = Equation::Multiplication(
         vec!(
             Equation::Variable(Variable::Constant(Constant::PI)),
             Equation::Variable(Variable::Constant(Constant::PI)),

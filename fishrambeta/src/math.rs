@@ -7,7 +7,8 @@ pub enum Equation{
     Addition(Vec<Equation>),
     Subtraction(Vec<Equation>),
     Multiplication(Vec<Equation>),
-    Division(Box<(Equation, Equation)>)
+    Division(Box<(Equation, Equation)>),
+    Power(Box<(Equation, Equation)>)
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
@@ -29,8 +30,9 @@ impl Symbol for Equation{
             Equation::Variable(variable) => { return Equation::Variable(variable) }
             Equation::Addition(addition) => { return simpilify_addition(addition) }
             Equation::Subtraction(subtraction) => { return Equation::Subtraction(subtraction) }
-            Equation::Multiplication(multiplication) => { return Equation::Multiplication(multiplication) }
+            Equation::Multiplication(multiplication) => { simplify_multiplication(multiplication) }
             Equation::Division(division) => { return Equation::Division(division) }
+            Equation::Power(power) => { return Equation::Power(power) }
         }
     }
 }
@@ -53,4 +55,22 @@ fn simpilify_addition(addition: Vec<Equation>) -> Equation{
         }
     }
     return Equation::Addition(simplified_addition);
+}
+
+fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation{
+    let mut terms: HashMap<Equation, i32> = HashMap::new();
+    for equation in multiplication.iter(){
+        terms.insert(equation.clone(), *terms.get(equation).unwrap_or(&0)+1);
+    } 
+
+    let mut simplified_multiplication: Vec<Equation> = Vec::new();
+    for (equation, count) in terms.iter(){
+        if *count == 1{
+            simplified_multiplication.push(equation.clone())
+        }else{
+            simplified_multiplication.push(
+                Equation::Power(Box::new((equation.clone(), Equation::Variable(Variable::Integer(*count))))));
+        }
+    }
+    return Equation::Addition(simplified_multiplication);
 }
