@@ -72,5 +72,5 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation{
                 Equation::Power(Box::new((equation.clone(), Equation::Variable(Variable::Integer(*count))))));
         }
     }
-    return Equation::Addition(simplified_multiplication);
+    return Equation::Multiplication(simplified_multiplication);
 }
