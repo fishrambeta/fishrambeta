@@ -43,7 +43,8 @@ pub trait Symbol{
 fn simpilify_addition(addition: Vec<Equation>) -> Equation{
     let mut terms: HashMap<Equation, i32> = HashMap::new();
     for equation in addition.iter(){
-        terms.insert(equation.clone(), *terms.get(equation).unwrap_or(&0)+1);
+        let simplified = equation.clone().simplify();
+        terms.insert(simplified.clone(), *terms.get(&simplified).unwrap_or(&0)+1);
     }
     let mut simplified_addition: Vec<Equation> = Vec::new();
     for (equation, count) in terms.iter(){
@@ -60,7 +61,8 @@ fn simpilify_addition(addition: Vec<Equation>) -> Equation{
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation{
     let mut terms: HashMap<Equation, i32> = HashMap::new();
     for equation in multiplication.iter(){
-        terms.insert(equation.clone(), *terms.get(equation).unwrap_or(&0)+1);
+        let simplified = equation.clone().simplify();
+        terms.insert(simplified.clone(), *terms.get(&simplified).unwrap_or(&0)+1);
     } 
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
