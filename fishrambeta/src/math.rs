@@ -32,7 +32,7 @@ impl Symbol for Equation{
             Equation::Subtraction(subtraction) => { return Equation::Subtraction(subtraction) }
             Equation::Multiplication(multiplication) => { simplify_multiplication(multiplication) }
             Equation::Division(division) => { return Equation::Division(division) }
-            Equation::Power(power) => { return Equation::Power(power) }
+            Equation::Power(power) => { return simplify_power(power) }
         }
     }
 }
@@ -83,4 +83,25 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation{
         return simplified_multiplication[0].clone();
     }
     return Equation::Multiplication(simplified_multiplication);
+}
+
+fn simplify_power(power: Box<(Equation, Equation)>) -> Equation{
+    let base = power.0.simplify();
+    let exponent = power.1.simplify();
+
+    match base.clone(){
+        Equation::Multiplication(terms) => {
+            let mut simplified_power: Vec<Equation> = vec!();
+            for term in terms.iter(){
+                simplified_power.push(Equation::Power(Box::new((term.clone(), exponent.clone()) )));
+            }
+            return Equation::Multiplication(simplified_power);
+        }
+        _ => {}
+    }
+
+    return Equation::Power(Box::new((base, exponent)));
+
+
+
 }
