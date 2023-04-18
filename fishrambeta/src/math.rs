@@ -11,11 +11,12 @@ pub enum Equation{
     Power(Box<(Equation, Equation)>)
 }
 ///Represents a single number
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub enum Variable{
     Integer(i32),
     Rational((i32,i32)),
     Constant(Constant),
+    Letter(String)
 }
 ///Mathematical constants
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]

@@ -12,21 +12,8 @@ pub struct Args{
 }
 
 fn main() {
-    let addition = Equation::Addition(
-        vec!(
-            Equation::Variable(Variable::Constant(Constant::PI)),
-            Equation::Variable(Variable::Constant(Constant::PI)),
-        )
-    );
-    let multiplication = Equation::Multiplication(
-        vec!(
-            addition.clone(),
-            addition.clone(),
-        )
-    );
-
-    let simplified = multiplication.simplify().simplify().simplify();
-
+    let args = Args::parse();
+    let equation = parser::to_equation(args.equation);
+    let simplified = equation.simplify().simplify().simplify();
     println!("{:?}", simplified)
-    //let args = Args::parse();
 }
