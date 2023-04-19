@@ -1,4 +1,5 @@
 mod math;
+mod latexifier;
 mod parser;
 
 use clap::Parser;
@@ -15,5 +16,6 @@ fn main() {
     let args = Args::parse();
     let equation = parser::to_equation(args.equation);
     let simplified = equation.simplify().simplify().simplify();
+    println!("{}", simplified.to_string());
     println!("{:?}", simplified)
 }
