@@ -4,7 +4,7 @@ use crate::math::Variable;
 use crate::math::Variable::Letter;
 
 pub fn to_equation(equation_string: String) -> Equation {
-    if equation_string.contains("*"){
+    if equation_string.contains("*") {
         let sub_equations_string = equation_string.split('*');
         let sub_equations_strings = sub_equations_string.collect::<Vec<&str>>();
 
@@ -15,13 +15,16 @@ pub fn to_equation(equation_string: String) -> Equation {
         return Equation::Multiplication(sub_equations);
     }
 
-    if equation_string.contains("/"){
+    if equation_string.contains("/") {
         let sub_equations_string = equation_string.split('/');
         let sub_equations_strings = sub_equations_string.collect::<Vec<&str>>();
-        return Equation::Division(Box::new((to_equation(sub_equations_strings[0].to_string()), to_equation(sub_equations_strings[1].to_string()))));
+        return Equation::Division(Box::new((
+            to_equation(sub_equations_strings[0].to_string()),
+            to_equation(sub_equations_strings[1].to_string()),
+        )));
     }
 
-    if equation_string.contains("+"){
+    if equation_string.contains("+") {
         let sub_equations_string = equation_string.split('+');
         let sub_equations_strings = sub_equations_string.collect::<Vec<&str>>();
 
@@ -35,7 +38,10 @@ pub fn to_equation(equation_string: String) -> Equation {
     if equation_string.contains("^") {
         let sub_equations_string = equation_string.split('^');
         let sub_equations_strings = sub_equations_string.collect::<Vec<&str>>();
-        return Equation::Power(Box::new((to_equation(sub_equations_strings[0].to_string()), to_equation(sub_equations_strings[1].to_string()))));
+        return Equation::Power(Box::new((
+            to_equation(sub_equations_strings[0].to_string()),
+            to_equation(sub_equations_strings[1].to_string()),
+        )));
     }
 
     return only_letters_to_equation(equation_string);
