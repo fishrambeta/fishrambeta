@@ -17,7 +17,6 @@ fn equation_to_latex(equation: Equation) -> String {
         Equation::Multiplication(multiplication) => return to_latex_multiplication(multiplication),
         Equation::Division(division) => return to_latex_division(*division),
         Equation::Power(power) => return to_latex_power(*power),
-        _ => return "".to_string(),
     }
 }
 
