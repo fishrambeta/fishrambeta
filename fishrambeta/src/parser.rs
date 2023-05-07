@@ -1,5 +1,6 @@
+use std::ops::Add;
 use crate::math::Equation;
-use slog::{crit, Logger};
+use slog::{crit, debug, Logger};
 
 #[derive(Debug, Clone)]
 struct LatexEqnIR {
@@ -17,6 +18,12 @@ impl LatexEqnIR {
         let mut latex = latex;
         //Handle equals sign
         return if latex.contains(&'='){
+            #[cfg(debug_assertions)]
+            let mut pre_pad = String::new();
+            #[cfg(debug_assertions)]
+            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
+            #[cfg(debug_assertions)]
+            debug!(logger, "{}=", pre_pad);
             let index = unsafe{latex.iter().position(|char| char == &'=').unwrap_unchecked()};
             let (left, right) = latex.split_at(index);
             let (left, mut right) = (left.to_vec(), right.to_vec());
@@ -47,6 +54,12 @@ impl LatexEqnIR {
                 }
             }
             let name: String = name.iter().collect();
+            #[cfg(debug_assertions)]
+                let mut pre_pad = String::new();
+            #[cfg(debug_assertions)]
+            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
+            #[cfg(debug_assertions)]
+            debug!(logger, "{}{}", pre_pad, name);
             let mut parameters = vec![];
             //Loop over individual parameters
             loop {
@@ -91,6 +104,12 @@ impl LatexEqnIR {
         }
         //Handle +- and other operators
         else if latex.contains(&'+') {
+            #[cfg(debug_assertions)]
+            let mut pre_pad = String::new();
+            #[cfg(debug_assertions)]
+            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
+            #[cfg(debug_assertions)]
+            debug!(logger, "{}addition", pre_pad);
             let index = unsafe {
                 latex
                     .iter()
@@ -118,6 +137,12 @@ impl LatexEqnIR {
             }
         }
         else if latex.contains(&'-') {
+            #[cfg(debug_assertions)]
+            let mut pre_pad = String::new();
+            #[cfg(debug_assertions)]
+            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
+            #[cfg(debug_assertions)]
+            debug!(logger, "{}subtraction", pre_pad);
             let index = unsafe {
                 latex
                     .iter()
@@ -146,8 +171,15 @@ impl LatexEqnIR {
         }
         //Constants
         else {
+            let name = latex.iter().collect();
+            #[cfg(debug_assertions)]
+            let mut pre_pad = String::new();
+            #[cfg(debug_assertions)]
+            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
+            #[cfg(debug_assertions)]
+            debug!(logger, "{}{}", pre_pad, name);
             Self {
-                name: latex.iter().collect(),
+                name,
                 parameters: vec![],
                 #[cfg(debug_assertions)]
                 depth,
