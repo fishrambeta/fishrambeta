@@ -24,7 +24,7 @@ impl LatexEqnIR {
             for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
             #[cfg(debug_assertions)]
             debug!(logger, "{}=", pre_pad);
-            let index = unsafe{latex.iter().position(|char| char == &'=').unwrap_unchecked()};
+            let index = unsafe{latex.iter().position(|char| char == &'equals').unwrap_unchecked()};
             let (left, right) = latex.split_at(index);
             let (left, mut right) = (left.to_vec(), right.to_vec());
             right.remove(0);
@@ -196,8 +196,14 @@ pub fn to_equation(latex: String, logger: &Logger) -> Equation {
     return ir_to_eqn(ir, logger);
 }
 fn latex_to_ir(latex: String, logger: &Logger) -> LatexEqnIR {
-    return LatexEqnIR::create_from_latex(latex.chars().filter(|char| char != &' ').collect(), logger, 0);
+    return LatexEqnIR::create_from_latex(preprocess(latex).chars().filter(|char| char != &' ').collect(), logger, 1);
 }
 fn ir_to_eqn(ir: LatexEqnIR, logger: &Logger) -> Equation {
     return ir.ir_to_eqn(logger);
+}
+
+fn preprocess(latex: String) -> String{
+    //return latex;
+    return latex.replace("\\biggl\\", "").replace("\\bigg\\", "")
+        .replace("\\biggl", "").replace("\\bigg", "");
 }
