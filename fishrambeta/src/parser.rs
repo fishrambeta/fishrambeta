@@ -79,9 +79,12 @@ impl LatexEqnIR {
                     latex.len()-1
                 }
             };
-            let superscript = latex.drain(start..end).collect::<Vec<char>>();
-
-            todo!();
+            let mut superscript = latex.drain(start..=end).collect::<Vec<char>>();
+            superscript.remove(0);
+            let superscript_ir = Self::latex_to_ir(superscript, logger, depth+1);
+            let mut equation = Self::latex_to_ir(latex, logger, depth+1);
+            equation.superscript = Some(Box::new(superscript_ir));
+            return equation;
         }
         else {
             print_data(logger, latex.iter().collect(), depth);
