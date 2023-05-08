@@ -1,190 +1,112 @@
-use std::ops::Add;
 use crate::math::Equation;
 use slog::{crit, debug, Logger};
+use std::ops::Add;
 
 #[derive(Debug, Clone)]
 struct LatexEqnIR {
     name: String,
     parameters: Vec<LatexEqnIR>,
-    #[cfg(debug_assertions)]
+    subscript: String,
+    superscript: Option<Box<LatexEqnIR>>,
     depth: u32,
 }
 impl LatexEqnIR {
-    pub fn create_from_latex(
-        latex: Vec<char>,
-        logger: &Logger,
-        #[cfg(debug_assertions)] depth: u32,
-    ) -> Self {
+    pub fn latex_to_ir(latex: Vec<char>, logger: &Logger, depth: u32) -> Self {
         let mut latex = latex;
-        //Handle equals sign
-        return if latex.contains(&'='){
-            #[cfg(debug_assertions)]
-            let mut pre_pad = String::new();
-            #[cfg(debug_assertions)]
-            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
-            #[cfg(debug_assertions)]
-            debug!(logger, "{}=", pre_pad);
-            let index = unsafe{latex.iter().position(|char| char == &'equals').unwrap_unchecked()};
-            let (left, right) = latex.split_at(index);
-            let (left, mut right) = (left.to_vec(), right.to_vec());
-            right.remove(0);
-            if left.contains(&'=') || right.contains(&'=') {
-                crit!(logger, "Equation contains multiple equals signs, unsupported");
-                panic!();
+        let operator_index = Self::contains_operators_in_top_level(&latex);
+        if let Some(operator_index) = operator_index {
+            let (left, right) = latex.split_at(operator_index);
+            let (left, mut right) = (left.to_vec(),right.to_vec());
+            let operator = right.remove(0);
+            print_data(logger, operator.to_string(), depth);
+            let (left_ir, right_ir) = (
+                Self::latex_to_ir(left, logger, depth + 1),
+                Self::latex_to_ir(right, logger, depth + 1),
+            );
+            return LatexEqnIR{
+                name: String::from(operator),
+                subscript: String::new(),
+                superscript: None,
+                depth,
+                parameters: vec!(left_ir, right_ir)
+            };
+        }
+        else if (
+            (latex.contains(&'{') && latex.contains(&'}'))
+                || (latex.contains(&'(') && latex.contains(&')')))
+                || (latex.contains(&'[') && latex.contains(&']')){
+            let end_name = unsafe{latex.iter().position(|char| char == &'{' || char == &'(').unwrap_unchecked()};
+            let (name, parameters) = latex.split_at(end_name);
+            let (name, mut parameter_chars) = (name.iter().collect::<String>(), parameters.to_vec());
+            print_data(logger, name.clone(), depth);
+            let mut parameters = vec!();
+            loop{
+                if parameter_chars.len() == 0 {break}
+                let mut depth = 1;
+                parameter_chars.remove(0);
+                let mut inner_data = vec!();
+                loop{
+                    if depth == 0 {break}
+                    let char = parameter_chars.remove(0);
+                    if char == '{' || char == '(' || char == '['{depth += 1}
+                    if char == '}' || char == ')' || char == ']'{depth -= 1}
+                    inner_data.push(char)
+                }
+                inner_data.remove(inner_data.len()-1);
+                parameters.push(inner_data);
             }
-            #[cfg(debug_assertions)]
-            let (left_ir, right_ir) = (Self::create_from_latex(left, logger, depth+1), Self::create_from_latex(right, logger, depth+1));
-            #[cfg(not(debug_assertions))]
-            let (left_ir, right_ir) = (Self::create_from_latex(left.to_vec(), logger), Self::create_from_latex(right.to_vec(), logger));
+            let parameters = parameters.into_iter().map(|param| Self::latex_to_ir(param, logger, depth+1)).collect();
             return Self{
-                name: String::from("equals"),
-                parameters: vec!(left_ir, right_ir),
-                #[cfg(debug_assertions)] depth,
-            };
-        }
-        //Handle \*****{}{}{}{}{}... constructions
-        else if latex.starts_with(&['\\']) && latex.contains(&'{') && latex.contains(&'}') {
-            let mut name = vec![];
-            latex.remove(0);
-            loop {
-                if latex[0] == '{' {
-                    break;
-                } else {
-                    name.push(latex.remove(0))
-                }
-            }
-            let name: String = name.iter().collect();
-            #[cfg(debug_assertions)]
-                let mut pre_pad = String::new();
-            #[cfg(debug_assertions)]
-            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
-            #[cfg(debug_assertions)]
-            debug!(logger, "{}{}", pre_pad, name);
-            let mut parameters = vec![];
-            //Loop over individual parameters
-            loop {
-                if latex.len() == 0{
-                    break;
-                }
-                if latex[0] != '{' {
-                    break;
-                }
-                if latex.len() == 0 {
-                    break;
-                }
-                latex.remove(0); //Remove trailing {
-                let mut depth_counter = 1;
-                let mut inner_data = vec![];
-                loop {
-                    // Loop until }
-                    if latex[0] == '{' {
-                        depth_counter += 1
-                    }
-                    else if latex[0] == '}' {
-                        depth_counter += -1
-                    }
-                    if depth_counter == 0 {
-                        latex.remove(0);
-                        break;
-                    }
-                    inner_data.push(latex.remove(0))
-                }
-                #[cfg(debug_assertions)]
-                let parameter = LatexEqnIR::create_from_latex(inner_data, logger, depth + 1);
-                #[cfg(not(debug_assertions))]
-                let parameter = LatexEqnIR::create_from_latex(inner_data, logger);
-                parameters.push(parameter);
-            }
-            Self {
-                name,
                 parameters,
-                #[cfg(debug_assertions)]
-                depth,
-            }
-        }
-        //Handle +- and other operators
-        else if latex.contains(&'+') {
-            #[cfg(debug_assertions)]
-            let mut pre_pad = String::new();
-            #[cfg(debug_assertions)]
-            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
-            #[cfg(debug_assertions)]
-            debug!(logger, "{}addition", pre_pad);
-            let index = unsafe {
-                latex
-                    .iter()
-                    .position(|char| char == &'+')
-                    .unwrap_unchecked()
-            };
-            let (first, second) = latex.split_at(index);
-            let (first, mut second) = (first.to_vec(), second.to_vec());
-            second.remove(0);
-            #[cfg(debug_assertions)]
-            let (first_ir, second_ir) = (
-                Self::create_from_latex(first, logger, depth + 1),
-                Self::create_from_latex(second, logger, depth + 1),
-            );
-            #[cfg(not(debug_assertions))]
-            let (first_ir, second_ir) = (
-                Self::create_from_latex(first, logger),
-                Self::create_from_latex(second, logger),
-            );
-            Self {
-                name: String::from("subtraction"),
-                parameters: vec![first_ir, second_ir],
-                #[cfg(debug_assertions)]
-                depth,
-            }
-        }
-        else if latex.contains(&'-') {
-            #[cfg(debug_assertions)]
-            let mut pre_pad = String::new();
-            #[cfg(debug_assertions)]
-            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
-            #[cfg(debug_assertions)]
-            debug!(logger, "{}subtraction", pre_pad);
-            let index = unsafe {
-                latex
-                    .iter()
-                    .position(|char| char == &'-')
-                    .unwrap_unchecked()
-            };
-            let (first, second) = latex.split_at(index);
-            let (first, mut second) = (first.to_vec(), second.to_vec());
-            second.remove(0);
-            #[cfg(debug_assertions)]
-            let (first_ir, second_ir) = (
-                Self::create_from_latex(first, logger, depth + 1),
-                Self::create_from_latex(second, logger, depth + 1),
-            );
-            #[cfg(not(debug_assertions))]
-            let (first_ir, second_ir) = (
-                Self::create_from_latex(first, logger),
-                Self::create_from_latex(second, logger),
-            );
-            Self {
-                name: String::from("addition"),
-                parameters: vec![first_ir, second_ir],
-                #[cfg(debug_assertions)]
-                depth,
-            }
-        }
-        //Constants
-        else {
-            let name = latex.iter().collect();
-            #[cfg(debug_assertions)]
-            let mut pre_pad = String::new();
-            #[cfg(debug_assertions)]
-            for _ in 0..depth {pre_pad = pre_pad.add(" | ");}
-            #[cfg(debug_assertions)]
-            debug!(logger, "{}{}", pre_pad, name);
-            Self {
                 name,
-                parameters: vec![],
-                #[cfg(debug_assertions)]
                 depth,
+                superscript: None,
+                subscript: String::new(),
             }
-        };
+        }
+        else if latex.contains(&'^'){
+            let start = unsafe{latex.iter().position(|char| char == &'^').unwrap_unchecked()};
+            let end = match latex.iter().position(|char| char == &'_'){
+                Some(end) => {
+                    if end > start {
+                        end
+                    }
+                    else{
+                        latex.len()-1
+                    }
+                }
+                None => {
+                    latex.len()-1
+                }
+            };
+            let superscript = latex.drain(start..end).collect::<Vec<char>>();
+
+            todo!();
+        }
+        else {
+            print_data(logger, latex.iter().collect(), depth);
+            return Self{
+                name: latex.into_iter().collect(),
+                depth,
+                parameters: vec!(),
+                superscript: None,
+                subscript: String::new(),
+            };
+        }
+    }
+    fn contains_operators_in_top_level(latex: &Vec<char>) -> Option<usize> {
+        let mut depth = 1;
+        for (i, char) in latex.iter().enumerate() {
+            if depth == 1 && (char == &'+' || char == &'-' || char == &'*' || char == &'/' || char == &'=') {
+                return Some(i);
+            }
+            if char == &'{' || char == &'(' || char == &'[' {
+                depth += 1
+            } else if char == &'}' || char == &')' || char == &']'{
+                depth -= 1
+            }
+        }
+        return None;
     }
     pub fn ir_to_eqn(&self, logger: &Logger) -> Equation {
         todo!()
@@ -196,14 +118,30 @@ pub fn to_equation(latex: String, logger: &Logger) -> Equation {
     return ir_to_eqn(ir, logger);
 }
 fn latex_to_ir(latex: String, logger: &Logger) -> LatexEqnIR {
-    return LatexEqnIR::create_from_latex(preprocess(latex).chars().filter(|char| char != &' ').collect(), logger, 1);
+    return LatexEqnIR::latex_to_ir(
+        preprocess(latex)
+            .chars()
+            .filter(|char| char != &' ')
+            .collect(),
+        logger,
+        1,
+    );
 }
 fn ir_to_eqn(ir: LatexEqnIR, logger: &Logger) -> Equation {
     return ir.ir_to_eqn(logger);
 }
-
-fn preprocess(latex: String) -> String{
+fn preprocess(latex: String) -> String {
     //return latex;
-    return latex.replace("\\biggl\\", "").replace("\\bigg\\", "")
-        .replace("\\biggl", "").replace("\\bigg", "");
+    return latex
+        .replace("\\biggl\\", "")
+        .replace("\\bigg\\", "")
+        .replace("\\biggl", "")
+        .replace("\\bigg", "")
+        .replace("\\cdot", "*");
+}
+fn print_data(logger : &Logger, data: String, depth: u32){
+    let mut formatted = String::new();
+    for _ in 0..=depth{formatted.push_str(" | ")}
+    formatted.push_str(&*data);
+    debug!(logger, "{}" , formatted);
 }
