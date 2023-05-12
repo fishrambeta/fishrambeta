@@ -1,4 +1,4 @@
-mod latexifier;
+mod logger;
 mod math;
 mod parser;
 
@@ -14,25 +14,34 @@ pub struct Args {
     //The thing to do with the equation
     #[arg(short, long, value_enum)]
     operation: Operation,
+    #[clap(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
+    #[arg(short, long)]
+    log_out: Option<String>,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 enum Operation {
     Simplify,
     Solve,
-    Calculate
+    Calculate,
 }
 
 fn main() {
     let args = Args::parse();
-    let equation = parser::to_equation(args.equation);
+    let logger = logger::new(args.log_out, args.verbose);
+    let equation = parser::to_equation(args.equation, &logger);
+    //let simplified = equation.simplify().simplify().simplify();
+    //println!("{}", simplified.to_string());
     let result = process_operation(equation, args.operation);
-    println!("{}", result.to_string());
+    println!("{:?}", result);
 }
 
-fn process_operation(equation: Equation, operation: Operation) -> Equation{
+fn process_operation(equation: Equation, operation: Operation) -> Equation {
     match operation {
-        Operation::Simplify => {return equation.simplify().simplify().simplify()}
-        _ => {panic!("Operation not yet supported")}
+        Operation::Simplify => return equation.simplify().simplify().simplify(),
+        _ => {
+            panic!("Operation not yet supported")
+        }
     }
 }

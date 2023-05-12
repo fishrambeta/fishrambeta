@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ptr::eq;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
@@ -9,6 +10,7 @@ pub enum Equation {
     Multiplication(Vec<Equation>),
     Division(Box<(Equation, Equation)>),
     Power(Box<(Equation, Equation)>),
+    Equals(Box<(Equation,Equation)>)
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
@@ -17,6 +19,7 @@ pub enum Variable {
     Rational((i32, i32)),
     Constant(Constant),
     Letter(String),
+    Vector(String),
 }
 ///Mathematical constants
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
@@ -34,6 +37,7 @@ impl Symbol for Equation {
             Equation::Multiplication(multiplication) => simplify_multiplication(multiplication),
             Equation::Division(division) => return Equation::Division(division),
             Equation::Power(power) => return simplify_power(power),
+            Equation::Equals(equation) => return Equation::Equals(Box::new((equation.0.simplify(),equation.1.simplify())))
         }
     }
 }
