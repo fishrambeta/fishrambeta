@@ -146,7 +146,6 @@ impl LatexEqnIR {
         return None;
     }
     pub fn ir_to_eqn(mut self, logger: &Logger) -> Equation {
-        info!(logger, "{:?}", self);
         return match &*self.name{
              "=" => {
                 Equation::Equals(Box::new((self.parameters.remove(0).ir_to_eqn(logger), self.parameters.remove(0).ir_to_eqn(logger))))
@@ -154,9 +153,10 @@ impl LatexEqnIR {
             "\\vec" => {
                 Equation::Variable(Variable::Vector(self.parameters.remove(0).name))
             }
-            unimpl => {
-                crit!(logger, "Unimplemented data: {:?}", self);
-                panic!();
+            other => {
+                info!(logger, "{}, params: {}" ,other, self.parameters.len());
+
+                return Equation::Variable(Variable::Letter(String::from(other)))
             }
         };
     }
