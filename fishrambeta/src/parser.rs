@@ -1,3 +1,4 @@
+use std::ops::Add;
 use crate::math::{Constant, Equation, Variable};
 use slog::{crit, debug, info, Logger};
 
@@ -185,13 +186,91 @@ impl LatexEqnIR {
                 self.parameters.remove(0).ir_to_eqn(logger),
                 self.parameters.remove(0).ir_to_eqn(logger),
             ))),
-            "\\vec" => Equation::Variable(Variable::Vector(self.parameters.remove(0).name)),
+            "\\vec" | "\\hat" => {
+                if self.superscript.is_none() {
+                    Equation::Variable(Variable::Vector(self.parameters.remove(0).name_with_subscript()))
+                }
+                else{
+                    let power = unsafe{self.superscript.unwrap_unchecked()};
+                    self.superscript = None;
+                    Equation::Power(Box::new((self.ir_to_eqn(logger), power.ir_to_eqn(logger))))
+                }
+            },
+            "\\frac" => {
+                if self.parameters.len() < 2{
+                    crit!(logger, "Fraction supplied with less than two arguments");
+                    panic!();
+                }
+                else{
+                    let first = self.parameters.remove(0);
+                    let second = self.parameters.remove(0);
+                    if self.parameters.len() > 0{
+                        let mut parameters_unparsed = vec!();
+                        std::mem::swap(&mut self.parameters, &mut parameters_unparsed);
+                        let mut parameters = vec!();
+                        for param in parameters_unparsed{
+                            parameters.push(param.ir_to_eqn(logger));
+                        }
+                        parameters.push(Equation::Division(Box::new((first.ir_to_eqn(logger), second.ir_to_eqn(logger)))));
+                        return Equation::Multiplication(parameters);
+                    }
+                    else{
+                        return Equation::Division(Box::new((first.ir_to_eqn(logger), second.ir_to_eqn(logger))))
+                    }
+                }
+            }
+            "*" => {
+                return Equation::Multiplication(self.parameters.into_iter().map(|x| x.ir_to_eqn(logger)).collect::<Vec<_>>())
+            }
+            "+" => {
+                if self.parameters.len() != 2{
+                    crit!(logger, "Invalid addition, not two paramters");
+                    panic!();
+                }
+                else{
+                    return Equation::Addition(vec!(self.parameters.remove(0).ir_to_eqn(logger),self.parameters.remove(0).ir_to_eqn(logger)));
+                }
+            }
+            "-" => {
+                if self.parameters.len() != 2{
+                    crit!(logger, "Invalid addition, not two paramters");
+                    panic!();
+                }
+                else{
+                    return Equation::Subtraction(vec!(self.parameters.remove(0).ir_to_eqn(logger),self.parameters.remove(0).ir_to_eqn(logger)));
+                }
+            }
             other => {
                 info!(logger, "{}, params: {}", other, self.parameters.len());
-
-                return Equation::Variable(Variable::Letter(String::from(other)));
+                debug!(logger, "{:?}", self);
+                if self.parameters.len() > 0 {
+                    let mut parameters_unparsed = vec!();
+                    std::mem::swap(&mut self.parameters, &mut parameters_unparsed);
+                    let mut parameters = vec!();
+                    for param in parameters_unparsed{
+                        parameters.push(param.ir_to_eqn(logger));
+                    }
+                    let function = if self.superscript.is_none(){
+                        Equation::Variable(Variable::Letter(self.name_with_subscript()))}
+                    else{
+                        let power = unsafe{self.superscript.unwrap_unchecked()};
+                        self.superscript = None;
+                        Equation::Power(Box::new((self.ir_to_eqn(logger), power.ir_to_eqn(logger))))
+                    };
+                    parameters.push(function);
+                    return Equation::Multiplication(parameters);
+                }
+                return Equation::Variable(Variable::Letter(String::from(self.name_with_subscript())));
             }
         };
+    }
+    pub fn name_with_subscript(self) -> String{
+        let mut name = self.name;
+        if self.subscript.is_some() {
+            name.push('_');
+            name.push_str(unsafe{&self.subscript.unwrap_unchecked().name});
+        }
+        return name;
     }
 }
 
