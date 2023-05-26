@@ -1,3 +1,4 @@
+use std::env::var;
 use crate::math::{Constant, Equation, Variable};
 use slog::{crit, debug, info, Logger};
 use std::ops::Add;
@@ -258,6 +259,7 @@ impl LatexEqnIR {
                 info!(logger, "{}, params: {}", other, self.parameters.len());
                 debug!(logger, "{:?}", self);
                 if self.parameters.len() > 0 {
+                    let isinvalid = other == "";
                     let mut parameters_unparsed = vec![];
                     std::mem::swap(&mut self.parameters, &mut parameters_unparsed);
                     let mut parameters = vec![];
@@ -266,13 +268,71 @@ impl LatexEqnIR {
                     }
                     let function = if self.superscript.is_none() {
                         Equation::Variable(Variable::Letter(self.name_with_subscript()))
-                    } else {
+                    } else if !other.contains(&['1','2','3','4','5','6','7','8','9','0']){
                         let power = unsafe { self.superscript.unwrap_unchecked() };
                         self.superscript = None;
                         Equation::Power(Box::new((self.ir_to_eqn(logger), power.ir_to_eqn(logger))))
+                    } else{
+                        todo!("IsNumber");
                     };
-                    parameters.push(function);
+                    if !isinvalid{
+                        parameters.push(function);
+                    }
                     return Equation::Multiplication(parameters);
+                }
+                if other.contains(&['1','2','3','4','5','6','7','8','9','0']){
+                    let mut individual_variables = vec!();
+                    let mut last_combined = vec!();
+                    for char in other.chars(){
+                        if Self::is_number(&char){
+                            if last_combined.len() == 0 || Self::is_number(&last_combined[last_combined.len()-1]){
+                                last_combined.push(char);
+                            }
+                            else{
+                                individual_variables.push(last_combined.iter().collect::<String>());
+                                last_combined = vec!(char)
+                            }
+                        }
+                        else{
+                            if last_combined.len() == 0 || !Self::is_number(&last_combined[last_combined.len()-1]){
+                                last_combined.push(char);
+                            }
+                            else{
+                                individual_variables.push(last_combined.iter().collect::<String>());
+                                last_combined=vec!(char)
+                            }
+                        }
+                    }
+                    if last_combined.len() != 0{
+                        individual_variables.push(last_combined.iter().collect::<String>())
+                    }
+                    if individual_variables.len() == 1{
+                        let integer = match individual_variables[0].parse::<i32>(){
+                            Ok(int) => {int}
+                            Err(error) => {
+                                crit!(logger, "Failed to parse integer, {}", error);
+                                panic!();
+                            }
+                        };
+                        return Equation::Variable(Variable::Integer(integer))
+                    }
+                    let mut parsed_eqs = vec!();
+                    for variable in individual_variables{
+                        //Suboptimal check, may be improved later
+                        if Self::is_number(&variable.chars().collect::<Vec<_>>()[0]){
+                            let number = match variable.parse::<i32>() {
+                                Ok(int) => { int }
+                                Err(error) => {
+                                    crit!(logger, "Failed to parse integer, {}", error);
+                                    panic!();
+                                }
+                            };
+                            parsed_eqs.push(Equation::Variable(Variable::Integer(number)))
+                        }else{
+                            parsed_eqs.push(Equation::Variable(Variable::Letter(variable)))
+                        };
+                    }
+                    return Equation::Multiplication(parsed_eqs);
                 }
                 return Equation::Variable(Variable::Letter(String::from(
                     self.name_with_subscript(),
@@ -287,6 +347,9 @@ impl LatexEqnIR {
             name.push_str(unsafe { &self.subscript.unwrap_unchecked().name });
         }
         return name;
+    }
+    fn is_number(char : &char) -> bool{
+        return ['1','2','3','4','5','6','7','8','9','0'].contains(char);
     }
 }
 
