@@ -2,5 +2,6 @@
 
 members = [
     "fishrambeta-cli",
-    "fishrambeta"
+    "fishrambeta",
+    "fishrambeta-wasm"
 ]

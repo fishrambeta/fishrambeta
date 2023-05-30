@@ -45,7 +45,13 @@ impl Symbol for Equation {
 
     fn calculate(self: &Self, values: &HashMap<Variable, f64>) -> f64 {
         match self {
-            Equation::Variable(variable) => return values[&variable],
+            Equation::Variable(variable) => {
+                match variable {
+                    Variable::Integer(integer) => return *integer as f64,
+                    _ => {}
+                }
+                return values[&variable];
+            }
             Equation::Addition(addition) => {
                 return addition.iter().map(|x| x.calculate(&values)).sum()
             }

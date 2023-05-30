@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>hello-wasm example</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, { simplify } from "./pkg/fishrambeta_wasm.js";
+      init().then(() => {
+        console.log(simplify("1+1"));
+      });
+    </script>
+  </body>
+</html>
+
