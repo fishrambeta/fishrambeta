@@ -1,12 +1,11 @@
 [package]
-name = "fishrambeta"
+name = "fishrambeta-cli"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-slog = "2.7.0"
-slog-async = "2.7.0"
-slog-term = "2.9.0"
+clap = { version = "4.1.8", features = ["derive"] }
+fishrambeta = {path="../fishrambeta"}
 clap-verbosity-flag = "2.0.1"

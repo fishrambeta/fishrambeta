@@ -1,11 +1,8 @@
-mod logger;
-mod math;
-mod parser;
-
 use std::collections::HashMap;
-use crate::math::{Constant, Equation, Symbol, Variable};
+use fishrambeta::math::{Constant, Equation, Symbol, Variable};
 use clap::Parser;
 use clap::ValueEnum;
+use fishrambeta::{logger, parser};
 
 #[derive(Parser, Debug)]
 pub struct Args {
