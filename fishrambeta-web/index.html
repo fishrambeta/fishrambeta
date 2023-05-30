@@ -3,13 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <title>hello-wasm example</title>
+    <link rel="stylesheet" href="./mathquill/mathquill.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="./mathquill/mathquill.js"></script>
+    <script>
+    var MQ = MathQuill.getInterface(2);
+    </script>
   </head>
   <body>
     <script type="module">
-      import init, { simplify } from "./pkg/fishrambeta_wasm.js";
+      import init, { simplify, calculate } from "./pkg/fishrambeta_wasm.js";
       init().then(() => {
-        console.log(simplify("1+1"));
+        window.calculate = calculate;
       });
+    </script>
+
+    <p><span id="equation"></span></p>
+    <input id="calculate" type="button" value="calculate" onclick="do_calculate();" />
+    <p id="result"><p>
+    <script>
+      var equation_span = document.getElementById('equation');
+      var equation_mathfield = MQ.MathField(equation_span, {
+        handlers: {
+          edit: function(){
+            do_calculate();
+          }
+        }
+      });
+      
+      function do_calculate(){
+        var equation = equation_mathfield.latex();
+        var result = calculate(equation);
+        var result_text = document.getElementById("result");
+        result_text.innerHTML = result;
+      }
+
     </script>
   </body>
 </html>
