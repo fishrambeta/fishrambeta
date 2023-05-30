@@ -348,14 +348,124 @@ impl LatexEqnIR {
         }
         return name;
     }
-    fn is_number(char : &char) -> bool{
-        return ['1','2','3','4','5','6','7','8','9','0'].contains(char);
+    fn is_number(char : &char) -> bool {
+        return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].contains(char);
+    }
+    pub fn eqn_to_ir(eqn: Equation, logger: &Logger, depth: u32) -> LatexEqnIR {
+        return match eqn {
+            Equation::Variable(var) => {
+                match var {
+                    Variable::Constant(constant) => {
+                        match constant {
+                            Constant::E => LatexEqnIR { name: String::from("e"), depth, parameters: vec!(), superscript: None, subscript: None },
+                            Constant::PI => LatexEqnIR { name: String::from("\\pi"), depth, parameters: vec!(), superscript: None, subscript: None },
+                        }
+                    }
+                    Variable::Letter(name) => {
+                        return LatexEqnIR { name, depth, parameters: vec!(), superscript: None, subscript: None }
+                    }
+                    Variable::Vector(name) => {
+                        return LatexEqnIR { name: String::from("\\vec"), parameters: vec!(LatexEqnIR { name, depth: depth + 1, subscript: None, superscript: None, parameters: vec!() }), depth, superscript: None, subscript: None }
+                    }
+                    Variable::Integer(int) => {
+                        return LatexEqnIR { name: int.to_string(), parameters: vec!(), depth, superscript: None, subscript: None }
+                    }
+                    Variable::Rational((p, q)) => {
+                        return LatexEqnIR {
+                            name: String::from("\\frac"),
+                            parameters: vec!(
+                                LatexEqnIR { name: p.to_string(), depth: depth + 1, subscript: None, superscript: None, parameters: vec!() },
+                                LatexEqnIR { name: q.to_string(), depth: depth + 1, subscript: None, superscript: None, parameters: vec!() },
+                            ),
+                            depth,
+                            superscript: None,
+                            subscript: None
+                        }
+                    }
+                }
+            }
+            Equation::Addition(additions) => {
+                let mut parameters = vec!();
+                for parameter in additions {
+                    parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
+                }
+                LatexEqnIR {
+                    name: String::from("+"),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
+            }
+            Equation::Subtraction(subtractions) => {
+                let mut parameters = vec!();
+                for parameter in subtractions {
+                    parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
+                }
+                LatexEqnIR {
+                    name: String::from("-"),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
+            }
+            Equation::Multiplication(multiplications) => {
+                let mut parameters = vec!();
+                for parameter in multiplications {
+                    parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
+                }
+                LatexEqnIR {
+                    name: String::from("*"),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
+            }
+            Equation::Division(division) => {
+                let division = *division;
+                let parameters = vec!(Self::eqn_to_ir(division.0, logger, depth + 1), Self::eqn_to_ir(division.1, logger, depth + 1));
+                LatexEqnIR { name: String::from("\\frac"), depth, superscript: None, subscript: None, parameters }
+            }
+            Equation::Equals(statements) => {
+                let statements = *statements;
+                let parameters = vec!(Self::eqn_to_ir(statements.0, logger, depth + 1), Self::eqn_to_ir(statements.1, logger, depth + 1));
+                LatexEqnIR { name: String::from("="), depth, superscript: None, subscript: None, parameters }
+            }
+            Equation::Power(params) => {
+                let params = *params;
+                let parameters = vec!(Self::eqn_to_ir(params.0, logger, depth + 1), Self::eqn_to_ir(params.1, logger, depth + 1));
+                LatexEqnIR { name: String::from("^"), depth, superscript: None, subscript: None, parameters }
+            }
+        }
+    }
+    pub fn ir_to_latex(ir: LatexEqnIR, logger: &Logger) -> String {
+        let mut ir = ir;
+        return match &*ir.name {
+            "*" => {
+                let mut latex = String::from(ir.parameters.remove(0).name_with_subscript());
+                for parameters in ir.parameters.into_iter() {
+                    latex.push('*');
+                    latex.push_str(&*Self::ir_to_latex(parameters, logger))
+                }
+                return latex
+            }
+            "\\frac" => {
+                return format!("\\frac{}{}", Self::ir_to_latex(ir.parameters.remove(0), logger), Self::ir_to_latex(ir.parameters.remove(0), logger))
+            }
+
+            _ => { todo!() }
+        }
     }
 }
-
 pub fn to_equation(latex: String, logger: &Logger) -> Equation {
     let ir = latex_to_ir(latex, logger);
     return ir_to_eqn(ir, logger);
+}
+pub fn to_latex(eqn: Equation, logger: &Logger) -> String {
+    let ir = eqn_to_ir(eqn, logger);
+    return LatexEqnIR::ir_to_latex(ir, logger);
 }
 fn latex_to_ir(latex: String, logger: &Logger) -> LatexEqnIR {
     return LatexEqnIR::latex_to_ir(
@@ -369,6 +479,9 @@ fn latex_to_ir(latex: String, logger: &Logger) -> LatexEqnIR {
 }
 fn ir_to_eqn(ir: LatexEqnIR, logger: &Logger) -> Equation {
     return ir.ir_to_eqn(logger);
+}
+fn eqn_to_ir(eqn: Equation, logger: &Logger) -> LatexEqnIR {
+    return LatexEqnIR::eqn_to_ir(eqn, logger, 1);
 }
 fn preprocess(latex: String) -> String {
     //return latex;
