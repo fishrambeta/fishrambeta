@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::ptr::eq;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
@@ -48,6 +47,9 @@ impl Symbol for Equation {
             Equation::Variable(variable) => {
                 match variable {
                     Variable::Integer(integer) => return *integer as f64,
+                    Variable::Rational(rational) => {
+                        return (rational.0 as f64) / (rational.1 as f64)
+                    }
                     _ => {}
                 }
                 return values[&variable];

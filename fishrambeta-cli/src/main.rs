@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use fishrambeta::math::{Constant, Equation, Symbol, Variable};
 use clap::Parser;
 use clap::ValueEnum;
+use fishrambeta::math::{Constant, Equation, Symbol, Variable};
 use fishrambeta::{logger, parser};
+use std::collections::HashMap;
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -31,7 +31,6 @@ enum Result {
     Value(f64),
 }
 
-
 fn main() {
     let args = Args::parse();
     let logger = logger::new(args.log_out, args.verbose);
@@ -45,7 +44,11 @@ fn main() {
     println!("{:?}", result);
 }
 
-fn process_operation(equation: Equation, operation: Operation, value_dict: HashMap<Variable, f64>) -> Result {
+fn process_operation(
+    equation: Equation,
+    operation: Operation,
+    value_dict: HashMap<Variable, f64>,
+) -> Result {
     match operation {
         Operation::Simplify => return Result::Equation(equation.simplify().simplify().simplify()),
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
