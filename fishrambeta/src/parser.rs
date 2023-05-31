@@ -1,6 +1,6 @@
-use std::env::var;
 use crate::math::{Constant, Equation, Variable};
 use slog::{crit, debug, info, Logger};
+use std::env::var;
 use std::ops::Add;
 
 #[derive(Debug, Clone)]
@@ -268,48 +268,49 @@ impl LatexEqnIR {
                     }
                     let function = if self.superscript.is_none() {
                         Equation::Variable(Variable::Letter(self.name_with_subscript()))
-                    } else if !other.contains(&['1','2','3','4','5','6','7','8','9','0']){
+                    } else if !other.contains(&['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']) {
                         let power = unsafe { self.superscript.unwrap_unchecked() };
                         self.superscript = None;
                         Equation::Power(Box::new((self.ir_to_eqn(logger), power.ir_to_eqn(logger))))
-                    } else{
+                    } else {
                         todo!("IsNumber");
                     };
-                    if !isinvalid{
+                    if !isinvalid {
                         parameters.push(function);
                     }
                     return Equation::Multiplication(parameters);
                 }
-                if other.contains(&['1','2','3','4','5','6','7','8','9','0']){
-                    let mut individual_variables = vec!();
-                    let mut last_combined = vec!();
-                    for char in other.chars(){
-                        if Self::is_number(&char){
-                            if last_combined.len() == 0 || Self::is_number(&last_combined[last_combined.len()-1]){
+                if other.contains(&['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']) {
+                    let mut individual_variables = vec![];
+                    let mut last_combined = vec![];
+                    for char in other.chars() {
+                        if Self::is_number(&char) {
+                            if last_combined.len() == 0
+                                || Self::is_number(&last_combined[last_combined.len() - 1])
+                            {
                                 last_combined.push(char);
-                            }
-                            else{
+                            } else {
                                 individual_variables.push(last_combined.iter().collect::<String>());
-                                last_combined = vec!(char)
+                                last_combined = vec![char]
                             }
-                        }
-                        else{
-                            if last_combined.len() == 0 || !Self::is_number(&last_combined[last_combined.len()-1]){
+                        } else {
+                            if last_combined.len() == 0
+                                || !Self::is_number(&last_combined[last_combined.len() - 1])
+                            {
                                 last_combined.push(char);
-                            }
-                            else{
+                            } else {
                                 individual_variables.push(last_combined.iter().collect::<String>());
-                                last_combined=vec!(char)
+                                last_combined = vec![char]
                             }
                         }
                     }
-                    if last_combined.len() != 0{
+                    if last_combined.len() != 0 {
                         individual_variables.push(last_combined.iter().collect::<String>())
                     }
-                    if individual_variables.len() == 1{
+                    if individual_variables.len() == 1 {
                         return if !individual_variables[0].contains('.') {
                             let integer = match individual_variables[0].parse::<i32>() {
-                                Ok(int) => { int }
+                                Ok(int) => int,
                                 Err(error) => {
                                     crit!(logger, "Failed to parse integer, {}", error);
                                     panic!();
@@ -318,21 +319,25 @@ impl LatexEqnIR {
                             Equation::Variable(Variable::Integer(integer))
                         } else {
                             Self::parse_float(individual_variables[0].clone(), logger)
-                        }
+                        };
                     }
-                    let mut parsed_eqs = vec!();
-                    for variable in individual_variables{
+                    let mut parsed_eqs = vec![];
+                    for variable in individual_variables {
                         //Suboptimal check, may be improved later
-                        if Self::is_number(&variable.chars().collect::<Vec<_>>()[0]){
-                            let number = if variable.contains('.'){ Self::parse_float(variable, logger)} else {match variable.parse::<i32>() {
-                                Ok(int) => { Equation::Variable(Variable::Integer(int)) }
-                                Err(error) => {
-                                    crit!(logger, "Failed to parse integer, {}", error);
-                                    panic!();
+                        if Self::is_number(&variable.chars().collect::<Vec<_>>()[0]) {
+                            let number = if variable.contains('.') {
+                                Self::parse_float(variable, logger)
+                            } else {
+                                match variable.parse::<i32>() {
+                                    Ok(int) => Equation::Variable(Variable::Integer(int)),
+                                    Err(error) => {
+                                        crit!(logger, "Failed to parse integer, {}", error);
+                                        panic!();
+                                    }
                                 }
-                            }};
+                            };
                             parsed_eqs.push(number);
-                        }else{
+                        } else {
                             parsed_eqs.push(Equation::Variable(Variable::Letter(variable)))
                         };
                     }
@@ -352,44 +357,88 @@ impl LatexEqnIR {
         }
         return name;
     }
-    fn is_number(char : &char) -> bool {
+    fn is_number(char: &char) -> bool {
         return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'].contains(char);
     }
     pub fn eqn_to_ir(eqn: Equation, logger: &Logger, depth: u32) -> LatexEqnIR {
         return match eqn {
-            Equation::Variable(var) => {
-                match var {
-                    Variable::Constant(constant) => {
-                        match constant {
-                            Constant::E => LatexEqnIR { name: String::from("e"), depth, parameters: vec!(), superscript: None, subscript: None },
-                            Constant::PI => LatexEqnIR { name: String::from("\\pi"), depth, parameters: vec!(), superscript: None, subscript: None },
-                        }
-                    }
-                    Variable::Letter(name) => {
-                        return LatexEqnIR { name, depth, parameters: vec!(), superscript: None, subscript: None }
-                    }
-                    Variable::Vector(name) => {
-                        return LatexEqnIR { name: String::from("\\vec"), parameters: vec!(LatexEqnIR { name, depth: depth + 1, subscript: None, superscript: None, parameters: vec!() }), depth, superscript: None, subscript: None }
-                    }
-                    Variable::Integer(int) => {
-                        return LatexEqnIR { name: int.to_string(), parameters: vec!(), depth, superscript: None, subscript: None }
-                    }
-                    Variable::Rational((p, q)) => {
-                        return LatexEqnIR {
-                            name: String::from("\\frac"),
-                            parameters: vec!(
-                                LatexEqnIR { name: p.to_string(), depth: depth + 1, subscript: None, superscript: None, parameters: vec!() },
-                                LatexEqnIR { name: q.to_string(), depth: depth + 1, subscript: None, superscript: None, parameters: vec!() },
-                            ),
-                            depth,
-                            superscript: None,
-                            subscript: None
-                        }
+            Equation::Variable(var) => match var {
+                Variable::Constant(constant) => match constant {
+                    Constant::E => LatexEqnIR {
+                        name: String::from("e"),
+                        depth,
+                        parameters: vec![],
+                        superscript: None,
+                        subscript: None,
+                    },
+                    Constant::PI => LatexEqnIR {
+                        name: String::from("\\pi"),
+                        depth,
+                        parameters: vec![],
+                        superscript: None,
+                        subscript: None,
+                    },
+                },
+                Variable::Letter(name) => {
+                    return LatexEqnIR {
+                        name,
+                        depth,
+                        parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     }
                 }
-            }
+                Variable::Vector(name) => {
+                    return LatexEqnIR {
+                        name: String::from("\\vec"),
+                        parameters: vec![LatexEqnIR {
+                            name,
+                            depth: depth + 1,
+                            subscript: None,
+                            superscript: None,
+                            parameters: vec![],
+                        }],
+                        depth,
+                        superscript: None,
+                        subscript: None,
+                    }
+                }
+                Variable::Integer(int) => {
+                    return LatexEqnIR {
+                        name: int.to_string(),
+                        parameters: vec![],
+                        depth,
+                        superscript: None,
+                        subscript: None,
+                    }
+                }
+                Variable::Rational((p, q)) => {
+                    return LatexEqnIR {
+                        name: String::from("\\frac"),
+                        parameters: vec![
+                            LatexEqnIR {
+                                name: p.to_string(),
+                                depth: depth + 1,
+                                subscript: None,
+                                superscript: None,
+                                parameters: vec![],
+                            },
+                            LatexEqnIR {
+                                name: q.to_string(),
+                                depth: depth + 1,
+                                subscript: None,
+                                superscript: None,
+                                parameters: vec![],
+                            },
+                        ],
+                        depth,
+                        superscript: None,
+                        subscript: None,
+                    }
+                }
+            },
             Equation::Addition(additions) => {
-                let mut parameters = vec!();
+                let mut parameters = vec![];
                 for parameter in additions {
                     parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
                 }
@@ -402,7 +451,7 @@ impl LatexEqnIR {
                 }
             }
             Equation::Subtraction(subtractions) => {
-                let mut parameters = vec!();
+                let mut parameters = vec![];
                 for parameter in subtractions {
                     parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
                 }
@@ -415,7 +464,7 @@ impl LatexEqnIR {
                 }
             }
             Equation::Multiplication(multiplications) => {
-                let mut parameters = vec!();
+                let mut parameters = vec![];
                 for parameter in multiplications {
                     parameters.push(Self::eqn_to_ir(parameter, logger, depth + 1))
                 }
@@ -429,20 +478,47 @@ impl LatexEqnIR {
             }
             Equation::Division(division) => {
                 let division = *division;
-                let parameters = vec!(Self::eqn_to_ir(division.0, logger, depth + 1), Self::eqn_to_ir(division.1, logger, depth + 1));
-                LatexEqnIR { name: String::from("\\frac"), depth, superscript: None, subscript: None, parameters }
+                let parameters = vec![
+                    Self::eqn_to_ir(division.0, logger, depth + 1),
+                    Self::eqn_to_ir(division.1, logger, depth + 1),
+                ];
+                LatexEqnIR {
+                    name: String::from("\\frac"),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
             }
             Equation::Equals(statements) => {
                 let statements = *statements;
-                let parameters = vec!(Self::eqn_to_ir(statements.0, logger, depth + 1), Self::eqn_to_ir(statements.1, logger, depth + 1));
-                LatexEqnIR { name: String::from("="), depth, superscript: None, subscript: None, parameters }
+                let parameters = vec![
+                    Self::eqn_to_ir(statements.0, logger, depth + 1),
+                    Self::eqn_to_ir(statements.1, logger, depth + 1),
+                ];
+                LatexEqnIR {
+                    name: String::from("="),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
             }
             Equation::Power(params) => {
                 let params = *params;
-                let parameters = vec!(Self::eqn_to_ir(params.0, logger, depth + 1), Self::eqn_to_ir(params.1, logger, depth + 1));
-                LatexEqnIR { name: String::from("^"), depth, superscript: None, subscript: None, parameters }
+                let parameters = vec![
+                    Self::eqn_to_ir(params.0, logger, depth + 1),
+                    Self::eqn_to_ir(params.1, logger, depth + 1),
+                ];
+                LatexEqnIR {
+                    name: String::from("^"),
+                    depth,
+                    superscript: None,
+                    subscript: None,
+                    parameters,
+                }
             }
-        }
+        };
     }
     pub fn ir_to_latex(ir: LatexEqnIR, logger: &Logger) -> String {
         let mut ir = ir;
@@ -453,26 +529,35 @@ impl LatexEqnIR {
                     latex.push('*');
                     latex.push_str(&*Self::ir_to_latex(parameters, logger))
                 }
-                return latex
+                return latex;
             }
             "\\frac" => {
-                return format!("\\frac{}{}", Self::ir_to_latex(ir.parameters.remove(0), logger), Self::ir_to_latex(ir.parameters.remove(0), logger))
+                return format!(
+                    "\\frac{}{}",
+                    Self::ir_to_latex(ir.parameters.remove(0), logger),
+                    Self::ir_to_latex(ir.parameters.remove(0), logger)
+                )
             }
 
-            _ => { todo!() }
-        }
+            _ => {
+                todo!()
+            }
+        };
     }
-    pub fn parse_float(number: String, logger : &Logger) -> Equation{
+    pub fn parse_float(number: String, logger: &Logger) -> Equation {
         let splits = number.split('.').collect::<Vec<_>>();
-        if splits.len() != 2{
+        if splits.len() != 2 {
             crit!(logger, "Invalid number passed");
             panic!();
         }
         let (lhs, rhs) = (splits[0], splits[1]);
-        let denominator: i32= 10i32.pow(rhs.len() as u32);
+        let denominator: i32 = 10i32.pow(rhs.len() as u32);
         let mut nominator = String::from(lhs);
         nominator.push_str(rhs);
-        return Equation::Variable(Variable::Rational((nominator.parse::<i32>().unwrap(),denominator)));
+        return Equation::Variable(Variable::Rational((
+            nominator.parse::<i32>().unwrap(),
+            denominator,
+        )));
     }
 }
 pub fn to_equation(latex: String, logger: &Logger) -> Equation {

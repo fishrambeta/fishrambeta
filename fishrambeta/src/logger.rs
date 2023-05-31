@@ -9,7 +9,7 @@ use std::io::Write;
 pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosity>) -> Logger {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
-    let llv = match verbosity{
+    let llv = match verbosity {
         Some(verbosity) => verbosity.log_level_filter(),
         None => LevelFilter::Debug,
     };
@@ -51,10 +51,10 @@ pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosi
     return logger;
 }
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosity>) -> Logger{
+pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosity>) -> Logger {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
-    let llv = match verbosity{
+    let llv = match verbosity {
         Some(verbosity) => verbosity.log_level_filter(),
         None => LevelFilter::Debug,
     };
@@ -67,6 +67,6 @@ pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosi
         LevelFilter::Trace => Level::Trace,
     };
     let async_term_drain =
-    slog::LevelFilter::new(Async::new(term_drain).build().fuse(), log_level).fuse();
+        slog::LevelFilter::new(Async::new(term_drain).build().fuse(), log_level).fuse();
     Logger::root(async_term_drain, o!())
 }
