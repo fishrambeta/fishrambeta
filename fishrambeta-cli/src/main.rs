@@ -33,7 +33,7 @@ enum Result {
 
 fn main() {
     let args = Args::parse();
-    let logger = logger::new(args.log_out, args.verbose);
+    let logger = logger::new(args.log_out, Some(args.verbose));
     let equation = parser::to_equation(args.equation, &logger);
 
     let mut value_dict: HashMap<Variable, f64> = HashMap::new();

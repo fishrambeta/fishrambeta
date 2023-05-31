@@ -6,10 +6,14 @@ use std::fs::OpenOptions;
 use std::io::Write;
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
-pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> Logger {
+pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosity>) -> Logger {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
-    let log_level = match verbosity.log_level_filter() {
+    let llv = match verbosity{
+        Some(verbosity) => verbosity.log_level_filter(),
+        None => LevelFilter::Debug,
+    };
+    let log_level = match llv {
         LevelFilter::Off => Level::Critical,
         LevelFilter::Error => Level::Error,
         LevelFilter::Warn => Level::Warning,
@@ -47,10 +51,14 @@ pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> 
     return logger;
 }
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-pub fn new(f_out: Option<String>) -> Logger{
+pub fn new(f_out: Option<String>, verbosity: Option<clap_verbosity_flag::Verbosity>) -> Logger{
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
-    let log_level = match verbosity.log_level_filter() {
+    let llv = match verbosity{
+        Some(verbosity) => verbosity.log_level_filter(),
+        None => LevelFilter::Debug,
+    };
+    let log_level = match llv {
         LevelFilter::Off => Level::Critical,
         LevelFilter::Error => Level::Error,
         LevelFilter::Warn => Level::Warning,
