@@ -591,7 +591,9 @@ fn preprocess(latex: String) -> String {
         .replace("\\bigg\\", "")
         .replace("\\biggl", "")
         .replace("\\bigg", "")
-        .replace("\\cdot", "*");
+        .replace("\\cdot", "*")
+        .replace("\\left", "")
+        .replace("\\right", "");
 }
 fn print_data(logger: &Logger, data: String, depth: u32) {
     let mut formatted = String::new();
