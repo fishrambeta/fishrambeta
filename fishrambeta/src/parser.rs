@@ -307,27 +307,31 @@ impl LatexEqnIR {
                         individual_variables.push(last_combined.iter().collect::<String>())
                     }
                     if individual_variables.len() == 1{
-                        let integer = match individual_variables[0].parse::<i32>(){
-                            Ok(int) => {int}
-                            Err(error) => {
-                                crit!(logger, "Failed to parse integer, {}", error);
-                                panic!();
-                            }
-                        };
-                        return Equation::Variable(Variable::Integer(integer))
-                    }
-                    let mut parsed_eqs = vec!();
-                    for variable in individual_variables{
-                        //Suboptimal check, may be improved later
-                        if Self::is_number(&variable.chars().collect::<Vec<_>>()[0]){
-                            let number = match variable.parse::<i32>() {
+                        return if !individual_variables[0].contains('.') {
+                            let integer = match individual_variables[0].parse::<i32>() {
                                 Ok(int) => { int }
                                 Err(error) => {
                                     crit!(logger, "Failed to parse integer, {}", error);
                                     panic!();
                                 }
                             };
-                            parsed_eqs.push(Equation::Variable(Variable::Integer(number)))
+                            Equation::Variable(Variable::Integer(integer))
+                        } else {
+                            Self::parse_float(individual_variables[0].clone(), logger)
+                        }
+                    }
+                    let mut parsed_eqs = vec!();
+                    for variable in individual_variables{
+                        //Suboptimal check, may be improved later
+                        if Self::is_number(&variable.chars().collect::<Vec<_>>()[0]){
+                            let number = if variable.contains('.'){ Self::parse_float(variable, logger)} else {match variable.parse::<i32>() {
+                                Ok(int) => { Equation::Variable(Variable::Integer(int)) }
+                                Err(error) => {
+                                    crit!(logger, "Failed to parse integer, {}", error);
+                                    panic!();
+                                }
+                            }};
+                            parsed_eqs.push(number);
                         }else{
                             parsed_eqs.push(Equation::Variable(Variable::Letter(variable)))
                         };
@@ -349,7 +353,7 @@ impl LatexEqnIR {
         return name;
     }
     fn is_number(char : &char) -> bool {
-        return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].contains(char);
+        return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'].contains(char);
     }
     pub fn eqn_to_ir(eqn: Equation, logger: &Logger, depth: u32) -> LatexEqnIR {
         return match eqn {
@@ -457,6 +461,18 @@ impl LatexEqnIR {
 
             _ => { todo!() }
         }
+    }
+    pub fn parse_float(number: String, logger : &Logger) -> Equation{
+        let splits = number.split('.').collect::<Vec<_>>();
+        if splits.len() != 2{
+            crit!(logger, "Invalid number passed");
+            panic!();
+        }
+        let (lhs, rhs) = (splits[0], splits[1]);
+        let denominator: i32= 10i32.pow(rhs.len() as u32);
+        let mut nominator = String::from(lhs);
+        nominator.push_str(rhs);
+        return Equation::Variable(Variable::Rational((nominator.parse::<i32>().unwrap(),denominator)));
     }
 }
 pub fn to_equation(latex: String, logger: &Logger) -> Equation {

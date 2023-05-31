@@ -5,6 +5,7 @@ use slog_term::{CompactFormat, CountingWriter, FullFormat, PlainDecorator, TermD
 use std::fs::OpenOptions;
 use std::io::Write;
 
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> Logger {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
@@ -44,4 +45,20 @@ pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> 
     };
     info!(logger, "Using log level, {}", log_level);
     return logger;
+}
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> Logger{
+    let term_decorator = TermDecorator::new().build();
+    let term_drain = FullFormat::new(term_decorator).build().fuse();
+    let log_level = match verbosity.log_level_filter() {
+        LevelFilter::Off => Level::Critical,
+        LevelFilter::Error => Level::Error,
+        LevelFilter::Warn => Level::Warning,
+        LevelFilter::Info => Level::Info,
+        LevelFilter::Debug => Level::Debug,
+        LevelFilter::Trace => Level::Trace,
+    };
+    let async_term_drain =
+    slog::LevelFilter::new(Async::new(term_drain).build().fuse(), log_level).fuse();
+    Logger::root(async_term_drain, o!())
 }
