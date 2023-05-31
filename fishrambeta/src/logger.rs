@@ -47,7 +47,7 @@ pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> 
     return logger;
 }
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-pub fn new(f_out: Option<String>, verbosity: clap_verbosity_flag::Verbosity) -> Logger{
+pub fn new(f_out: Option<String>) -> Logger{
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
     let log_level = match verbosity.log_level_filter() {
