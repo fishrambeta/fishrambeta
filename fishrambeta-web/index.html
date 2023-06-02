@@ -90,10 +90,10 @@
       for (keyvaluepair of values_fields) {
         try {
           var key = keyvaluepair[0].latex() + "\\n\\n";
-          var value = parseFloat(keyvaluepair[1].latex())
+          var value = calculate(keyvaluepair[1].latex(), "", []);
           keys += key;
           values.push(value);
-        } catch {
+        } catch (e) {
         }
       }
       console.log(equation);
