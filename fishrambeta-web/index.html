@@ -26,13 +26,34 @@
     });
   </script>
 
+  <p>Equation</p>
   <p><span id="equation"></span></p>
-  <input id="calculate" type="button" value="calculate" onclick="do_calculate();" />
-  <p id="result">
-  <p>
-    <script>
-      var equation_span = document.getElementById('equation');
-      var equation_mathfield = MQ.MathField(equation_span, {
+  <p id="result"></p>
+  <p>Values</p>
+  <div id="values">
+
+  </div>
+  <script>
+    var equation_span = document.getElementById('equation');
+    var equation_mathfield = MQ.MathField(equation_span, {
+      spaceBehavesLikeTab: true,
+      handlers: {
+        edit: function () {
+          try {
+            do_calculate();
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+    });
+
+    var values_fields = [];
+    function add_new_value_field() {
+      var element = document.getElementById("values");
+      element.insertAdjacentHTML('afterbegin', '<p><span id="valuefieldkey' + values_fields.length + '"></span>=<span id="valuefieldvalue' + values_fields.length + '"></span></p>');
+      var key_span = document.getElementById('valuefieldkey' + values_fields.length);
+      var key_mathfield = MQ.MathField(key_span, {
         spaceBehavesLikeTab: true,
         handlers: {
           edit: function () {
@@ -44,15 +65,45 @@
         }
       });
 
-      function do_calculate() {
-        var equation = equation_mathfield.latex();
-        console.log(equation);
-        var result = calculate(equation);
-        var result_text = document.getElementById("result");
-        result_text.innerHTML = result;
-      }
+      var value_span = document.getElementById('valuefieldvalue' + values_fields.length);
+      var value_mathfield = MQ.MathField(value_span, {
+        spaceBehavesLikeTab: true,
+        handlers: {
+          edit: function () {
+            try {
+              do_calculate();
+            } catch {
+            }
+          }
+        }
+      });
+      values_fields.push([key_mathfield, value_mathfield]);
+    }
+    for (i = 0; i < 100; i++) {
+      add_new_value_field();
+    }
 
-    </script>
+    function do_calculate() {
+      var equation = equation_mathfield.latex();
+      keys = "";
+      values = [];
+      for (keyvaluepair of values_fields) {
+        try {
+          var key = keyvaluepair[0].latex() + "\\n\\n";
+          var value = parseFloat(keyvaluepair[1].latex())
+          keys += key;
+          values.push(value);
+        } catch {
+        }
+      }
+      console.log(equation);
+      var result = calculate(equation, keys, values);
+      console.log(result);
+      var result_text = document.getElementById("result");
+      result_text.innerHTML = result;
+    }
+
+  </script>
 </body>
 
 </html>
