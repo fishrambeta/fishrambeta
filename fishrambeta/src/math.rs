@@ -14,8 +14,8 @@ pub enum Equation {
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub enum Variable {
-    Integer(i32),
-    Rational((i32, i32)),
+    Integer(i64),
+    Rational((i64, i64)),
     Constant(Constant),
     Letter(String),
     Vector(String),
@@ -87,7 +87,7 @@ pub trait Symbol {
 }
 
 fn simpilify_addition(addition: Vec<Equation>) -> Equation {
-    let mut terms: HashMap<Equation, i32> = HashMap::new();
+    let mut terms: HashMap<Equation, i64> = HashMap::new();
     for equation in addition.iter() {
         let simplified = equation.clone().simplify();
         terms.insert(
@@ -117,7 +117,7 @@ fn simpilify_addition(addition: Vec<Equation>) -> Equation {
 }
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
-    let mut terms: HashMap<Equation, i32> = HashMap::new();
+    let mut terms: HashMap<Equation, i64> = HashMap::new();
     for equation in multiplication.iter() {
         let simplified = equation.clone().simplify();
         terms.insert(
