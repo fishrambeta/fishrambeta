@@ -16,6 +16,8 @@ pub struct Args {
     verbose: clap_verbosity_flag::Verbosity,
     #[arg(short, long)]
     log_out: Option<String>,
+    #[arg(long, default_value_t = false)]
+    implicit_multiplication: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -34,7 +36,7 @@ enum Result {
 fn main() {
     let args = Args::parse();
     let logger = logger::new(args.log_out, Some(args.verbose));
-    let equation = parser::to_equation(args.equation, &logger);
+    let equation = parser::to_equation(args.equation, &logger, args.implicit_multiplication);
 
     let mut value_dict: HashMap<Variable, f64> = HashMap::new();
     value_dict.insert(Variable::Letter("x".to_string()), 4.0);
