@@ -1,6 +1,6 @@
 use clap::Parser;
 use clap::ValueEnum;
-use fishrambeta::math::{Constant, Equation, Symbol, Variable};
+use fishrambeta::math::{Equation, Symbol, Variable};
 use fishrambeta::{logger, parser};
 use std::collections::HashMap;
 

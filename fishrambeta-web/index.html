@@ -1,44 +1,108 @@
 <!DOCTYPE html>
 <html lang="en-US">
-  <head>
-    <meta charset="utf-8" />
-    <title>hello-wasm example</title>
-    <link rel="stylesheet" href="./mathquill/mathquill.css"/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="./mathquill/mathquill.js"></script>
-    <script>
-    var MQ = MathQuill.getInterface(2);
-    </script>
-  </head>
-  <body>
-    <script type="module">
-      import init, { simplify, calculate } from "./pkg/fishrambeta_wasm.js";
-      init().then(() => {
-        window.calculate = calculate;
-      });
-    </script>
 
-    <p><span id="equation"></span></p>
-    <input id="calculate" type="button" value="calculate" onclick="do_calculate();" />
-    <p id="result"><p>
-    <script>
-      var equation_span = document.getElementById('equation');
-      var equation_mathfield = MQ.MathField(equation_span, {
-        handlers: {
-          edit: function(){
+<head>
+  <meta charset="utf-8" />
+  <title>Fishrambeta</title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css"
+    integrity="sha512-vPg9GqsZZ4LHv9BkFfZSXt7y4D7YaARPU2JFmpZug4EgtJJrumytMAFZkNSk2LSyqWir0TNbh2tBq7UJIMxvlA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.js"
+    integrity="sha512-7jEhcM7FbjGHo1ejs1iw1J8FxcnACx7Z3lG29gQ5vTBe2U/gaQpzwjzPCyg32zTwXCloQDdorpLufmu0nBIqnQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    var MQ = MathQuill.getInterface(2);
+  </script>
+</head>
+
+<body>
+  <script type="module">
+    import init, {simplify, calculate} from "./pkg/fishrambeta_wasm.js";
+    init().then(() => {
+      window.calculate = calculate;
+    });
+  </script>
+
+  <p>Equation</p>
+  <p><span id="equation"></span></p>
+  <p id="result"></p>
+  <p>Values</p>
+  <div id="values">
+
+  </div>
+  <script>
+    var equation_span = document.getElementById('equation');
+    var equation_mathfield = MQ.MathField(equation_span, {
+      spaceBehavesLikeTab: true,
+      handlers: {
+        edit: function () {
+          try {
             do_calculate();
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+    });
+
+    var values_fields = [];
+    function add_new_value_field() {
+      var element = document.getElementById("values");
+      element.insertAdjacentHTML('afterbegin', '<p><span id="valuefieldkey' + values_fields.length + '"></span>=<span id="valuefieldvalue' + values_fields.length + '"></span></p>');
+      var key_span = document.getElementById('valuefieldkey' + values_fields.length);
+      var key_mathfield = MQ.MathField(key_span, {
+        spaceBehavesLikeTab: true,
+        handlers: {
+          edit: function () {
+            try {
+              do_calculate();
+            } catch {
+            }
           }
         }
       });
-      
-      function do_calculate(){
-        var equation = equation_mathfield.latex();
-        var result = calculate(equation);
-        var result_text = document.getElementById("result");
-        result_text.innerHTML = result;
+
+      var value_span = document.getElementById('valuefieldvalue' + values_fields.length);
+      var value_mathfield = MQ.MathField(value_span, {
+        spaceBehavesLikeTab: true,
+        handlers: {
+          edit: function () {
+            try {
+              do_calculate();
+            } catch {
+            }
+          }
+        }
+      });
+      values_fields.push([key_mathfield, value_mathfield]);
+    }
+
+    add_new_value_field();
+
+    function do_calculate() {
+      var equation = equation_mathfield.latex();
+      keys = "";
+      values = [];
+      for (keyvaluepair of values_fields.reverse()) {
+        try {
+          var key = keyvaluepair[0].latex() + "\\n\\n";
+          var value = calculate(keyvaluepair[1].latex(), "", []);
+          keys += key;
+          values.push(value);
+        } catch (e) {
+        }
+        break;
       }
+      keys = keys.slice(0, -4);
+      var result = calculate(equation, keys, values);
+      var result_text = document.getElementById("result");
+      result_text.innerHTML = result;
+    }
 
-    </script>
-  </body>
+  </script>
+</body>
+
 </html>
-
