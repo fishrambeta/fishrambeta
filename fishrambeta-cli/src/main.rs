@@ -40,8 +40,17 @@ fn main() {
     value_dict.insert(Variable::Letter("x".to_string()), 4.0);
 
     println!("{:?}", equation);
-    let result = process_operation(equation, args.operation, value_dict);
-    println!("{:?}", result);
+    let result = process_operation(equation.clone(), args.operation, value_dict);
+    //println!("{:?}", result);
+    println!(
+        "{:?}",
+        equation
+            .differentiate(&Variable::Letter("x".to_string()))
+            .simplify()
+            .simplify()
+            .simplify()
+            .simplify()
+    );
 }
 
 fn process_operation(
