@@ -309,7 +309,7 @@ impl LatexEqnIR {
                     }
                     if individual_variables.len() == 1 {
                         return if !individual_variables[0].contains('.') {
-                            let integer = match individual_variables[0].parse::<i32>() {
+                            let integer = match individual_variables[0].parse::<i64>() {
                                 Ok(int) => int,
                                 Err(error) => {
                                     crit!(logger, "Failed to parse integer, {}", error);
@@ -328,7 +328,7 @@ impl LatexEqnIR {
                             let number = if variable.contains('.') {
                                 Self::parse_float(variable, logger)
                             } else {
-                                match variable.parse::<i32>() {
+                                match variable.parse::<i64>() {
                                     Ok(int) => Equation::Variable(Variable::Integer(int)),
                                     Err(error) => {
                                         crit!(logger, "Failed to parse integer, {}", error);
@@ -518,6 +518,9 @@ impl LatexEqnIR {
                     parameters,
                 }
             }
+            _ => {
+                todo!()
+            }
         };
     }
     pub fn ir_to_latex(ir: LatexEqnIR, logger: &Logger) -> String {
@@ -551,11 +554,11 @@ impl LatexEqnIR {
             panic!();
         }
         let (lhs, rhs) = (splits[0], splits[1]);
-        let denominator: i32 = 10i32.pow(rhs.len() as u32);
+        let denominator: i64 = 10i64.pow(rhs.len() as u32);
         let mut nominator = String::from(lhs);
         nominator.push_str(rhs);
         return Equation::Variable(Variable::Rational((
-            nominator.parse::<i32>().unwrap(),
+            nominator.parse::<i64>().unwrap(),
             denominator,
         )));
     }

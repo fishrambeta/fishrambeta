@@ -16,6 +16,8 @@ pub struct Args {
     verbose: clap_verbosity_flag::Verbosity,
     #[arg(short, long)]
     log_out: Option<String>,
+    #[arg(long, default_value_t = false)]
+    implicit_multiplication: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
