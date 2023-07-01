@@ -1,7 +1,7 @@
 use crate::math::{Constant, Equation, Variable};
 use slog::{crit, debug, info, Logger};
-use std::env::var;
-use std::ops::Add;
+
+
 
 #[derive(Debug, Clone)]
 struct LatexEqnIR {

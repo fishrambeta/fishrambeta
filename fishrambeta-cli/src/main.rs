@@ -1,6 +1,6 @@
 use clap::Parser;
 use clap::ValueEnum;
-use fishrambeta::math::{Equation, Symbol, Variable};
+use fishrambeta::math::{Equation, Variable};
 use fishrambeta::{logger, parser};
 use std::collections::HashMap;
 
@@ -42,7 +42,7 @@ fn main() {
     value_dict.insert(Variable::Letter("x".to_string()), 4.0);
 
     println!("{:?}", equation);
-    let result = process_operation(equation.clone(), args.operation, value_dict);
+    let _result = process_operation(equation.clone(), args.operation, value_dict);
     //println!("{:?}", result);
     println!(
         "{:?}",

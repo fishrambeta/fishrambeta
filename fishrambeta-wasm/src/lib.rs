@@ -1,10 +1,10 @@
 use fishrambeta::{
     self,
-    math::{Equation, Symbol, Variable},
+    math::{Variable},
     physicsvalues,
 };
 use slog::{o, Discard, Logger};
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
