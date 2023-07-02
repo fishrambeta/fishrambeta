@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::math::{Equation, Variable};
+use std::collections::HashMap;
 
 impl Equation {
     pub fn calculate(self: &Self, values: &HashMap<Variable, f64>) -> f64 {

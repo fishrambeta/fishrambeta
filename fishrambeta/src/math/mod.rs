@@ -1,5 +1,6 @@
 mod calculate;
 mod differentiate;
+mod multiply_by;
 mod simplify;
 mod to_latex;
 

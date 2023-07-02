@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::math::{Equation, Variable};
+use std::collections::HashMap;
 
 impl Equation {
     pub fn simplify(self) -> Self {
@@ -135,7 +135,14 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     if simplified_multiplication.len() == 1 {
         return simplified_multiplication[0].clone();
     }
-    return Equation::Multiplication(simplified_multiplication);
+
+    let mut more_simplified_multiplication: Vec<Equation> = Vec::new();
+    for equation in simplified_multiplication.iter().skip(1) {
+        more_simplified_multiplication
+            .push(equation.clone().multiply_by(&simplified_multiplication[0]));
+    }
+
+    return Equation::Multiplication(more_simplified_multiplication);
 }
 
 fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {

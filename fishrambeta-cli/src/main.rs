@@ -36,24 +36,18 @@ enum Result {
 fn main() {
     let args = Args::parse();
     let logger = logger::new(args.log_out, Some(args.verbose));
-    let equation = parser::to_equation(args.equation, &logger);
+    let mut equation = parser::to_equation(args.equation, &logger);
 
     let mut value_dict: HashMap<Variable, f64> = HashMap::new();
     value_dict.insert(Variable::Letter("x".to_string()), 4.0);
 
-    println!("{:?}", equation);
+    println!("{}", equation.to_latex());
     let _result = process_operation(equation.clone(), args.operation, value_dict);
-    //println!("{:?}", result);
-    println!(
-        "{}",
-        equation
-            .differentiate(&Variable::Letter("x".to_string()))
-            .simplify()
-            .simplify()
-            .simplify()
-            .simplify()
-            .to_latex()
-    );
+
+    for _ in 0..10 {
+        equation = equation.simplify();
+        println!("{}", equation.to_latex());
+    }
 }
 
 fn process_operation(

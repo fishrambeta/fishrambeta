@@ -1,8 +1,6 @@
 use crate::math::{Constant, Equation, Variable};
 use slog::{crit, debug, info, Logger};
 
-
-
 #[derive(Debug, Clone)]
 struct LatexEqnIR {
     name: String,

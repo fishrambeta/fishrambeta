@@ -98,4 +98,3 @@ fn differentiate_power(power: &Box<(Equation, Equation)>, differentiate_to: &Var
     let second_term = Equation::Addition(vec![g_f_accent, f_log_g_accent]);
     return Equation::Multiplication(vec![first_term, second_term]);
 }
-
