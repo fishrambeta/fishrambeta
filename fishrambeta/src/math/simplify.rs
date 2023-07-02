@@ -24,6 +24,10 @@ impl Equation {
             }
         }
     }
+
+    pub fn get_factors(&self) -> Vec<Equation> {
+        return Vec::new();
+    }
 }
 
 fn simplify_addition(addition: Vec<Equation>) -> Equation {

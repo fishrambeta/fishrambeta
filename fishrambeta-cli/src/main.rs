@@ -45,13 +45,14 @@ fn main() {
     let _result = process_operation(equation.clone(), args.operation, value_dict);
     //println!("{:?}", result);
     println!(
-        "{:?}",
+        "{}",
         equation
             .differentiate(&Variable::Letter("x".to_string()))
             .simplify()
             .simplify()
             .simplify()
             .simplify()
+            .to_latex()
     );
 }
 
