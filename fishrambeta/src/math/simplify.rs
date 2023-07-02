@@ -110,6 +110,14 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         if simplified == Equation::Variable(Variable::Integer(0)) {
             return Equation::Variable(Variable::Integer(0));
         } else if simplified != Equation::Variable(Variable::Integer(1)) {
+            if let Equation::Power(ref power) = simplified {
+                if let Equation::Variable(variable) = &power.1 {
+                    if let Variable::Integer(n) = variable {
+                        terms.insert(power.0.clone(), *terms.get(&simplified).unwrap_or(&0) + n);
+                        continue;
+                    }
+                }
+            }
             terms.insert(
                 simplified.clone(),
                 *terms.get(&simplified).unwrap_or(&0) + 1,
@@ -136,10 +144,15 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         return simplified_multiplication[0].clone();
     }
 
-    let more_simplified_multiplication: Equation =
-        Equation::Multiplication(simplified_multiplication.iter().skip(1).map(|x| x.clone()).collect::<Vec<_>>())
-            .multiply_by(&simplified_multiplication[0]); //TODO this performance can be improved by
-    //omitting the clone but I don't know how yet
+    let more_simplified_multiplication: Equation = Equation::Multiplication(
+        simplified_multiplication
+            .iter()
+            .skip(1)
+            .map(|x| x.clone())
+            .collect::<Vec<_>>(),
+    )
+    .multiply_by(&simplified_multiplication[0]); //TODO this performance can be improved by
+                                                 //omitting the clone but I don't know how yet
 
     return more_simplified_multiplication;
 }
