@@ -136,13 +136,12 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         return simplified_multiplication[0].clone();
     }
 
-    let mut more_simplified_multiplication: Vec<Equation> = Vec::new();
-    for equation in simplified_multiplication.iter().skip(1) {
-        more_simplified_multiplication
-            .push(equation.clone().multiply_by(&simplified_multiplication[0]));
-    }
+    let more_simplified_multiplication: Equation =
+        Equation::Multiplication(simplified_multiplication.iter().skip(1).map(|x| x.clone()).collect::<Vec<_>>())
+            .multiply_by(&simplified_multiplication[0]); //TODO this performance can be improved by
+    //omitting the clone but I don't know how yet
 
-    return Equation::Multiplication(more_simplified_multiplication);
+    return more_simplified_multiplication;
 }
 
 fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {

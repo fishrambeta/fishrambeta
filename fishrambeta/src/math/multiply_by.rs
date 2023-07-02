@@ -1,4 +1,5 @@
 use crate::math::{Equation, Variable};
+use std::iter;
 
 impl Equation {
     pub fn multiply_by(self: Self, by: &Self) -> Self {
@@ -31,6 +32,16 @@ impl Equation {
                 } else {
                     Equation::Multiplication(vec![by.clone(), Equation::Power(power)])
                 }
+            }
+            Equation::Multiplication(multiplication) => {
+                if multiplication.len() == 1 {
+                    return multiplication[0].clone().multiply_by(by);
+                }
+                let mut tmp = multiplication.clone();
+                tmp.push(by.clone());
+                println!("{}", multiplication.len());
+                println!("{}", Equation::Multiplication(tmp.clone()).to_latex());
+                return Equation::Multiplication(tmp);
             }
             equation => return Equation::Multiplication(vec![by.clone(), equation]),
         }
