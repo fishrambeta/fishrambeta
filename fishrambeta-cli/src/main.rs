@@ -1,7 +1,6 @@
 use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
-use fishrambeta::rational::Rational;
 use fishrambeta::{logger, parser};
 use std::collections::HashMap;
 
