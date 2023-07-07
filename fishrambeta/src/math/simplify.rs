@@ -3,6 +3,17 @@ use std::collections::HashMap;
 
 impl Equation {
     pub fn simplify(self) -> Self {
+        let calculated_wrapped = self.calculate_exact();
+        if calculated_wrapped.is_some() {
+            let calculated = calculated_wrapped.unwrap();
+            if calculated.is_integer() {
+                return Equation::Variable(Variable::Integer(calculated.to_integer()));
+            }
+            return Equation::Variable(Variable::Rational((
+                *calculated.numer(),
+                *calculated.denom(),
+            )));
+        }
         match self {
             Equation::Variable(variable) => return Equation::Variable(variable),
             Equation::Addition(addition) => return simplify_addition(addition),

@@ -1,6 +1,7 @@
 use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
+use fishrambeta::rational::Rational;
 use fishrambeta::{logger, parser};
 use std::collections::HashMap;
 
@@ -38,11 +39,10 @@ fn main() {
     let logger = logger::new(args.log_out, Some(args.verbose));
     let mut equation = parser::to_equation(args.equation, &logger);
 
-    let mut value_dict: HashMap<Variable, f64> = HashMap::new();
-    value_dict.insert(Variable::Letter("x".to_string()), 4.0);
+    let value_dict: HashMap<Variable, f64> = HashMap::new();
 
     println!("{}", equation.to_latex());
-    let _result = process_operation(equation.clone(), args.operation, value_dict);
+    //let _result = process_operation(equation.clone(), args.operation, value_dict);
 
     for _ in 0..10 {
         equation = equation.simplify();

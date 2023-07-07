@@ -1,4 +1,5 @@
 mod calculate;
+mod calculate_exact;
 mod differentiate;
 mod multiply_by;
 mod simplify;
