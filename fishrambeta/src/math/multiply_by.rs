@@ -39,8 +39,6 @@ impl Equation {
                 }
                 let mut tmp = multiplication.clone();
                 tmp.push(by.clone());
-                println!("{}", multiplication.len());
-                println!("{}", Equation::Multiplication(tmp.clone()).to_latex());
                 return Equation::Multiplication(tmp);
             }
             equation => return Equation::Multiplication(vec![by.clone(), equation]),

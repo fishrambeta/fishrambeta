@@ -113,8 +113,9 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
             if let Equation::Power(ref power) = simplified {
                 if let Equation::Variable(variable) = &power.1 {
                     if let Variable::Integer(n) = variable {
-                        terms.insert(power.0.clone(), *terms.get(&simplified).unwrap_or(&0) + n);
-                        continue;
+                        //terms.insert(power.0.clone(), *terms.get(&simplified).unwrap_or(&0) + n);
+                        //continue;
+                        //TODO this breaks everythign for some reason
                     }
                 }
             }
@@ -125,8 +126,11 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         }
     }
 
+    println!("{}", Equation::Multiplication(multiplication).to_latex());
+
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
     for (equation, count) in terms.iter() {
+        println!("{}: {}", equation.to_latex(), count);
         if *count == 1 {
             simplified_multiplication.push(equation.clone())
         } else {
@@ -139,6 +143,8 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
             );
         }
     }
+
+    println!("\n");
 
     if simplified_multiplication.len() == 1 {
         return simplified_multiplication[0].clone();
