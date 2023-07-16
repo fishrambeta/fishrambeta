@@ -1,7 +1,7 @@
 use clap::Parser;
 use clap::ValueEnum;
-use fishrambeta::math::{Equation, Variable};
-use fishrambeta::{logger, parser};
+use fishrambeta::math::{Equation, Symbol, Variable};
+use fishrambeta::parser;
 use std::collections::HashMap;
 
 #[derive(Parser, Debug)]
@@ -35,8 +35,7 @@ enum Result {
 
 fn main() {
     let args = Args::parse();
-    let logger = logger::new(args.log_out, Some(args.verbose));
-    let mut equation = parser::to_equation(args.equation, &logger);
+    let equation = parser::IR::latex_to_equation(args.equation.chars().collect::<Vec<_>>(), args.implicit_multiplication);
 
     let value_dict: HashMap<Variable, f64> = HashMap::new();
 
