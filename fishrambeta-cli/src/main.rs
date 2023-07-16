@@ -40,8 +40,6 @@ fn main() {
         args.implicit_multiplication,
     );
 
-    let value_dict: HashMap<Variable, f64> = HashMap::new();
-
     println!("{}", equation.to_latex());
     //let _result = process_operation(equation.clone(), args.operation, value_dict);
 

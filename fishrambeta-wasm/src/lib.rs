@@ -1,9 +1,5 @@
-use fishrambeta::{
-    self,
-    math::{Equation, Variable},
-    physicsvalues,
-};
-use std::{collections::HashMap, hash::Hash};
+use fishrambeta::{self, math::Variable, physicsvalues};
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
