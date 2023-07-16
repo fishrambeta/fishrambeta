@@ -1,4 +1,4 @@
-use crate::math::{Equation, Variable};
+use crate::math::{Constant, Equation, Variable};
 
 pub struct IR {
     name: Vec<char>,
@@ -73,6 +73,23 @@ impl IR {
             };
         } else {
             if latex.starts_with(&['\\']) {
+                latex.remove(0);
+                let mut command = vec![];
+                loop {
+                    if latex[0] == '{'
+                        || latex[0] == '('
+                        || latex[0] == '['
+                        || latex[0] == '^'
+                        || latex[0] == '_'
+                    {
+                        break;
+                    }
+                    command.push(latex.remove(0));
+                    if latex.len() == 0 {
+                        break;
+                    }
+                }
+                if command == ['i', 'n', 't'] {}
                 todo!();
             } else if latex.contains(&'\\') {
                 todo!()
@@ -219,7 +236,62 @@ impl IR {
         }
     }
     pub fn equation_to_ir(equation: Equation) -> Self {
-        todo!()
+        match equation {
+            Equation::Variable(variable) => match variable {
+                Variable::Letter(letter) => {
+                    return IR {
+                        name: letter.chars().collect::<Vec<char>>(),
+                        parameters: vec![],
+                        surrounding_brackets: BracketType::None,
+                    }
+                }
+                Variable::Integer(integer) => {
+                    return IR {
+                        name: integer.to_string().chars().collect::<Vec<char>>(),
+                        parameters: vec![],
+                        surrounding_brackets: BracketType::None,
+                    }
+                }
+                Variable::Vector(vector) => {
+                    return IR {
+                        name: format!("\\vec{{{}}}", vector)
+                            .chars()
+                            .collect::<Vec<char>>(),
+                        parameters: vec![],
+                        surrounding_brackets: BracketType::None,
+                    }
+                }
+                Variable::Rational(ratio) => {
+                    return IR {
+                        name: vec!['\\', 'f', 'r', 'a', 'c'],
+                        parameters: vec![
+                            Self::equation_to_ir(Equation::Variable(Variable::Integer(ratio.0))),
+                            Self::equation_to_ir(Equation::Variable(Variable::Integer(ratio.1))),
+                        ],
+                        surrounding_brackets: BracketType::Curly,
+                    }
+                }
+                Variable::Constant(constant) => match constant {
+                    Constant::PI => {
+                        return IR {
+                            name: vec!['\\', 'p', 'i'],
+                            parameters: vec![],
+                            surrounding_brackets: BracketType::None,
+                        }
+                    }
+                    Constant::E => {
+                        return IR {
+                            name: vec!['e'],
+                            parameters: vec![],
+                            surrounding_brackets: BracketType::None,
+                        }
+                    }
+                },
+            },
+            _ => {
+                todo!()
+            }
+        }
     }
     ///Checks for the operators within the latex with the highest priority in the top level
     fn get_operators_in_top_level_from_latex(
