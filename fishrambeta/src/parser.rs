@@ -52,7 +52,28 @@ impl IR{
             }
         }
         else {
-            todo!()
+            if latex.starts_with(&['\\']){
+                todo!();
+            }
+            else if latex.contains(&'\\'){
+                todo!()
+            }
+            else if latex.contains(&'{') || latex.contains(&'(') || latex.contains(&'[') || latex.contains(&'⟨'){
+                todo!()
+            }
+            else if  latex.iter().any(|char| char.is_numeric()){
+                todo!()
+            }
+            else if implicit_multiplication{
+                todo!()
+            }
+            else {
+                return IR{
+                    name: latex,
+                    parameters: vec!(),
+                    surrounding_brackets,
+                };
+            }
         }
     }
     pub fn ir_to_latex(self, implicit_multiplication: bool) -> String{
@@ -66,7 +87,6 @@ impl IR{
     }
     ///Checks for the operators within the latex with the highest priority in the top level
     fn get_operators_in_top_level_from_latex(latex: &Vec<char>, implicit_multiplication: bool) -> TopLevelOperators{
-        todo!(); //EEN MACHT IN EEN MACHT IS GEEN TOP LEVEL OPERATOR, afhankelijk van impliciet verm.
         let mut depth = 0;
         let mut powers = vec!();
         let mut multiplications_and_divisions = vec!();
@@ -86,7 +106,7 @@ impl IR{
                         multiplications_and_divisions.push(i);
                     }
                     '^' => {
-                       if Self::check_if_caret_is_power(latex, i){
+                       if Self::check_if_caret_is_power(latex, i) && Self::check_if_power_is_top_level(latex, i, implicit_multiplication){
                             powers.push(i);
                        }
                     }
@@ -114,6 +134,18 @@ impl IR{
         let command = chars_until_command_start.into_iter().collect::<String>();
         println!("{}",command);
         if &*command == "int"{return false}
+        return true;
+    }
+    //A power in a power is not a top level operator, this function checks whether that is the case
+    fn check_if_power_is_top_level(latex: &Vec<char>, caret: usize, implicit_multiplication: bool) -> bool{
+        let mut i = caret - 1;
+        while i > 0{
+            if latex[i] == '^'{
+                let part_inbetween = latex[i..caret].to_vec();
+                todo!()
+            }
+            i -= 1;
+        }
         return true;
     }
 }
