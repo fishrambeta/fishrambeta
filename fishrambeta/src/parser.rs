@@ -119,7 +119,7 @@ impl IR{
                     return Equation::Multiplication(params);
                 }
                 else{
-                    todo!()
+                    return Equation::Division(Box::new((self.parameters.remove(0).ir_to_equation(), self.parameters.remove(0).ir_to_equation())))
                 }
             }
             _ => {
