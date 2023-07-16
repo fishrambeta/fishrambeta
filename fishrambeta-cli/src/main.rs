@@ -37,12 +37,15 @@ fn main() {
     let args = Args::parse();
     let equation = parser::IR::latex_to_equation(args.equation.chars().collect::<Vec<_>>(), args.implicit_multiplication);
 
-    let mut value_dict: HashMap<Variable, f64> = HashMap::new();
-    value_dict.insert(Variable::Letter("x".to_string()), 4.0);
+    let value_dict: HashMap<Variable, f64> = HashMap::new();
 
-    println!("{:?}", equation);
-    let result = process_operation(equation, args.operation, value_dict);
-    println!("{:?}", result);
+    println!("{}", equation.to_latex());
+    //let _result = process_operation(equation.clone(), args.operation, value_dict);
+
+    for _ in 0..10 {
+        equation = equation.simplify();
+        println!("{}", equation.to_latex());
+    }
 }
 
 fn process_operation(
