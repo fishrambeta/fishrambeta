@@ -99,8 +99,33 @@ impl IR{
         }
         return return_data;
     }
-    pub fn ir_to_equation(self) -> Equation{
-        todo!()
+    pub fn ir_to_equation(mut self) -> Equation{
+        let name = self.name.clone();
+        match name[..]{
+            ['+'] => {
+                return Equation::Addition(self.parameters.into_iter().map(|param| param.ir_to_equation()).collect::<Vec<_>>());
+            }
+            ['-'] => {
+                return Equation::Subtraction(self.parameters.into_iter().map(|param| param.ir_to_equation()).collect::<Vec<_>>());
+            }
+            ['*'] => {
+                return Equation::Multiplication(self.parameters.into_iter().map(|param| param.ir_to_equation()).collect::<Vec<_>>());
+            }
+            ['/'] => {
+                if self.parameters.len() != 2{
+                    let actual_division = Equation::Division(Box::new((self.parameters.remove(0).ir_to_equation(), self.parameters.remove(0).ir_to_equation())));
+                    let mut params = Vec::from([actual_division]);
+                    params.append(&mut self.parameters.into_iter().map(|param| param.ir_to_equation()).collect::<Vec<_>>());
+                    return Equation::Multiplication(params);
+                }
+                else{
+                    todo!()
+                }
+            }
+            _ => {
+                todo!()
+            }
+        }
     }
     pub fn equation_to_ir(equation: Equation) -> Self{
         todo!()
