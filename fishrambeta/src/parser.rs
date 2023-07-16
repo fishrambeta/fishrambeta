@@ -1,4 +1,4 @@
-use crate::math::Equation;
+use crate::math::{Equation, Variable};
 
 pub struct IR{
     name: Vec<char>,
@@ -123,7 +123,19 @@ impl IR{
                 }
             }
             _ => {
-                todo!()
+                if self.parameters.len() == 0{
+                    let is_numeric = self.name.iter().all(|char| char.is_numeric());
+                    let expression = self.name.into_iter().collect::<String>();
+                    if is_numeric{
+                        return Equation::Variable(Variable::Integer(expression.parse::<i64>().unwrap()))
+                    }
+                    else{
+                        return Equation::Variable(Variable::Letter(expression))
+                    }
+                }
+                else{
+                    todo!();
+                }
             }
         }
     }
