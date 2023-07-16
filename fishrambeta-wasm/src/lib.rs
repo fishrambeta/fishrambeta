@@ -1,6 +1,6 @@
 use fishrambeta::{
     self,
-    math::{Equation, Symbol, Variable},
+    math::{Equation, Variable},
     physicsvalues,
 };
 use std::{collections::HashMap, hash::Hash};
@@ -8,7 +8,10 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn simplify(equation: &str) -> String {
-    let parsed = fishrambeta::parser::IR::latex_to_equation(equation.to_string().chars().collect::<Vec<_>>(), true);
+    let parsed = fishrambeta::parser::IR::latex_to_equation(
+        equation.to_string().chars().collect::<Vec<_>>(),
+        true,
+    );
     let simplified = parsed.simplify().simplify();
     let parsed_back = fishrambeta::parser::IR::equation_to_latex(simplified, true);
     return parsed_back;
@@ -22,8 +25,10 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
         user_values_values,
     );
     values.extend(user_values_hashmap);
-    let parsed: fishrambeta::math::Equation =
-        fishrambeta::parser::IR::latex_to_equation(equation.to_string().chars().collect::<Vec<_>>(), true);
+    let parsed: fishrambeta::math::Equation = fishrambeta::parser::IR::latex_to_equation(
+        equation.to_string().chars().collect::<Vec<_>>(),
+        true,
+    );
     let result = parsed.calculate(&values);
     return result;
 }
