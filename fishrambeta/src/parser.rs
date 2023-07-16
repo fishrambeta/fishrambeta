@@ -25,24 +25,16 @@ impl IR {
         let top_level_operators =
             Self::get_operators_in_top_level_from_latex(&latex, implicit_multiplication);
         if top_level_operators.any() {
-            return if top_level_operators.powers.len() > 0 {
-                let mut parts = vec![];
-                for power in top_level_operators.powers {
-                    let (lhs, rhs) = latex.split_at(power);
-                    let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
-                    rhs.remove(0);
-                    latex = rhs;
-                    parts.push(lhs);
-                }
-                parts.push(latex);
-                Self {
-                    name: vec!['*'],
-                    parameters: parts
-                        .into_iter()
-                        .map(|parts| {
-                            Self::latex_to_ir(parts, implicit_multiplication, BracketType::None)
-                        })
-                        .collect::<Vec<_>>(),
+            return if top_level_operators.additions_and_subtractions.len() > 0 {
+                let (lhs, rhs) = latex.split_at(top_level_operators.additions_and_subtractions[0]);
+                let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
+                let operator = rhs.remove(0);
+                IR {
+                    name: vec![operator],
+                    parameters: vec![
+                        Self::latex_to_ir(lhs, implicit_multiplication, BracketType::None),
+                        Self::latex_to_ir(rhs, implicit_multiplication, BracketType::None),
+                    ],
                     surrounding_brackets,
                 }
             } else if top_level_operators.multiplications_and_divisions.len() > 0 {
@@ -59,15 +51,23 @@ impl IR {
                     surrounding_brackets,
                 }
             } else {
-                let (lhs, rhs) = latex.split_at(top_level_operators.additions_and_subtractions[0]);
-                let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
-                let operator = rhs.remove(0);
-                IR {
-                    name: vec![operator],
-                    parameters: vec![
-                        Self::latex_to_ir(lhs, implicit_multiplication, BracketType::None),
-                        Self::latex_to_ir(rhs, implicit_multiplication, BracketType::None),
-                    ],
+                let mut parts = vec![];
+                for power in top_level_operators.powers {
+                    let (lhs, rhs) = latex.split_at(power);
+                    let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
+                    rhs.remove(0);
+                    latex = rhs;
+                    parts.push(lhs);
+                }
+                parts.push(latex);
+                Self {
+                    name: vec!['^'],
+                    parameters: parts
+                        .into_iter()
+                        .map(|parts| {
+                            Self::latex_to_ir(parts, implicit_multiplication, BracketType::None)
+                        })
+                        .collect::<Vec<_>>(),
                     surrounding_brackets,
                 }
             };
@@ -160,7 +160,7 @@ impl IR {
                 );
             }
             ['/'] => {
-                if self.parameters.len() != 2 {
+                return if self.parameters.len() != 2 {
                     let actual_division = Equation::Division(Box::new((
                         self.parameters.remove(0).ir_to_equation(),
                         self.parameters.remove(0).ir_to_equation(),
@@ -173,25 +173,45 @@ impl IR {
                             .map(|param| param.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
-                    return Equation::Multiplication(params);
+                    Equation::Multiplication(params)
                 } else {
-                    return Equation::Division(Box::new((
+                    Equation::Division(Box::new((
+                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).ir_to_equation(),
+                    )))
+                }
+            }
+            ['^'] => {
+                return if self.parameters.len() != 2 {
+                    let actual_power = Equation::Power(Box::new((
                         self.parameters.remove(0).ir_to_equation(),
                         self.parameters.remove(0).ir_to_equation(),
                     )));
+                    let mut params = Vec::from([actual_power]);
+                    params.append(
+                        &mut self
+                            .parameters
+                            .into_iter()
+                            .map(|param| param.ir_to_equation())
+                            .collect::<Vec<_>>(),
+                    );
+                    Equation::Multiplication(params)
+                } else {
+                    Equation::Power(Box::new((
+                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).ir_to_equation(),
+                    )))
                 }
             }
             _ => {
                 if self.parameters.len() == 0 {
                     let is_numeric = self.name.iter().all(|char| char.is_numeric());
                     let expression = self.name.into_iter().collect::<String>();
-                    if is_numeric {
-                        return Equation::Variable(Variable::Integer(
-                            expression.parse::<i64>().unwrap(),
-                        ));
+                    return if is_numeric {
+                        Equation::Variable(Variable::Integer(expression.parse::<i64>().unwrap()))
                     } else {
-                        return Equation::Variable(Variable::Letter(expression));
-                    }
+                        Equation::Variable(Variable::Letter(expression))
+                    };
                 } else {
                     todo!();
                 }
@@ -315,15 +335,6 @@ struct TopLevelOperators {
     additions_and_subtractions: Vec<usize>,
 }
 impl TopLevelOperators {
-    pub fn get_highest_priority_operators(self) -> Vec<usize> {
-        return if self.powers.len() > 0 {
-            self.powers
-        } else if self.multiplications_and_divisions.len() > 0 {
-            self.multiplications_and_divisions
-        } else {
-            self.additions_and_subtractions
-        };
-    }
     pub fn any(&self) -> bool {
         return self.powers.len() > 0
             || self.multiplications_and_divisions.len() > 0
