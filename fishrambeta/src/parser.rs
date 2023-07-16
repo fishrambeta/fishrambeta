@@ -10,7 +10,7 @@ impl IR{
         return Self::latex_to_ir(latex, implicit_multiplication, BracketType::None).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String{
-        return Self::equation_to_ir(equation).ir_to_latex(implicit_multiplication);
+        return Self::equation_to_ir(equation).ir_to_latex(implicit_multiplication).into_iter().collect::<String>();
     }
     pub fn latex_to_ir(latex: Vec<char>, implicit_multiplication: bool, surrounding_brackets: BracketType) -> Self{
         let mut latex = latex;
@@ -76,8 +76,28 @@ impl IR{
             }
         }
     }
-    pub fn ir_to_latex(self, implicit_multiplication: bool) -> String{
-        todo!();
+    pub fn ir_to_latex(mut self, implicit_multiplication: bool) -> Vec<char>{
+        let name = self.name.clone();
+        let mut return_data = vec!();
+        match name[..]{
+            ['+'] | ['-'] | ['*'] | ['/'] => {
+                return_data.push(self.parameters[0].surrounding_brackets.opening_bracket());
+                let closing_bracket = self.parameters[0].surrounding_brackets.closing_bracket();
+                return_data.append(&mut Self::ir_to_latex(self.parameters.remove(0), implicit_multiplication));
+                return_data.push(closing_bracket);
+                while self.parameters.len() > 0{
+                    return_data.push(self.name[0]); // The operator
+                    return_data.push(self.parameters[0].surrounding_brackets.opening_bracket());
+                    let closing_bracket = self.parameters[0].surrounding_brackets.closing_bracket();
+                    return_data.append(&mut Self::ir_to_latex(self.parameters.remove(0), implicit_multiplication));
+                    return_data.push(closing_bracket);
+                }
+            }
+            _ => {
+                todo!()
+            }
+        }
+        return return_data;
     }
     pub fn ir_to_equation(self) -> Equation{
         todo!()
