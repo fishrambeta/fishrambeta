@@ -7,8 +7,12 @@ pub struct IR {
 }
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
-        return Self::latex_to_ir(cleanup_latex(latex), implicit_multiplication, BracketType::None)
-            .ir_to_equation();
+        return Self::latex_to_ir(
+            cleanup_latex(latex),
+            implicit_multiplication,
+            BracketType::None,
+        )
+        .ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
         return Self::equation_to_ir(equation)
@@ -89,10 +93,15 @@ impl IR {
                         break;
                     }
                 }
-                if command == ['i', 'n', 't'] {}
-                todo!();
+                if command == ['i', 'n', 't'] {
+                    let parameters = todo!();
+                } else if command == ['f', 'r', 'a', 'c'] {
+                    let params = todo!();
+                } else {
+                    todo!();
+                }
             } else if latex.contains(&'\\') {
-                todo!()
+                todo!();
             } else if latex.contains(&'{')
                 || latex.contains(&'(')
                 || latex.contains(&'[')
@@ -344,7 +353,18 @@ impl IR {
         }
         chars_until_command_start.reverse();
         if chars_until_command_start.contains(&'{') {
-            return true;
+            let position = unsafe {
+                chars_until_command_start
+                    .iter()
+                    .enumerate()
+                    .find(|&char| char.1 == &'{')
+                    .unwrap_unchecked()
+                    .0
+            };
+            if position > 0 && chars_until_command_start[position - 1] != '_' {
+                return true;
+            }
+            todo!()
         };
         let command = chars_until_command_start.into_iter().collect::<String>();
         println!("{}", command);
@@ -434,6 +454,11 @@ mod test {
         );
     }
 }
-pub fn cleanup_latex(latex: Vec<char>) -> Vec<char>{
-    return latex.into_iter().collect::<String>().replace("\\cdot", "").chars().collect::<Vec<char>>();
+pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
+    return latex
+        .into_iter()
+        .collect::<String>()
+        .replace("\\cdot", "")
+        .chars()
+        .collect::<Vec<char>>();
 }
