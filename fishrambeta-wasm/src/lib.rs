@@ -14,7 +14,7 @@ pub fn simplify(equation: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> String {
+pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> f64 {
     console_error_panic_hook::set_once();
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
@@ -27,9 +27,8 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
         equationstring,
         false,
     );
-    return parsed.to_latex(); 
     let result = parsed.calculate(&values);
-    //return result;
+    return result;
 }
 
 fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, f64> {
@@ -38,8 +37,4 @@ fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, 
         values_hashmap.insert(Variable::Letter(key.to_string()), *value);
     }
     return values_hashmap;
-}
-
-#[wasm_bindgen]
-pub fn init_panic_hook() {
 }
