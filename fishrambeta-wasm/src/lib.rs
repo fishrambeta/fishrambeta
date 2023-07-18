@@ -14,19 +14,22 @@ pub fn simplify(equation: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> f64 {
+pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> String {
+    console_error_panic_hook::set_once();
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
         user_values_keys.split("\\n\\n").collect::<Vec<_>>(),
         user_values_values,
     );
     values.extend(user_values_hashmap);
+    let equationstring = equation.to_string().chars().collect::<Vec<_>>();
     let parsed: fishrambeta::math::Equation = fishrambeta::parser::IR::latex_to_equation(
-        equation.to_string().chars().collect::<Vec<_>>(),
-        true,
+        equationstring,
+        false,
     );
+    return parsed.to_latex(); 
     let result = parsed.calculate(&values);
-    return result;
+    //return result;
 }
 
 fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, f64> {
@@ -35,4 +38,8 @@ fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, 
         values_hashmap.insert(Variable::Letter(key.to_string()), *value);
     }
     return values_hashmap;
+}
+
+#[wasm_bindgen]
+pub fn init_panic_hook() {
 }
