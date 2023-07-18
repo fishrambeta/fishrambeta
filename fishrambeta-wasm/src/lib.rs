@@ -15,15 +15,17 @@ pub fn simplify(equation: &str) -> String {
 
 #[wasm_bindgen]
 pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> f64 {
+    console_error_panic_hook::set_once();
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
         user_values_keys.split("\\n\\n").collect::<Vec<_>>(),
         user_values_values,
     );
     values.extend(user_values_hashmap);
+    let equationstring = equation.to_string().chars().collect::<Vec<_>>();
     let parsed: fishrambeta::math::Equation = fishrambeta::parser::IR::latex_to_equation(
-        equation.to_string().chars().collect::<Vec<_>>(),
-        true,
+        equationstring,
+        false,
     );
     let result = parsed.calculate(&values);
     return result;

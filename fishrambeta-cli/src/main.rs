@@ -35,18 +35,15 @@ enum Result {
 
 fn main() {
     let args = Args::parse();
-    let mut equation = parser::IR::latex_to_equation(
+    let equation = parser::IR::latex_to_equation(
         args.equation.chars().collect::<Vec<_>>(),
         args.implicit_multiplication,
     );
 
     println!("{}", equation.to_latex());
-    //let _result = process_operation(equation.clone(), args.operation, value_dict);
-
-    for _ in 0..10 {
-        equation = equation.simplify();
-        println!("{}", equation.to_latex());
-    }
+    let value_dict = fishrambeta::physicsvalues::physics_values();
+    let result = process_operation(equation.clone(), args.operation, value_dict);
+    println!("{:?}", result);
 }
 
 fn process_operation(
@@ -55,7 +52,14 @@ fn process_operation(
     value_dict: HashMap<Variable, f64>,
 ) -> Result {
     match operation {
-        Operation::Simplify => return Result::Equation(equation.simplify().simplify().simplify()),
+        Operation::Simplify => {
+            let mut equation = equation.clone();
+            for _ in 0..10 {
+                equation = equation.simplify();
+                println!("{}", equation.to_latex());
+            }
+            return Result::Equation(equation);
+        }
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
         _ => {
             panic!("Operation not yet supported")
