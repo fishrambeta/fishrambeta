@@ -7,7 +7,7 @@ pub struct IR {
 }
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
-        return Self::latex_to_ir(latex, implicit_multiplication, BracketType::None)
+        return Self::latex_to_ir(cleanup_latex(latex), implicit_multiplication, BracketType::None)
             .ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
@@ -433,4 +433,7 @@ mod test {
             true
         );
     }
+}
+pub fn cleanup_latex(latex: Vec<char>) -> Vec<char>{
+    return latex.into_iter().collect::<String>().replace("\\cdot", "").chars().collect::<Vec<char>>();
 }
