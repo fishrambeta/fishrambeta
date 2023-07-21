@@ -82,13 +82,13 @@ fn differentiate_power(power: &Box<(Equation, Equation)>, differentiate_to: &Var
     let first_term = Equation::Power(Box::new((
         power.0.clone(),
         Equation::Subtraction(vec![
-            power.0.clone(),
+            power.1.clone(),
             Equation::Variable(Variable::Integer(1)),
         ]),
     )));
     let g_f_accent = Equation::Multiplication(vec![
-        power.0.clone(),
-        power.1.differentiate(differentiate_to),
+        power.1.clone(),
+        power.0.differentiate(differentiate_to),
     ]);
     let f_log_g_accent = Equation::Multiplication(vec![
         power.0.clone(),
