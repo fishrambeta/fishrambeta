@@ -178,6 +178,10 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
     let base = power.0.simplify();
     let exponent = power.1.simplify();
 
+    if exponent == Equation::Variable(Variable::Integer(1)) {
+        return base;
+    }
+
     match base.clone() {
         Equation::Multiplication(terms) => {
             let mut simplified_power: Vec<Equation> = vec![];
