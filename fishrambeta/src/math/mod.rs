@@ -1,6 +1,7 @@
 mod calculate;
 mod calculate_exact;
 mod differentiate;
+mod factors;
 mod multiply_by;
 mod simplify;
 mod to_latex;

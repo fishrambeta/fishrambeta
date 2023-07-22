@@ -25,6 +25,7 @@ enum Operation {
     Simplify,
     Solve,
     Calculate,
+    Differentiate,
 }
 
 #[derive(Debug)]
@@ -61,6 +62,16 @@ fn process_operation(
             return Result::Equation(equation);
         }
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
+        Operation::Differentiate => {
+            let mut equation = equation
+                .clone()
+                .differentiate(&Variable::Letter("x".to_string()));
+            for _ in 0..10 {
+                equation = equation.simplify();
+                println!("{}", equation.to_latex());
+            }
+            return Result::Equation(equation);
+        }
         _ => {
             panic!("Operation not yet supported")
         }
