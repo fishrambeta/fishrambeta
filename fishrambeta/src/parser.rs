@@ -94,7 +94,9 @@ impl IR {
                     }
                 }
                 if command == ['i', 'n', 't'] {
-                    let parameters = todo!();
+                    let (superscript, subscript) =
+                        Self::get_super_and_subscript(&mut latex, implicit_multiplication);
+                    todo!();
                 } else if command == ['f', 'r', 'a', 'c'] {
                     let params = todo!();
                 } else {
@@ -364,9 +366,21 @@ impl IR {
             if position > 0 && chars_until_command_start[position - 1] != '_' {
                 return true;
             }
-            todo!()
+            if chars_until_command_start[0..position].contains(&'{') {
+                return true;
+            }
         };
-        let command = chars_until_command_start.into_iter().collect::<String>();
+        let subscript_position = chars_until_command_start
+            .iter()
+            .enumerate()
+            .find(|&char| char.1 == &'_');
+        let command = if let Some(pos) = subscript_position {
+            chars_until_command_start[0..pos.0]
+                .iter()
+                .collect::<String>()
+        } else {
+            chars_until_command_start.into_iter().collect::<String>()
+        };
         println!("{}", command);
         if &*command == "int" {
             return false;
@@ -392,6 +406,68 @@ impl IR {
             i -= 1;
         }
         return true;
+    }
+    //Requires latex to start with either _ or ^, otherwise, will return only None
+    pub fn get_super_and_subscript(
+        latex: &mut Vec<char>,
+        implicit_multiplication: bool,
+    ) -> (Option<Vec<char>>, Option<Vec<char>>) {
+        let (mut superscript, mut subscript) = (None, None);
+        for _ in 0..1 {
+            match latex[0] {
+                '_' => {
+                    latex.remove(0);
+                    let no_brackets = latex[0] != '{';
+                    let mut depth = if no_brackets { 1 } else { 0 };
+                    if latex[0] == '{' {
+                        latex.remove(0);
+                    }
+                    let mut subscript_buffer = vec![];
+
+                    while depth > 0 || no_brackets {
+                        let next = latex.remove(0);
+                        if next == '{' {
+                            depth += 1;
+                        } else if next == '}' {
+                            depth -= 1;
+                        }
+                        if depth != 0 || no_brackets {
+                            subscript_buffer.push(next);
+                        } else {
+                            break;
+                        }
+                        todo!() //NOBRACKETS
+                    }
+                    subscript = Some(subscript_buffer);
+                }
+                '^' => {
+                    latex.remove(0);
+                    let no_brackets = latex[0] == '{';
+                    let mut depth = if no_brackets { 1 } else { 0 };
+                    if latex[0] == '{' {
+                        latex.remove(0);
+                    }
+                    let mut superscript_buffer = vec![];
+                    while depth > 0 || no_brackets {
+                        let next = latex.remove(0);
+                        if next == '{' {
+                            depth += 1;
+                        } else if next == '}' {
+                            depth -= 1;
+                        }
+                        if depth != 0 || no_brackets {
+                            superscript_buffer.push(next);
+                        } else {
+                            break;
+                        }
+                        todo!() //NOBRACKETS
+                    }
+                    superscript = Some(superscript_buffer);
+                }
+                _ => {}
+            }
+        }
+        return (superscript, subscript);
     }
 }
 pub enum BracketType {
