@@ -7,6 +7,9 @@ pub struct IR {
 }
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
+        if !Self::calculate_depth_difference(&latex) == 0{
+            panic!("Invalid latex");
+        }
         return Self::latex_to_ir(
             cleanup_latex(latex),
             implicit_multiplication,
@@ -401,11 +404,24 @@ impl IR {
                 if part_between.len() == 1 {
                     return false;
                 }
-                todo!()
+                return Self::check_if_part_is_single_expression(part_between, implicit_multiplication)
             }
             i -= 1;
         }
         return true;
+    }
+    ///Checks if a part inbetween two carets is a single expresion
+    pub fn check_if_part_is_single_expression(part: Vec<char>, implicit_multiplication: bool) -> bool{
+        if !implicit_multiplication && !BracketType::is_opening_bracket(part[0]){
+            return false
+        }
+        if Self::calculate_depth_difference(&part) != 0{
+            return false;
+        }
+        else if BracketType::is_opening_bracket(part[0]) && BracketType::is_closing_bracket(part[0]) {
+            return true;
+        }
+        todo!();
     }
     //Requires latex to start with either _ or ^, otherwise, will return only None
     pub fn get_super_and_subscript(
@@ -469,6 +485,18 @@ impl IR {
         }
         return (superscript, subscript);
     }
+    pub fn calculate_depth_difference(latex: &Vec<char>) -> i32{
+        let mut depth_diff = 0;
+        for char in latex.iter(){
+            if BracketType::is_opening_bracket(*char){
+                depth_diff+=1
+            }
+            if BracketType::is_closing_bracket(*char){
+                depth_diff-=1;
+            }
+        }
+        return depth_diff;
+    }
 }
 pub enum BracketType {
     None,
@@ -495,6 +523,12 @@ impl BracketType {
             BracketType::Round => ')',
             BracketType::Angle => '⟩',
         };
+    }
+    pub fn is_opening_bracket(char: char) -> bool{
+        return char == '{' || char == '[' || char == '(' || char == '⟨';
+    }
+    pub fn is_closing_bracket(char: char) -> bool {
+        return char == '}' || char == ']' || char == ')' || char == '⟩'
     }
 }
 struct TopLevelOperators {
@@ -534,7 +568,8 @@ pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
     return latex
         .into_iter()
         .collect::<String>()
-        .replace("\\cdot", "")
+        .replace("\\cdot", "*")
+        .replace(" ", "")
         .chars()
         .collect::<Vec<char>>();
 }
