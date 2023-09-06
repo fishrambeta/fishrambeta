@@ -9,6 +9,7 @@ impl Equation {
                 Variable::Integer(integer) => return integer.to_string(),
                 _ => todo!(),
             },
+            Equation::Negative(negative) => format!("-({})", negative.to_latex()),
             Equation::Addition(addition) => {
                 return format!(
                     "({})",
@@ -50,6 +51,8 @@ impl Equation {
                     division.1.to_latex()
                 )
             }
+            Equation::Sin(sin) => return format!("\\sin({})", sin.to_latex()),
+            Equation::Cos(cos) => return format!("\\cos({})", cos.to_latex()),
             Equation::Equals(equals) => {
                 return format!("{}={}", equals.0.to_latex(), equals.1.to_latex())
             }

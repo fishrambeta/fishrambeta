@@ -10,6 +10,9 @@ impl Equation {
                     Equation::Variable(Variable::Integer(0))
                 }
             }
+            Equation::Negative(negative) => {
+                return Equation::Negative(Box::new(negative.differentiate(differentiate_to)))
+            }
             Equation::Addition(addition) => {
                 return Equation::Addition(
                     addition
@@ -67,6 +70,18 @@ impl Equation {
                     ln.differentiate(differentiate_to),
                     (**ln).clone(),
                 )))
+            }
+            Equation::Sin(sin) => {
+                return Equation::Multiplication(vec![
+                    sin.differentiate(differentiate_to),
+                    Equation::Cos(sin.clone()),
+                ])
+            }
+            Equation::Cos(sin) => {
+                return Equation::Negative(Box::new(Equation::Multiplication(vec![
+                    sin.differentiate(differentiate_to),
+                    Equation::Cos(sin.clone()),
+                ])))
             }
             Equation::Equals(equals) => {
                 return Equation::Equals(Box::new((
