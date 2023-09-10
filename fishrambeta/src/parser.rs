@@ -171,6 +171,13 @@ impl IR {
                 || latex.contains(&'[')
                 || latex.contains(&'⟨')
             {
+                if BracketType::is_opening_bracket(latex[0])
+                    && BracketType::is_closing_bracket(latex[latex.len() - 1])
+                {
+                    latex.remove(0);
+                    latex.remove(latex.len() - 1);
+                    return Self::latex_to_ir(latex, implicit_multiplication, surrounding_brackets);
+                }
                 todo!()
             } else if latex.iter().any(|char| char.is_numeric()) {
                 if latex.iter().any(|char| !char.is_numeric()) {
