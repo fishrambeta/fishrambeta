@@ -16,6 +16,10 @@ impl Equation {
         }
         match self {
             Equation::Variable(variable) => return Equation::Variable(variable),
+            Equation::Negative(negative) => match *negative {
+                Equation::Negative(negative) => return *negative,
+                negative => return Equation::Negative(Box::new(negative)),
+            },
             Equation::Addition(addition) => return simplify_addition(addition),
             Equation::Subtraction(subtraction) => return simplify_subtraction(subtraction),
             Equation::Multiplication(multiplication) => simplify_multiplication(multiplication),
@@ -30,6 +34,8 @@ impl Equation {
             }
             Equation::Power(power) => return simplify_power(power),
             Equation::Ln(ln) => return Equation::Ln(Box::new(ln.simplify())),
+            Equation::Sin(sin) => return Equation::Sin(Box::new(sin.simplify())),
+            Equation::Cos(cos) => return Equation::Cos(Box::new(cos.simplify())),
             Equation::Equals(equation) => {
                 return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }

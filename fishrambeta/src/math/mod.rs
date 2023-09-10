@@ -10,6 +10,7 @@ mod to_latex;
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub enum Equation {
     Variable(Variable),
+    Negative(Box<Equation>),
     Addition(Vec<Equation>),
     Subtraction(Vec<Equation>),
     Multiplication(Vec<Equation>),
@@ -17,6 +18,8 @@ pub enum Equation {
     Power(Box<(Equation, Equation)>),
     Ln(Box<Equation>),
     Equals(Box<(Equation, Equation)>),
+    Sin(Box<Equation>),
+    Cos(Box<Equation>),
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]

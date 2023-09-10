@@ -14,6 +14,7 @@ impl Equation {
                 }
                 return values[&variable];
             }
+            Equation::Negative(negative) => return -negative.calculate(values),
             Equation::Addition(addition) => {
                 return addition.iter().map(|x| x.calculate(&values)).sum()
             }
@@ -38,6 +39,8 @@ impl Equation {
                 return power.0.calculate(&values).powf(power.1.calculate(&values))
             }
             Equation::Ln(ln) => return ln.calculate(values).ln(),
+            Equation::Sin(sin) => return sin.calculate(values).sin(),
+            Equation::Cos(cos) => return cos.calculate(values).cos(),
             Equation::Equals(_) => panic!("Cannot calculate equals"),
         }
     }
