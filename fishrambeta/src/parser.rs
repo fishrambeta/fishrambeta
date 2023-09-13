@@ -101,16 +101,12 @@ impl IR {
                         Self::get_super_and_subscript(&mut latex, implicit_multiplication);
                     todo!();
                 } else if command == ['f', 'r', 'a', 'c'] {
-                    println!("{}", command.iter().collect::<String>());
-                    println!("{}", latex.iter().collect::<String>());
                     let mut params = vec![];
                     if !BracketType::is_opening_bracket(latex[0]) {
                         panic!("Invalid fraction");
                     }
-                    params.push(Self::get_first_parameter(
-                        &mut latex,
-                        implicit_multiplication,
-                    ));
+                    let first = Self::get_first_parameter(&mut latex, implicit_multiplication);
+                    params.push(first);
                     params.push(Self::get_first_parameter(
                         &mut latex,
                         implicit_multiplication,
@@ -381,10 +377,10 @@ impl IR {
             }
             ['f', 'r', 'a', 'c'] => {
                 if self.parameters.len() == 2 {
-                    return Equation::Division(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
-                    )));
+                    let first = self.parameters.remove(0).ir_to_equation();
+                    let second = self.parameters.remove(0).ir_to_equation();
+                    println!("{:?},second,{:?}", first, second);
+                    return Equation::Division(Box::new((first, second)));
                 } else {
                     let frac = Equation::Division(Box::new((
                         self.parameters.remove(0).ir_to_equation(),
@@ -721,14 +717,14 @@ impl IR {
         let mut parameter = vec![];
         let mut depth = 1;
         while depth > 0 {
-            parameter.push(latex.remove(0));
             if BracketType::is_opening_bracket(latex[0]) {
                 depth += 1;
             } else if BracketType::is_closing_bracket(latex[0]) {
                 depth -= 1;
             }
+            parameter.push(latex.remove(0));
         }
-        parameter.push(latex.remove(0));
+        parameter.remove(parameter.len() - 1);
         return Self::latex_to_ir(parameter, implicit_multiplication, bracket_type);
     }
 }
