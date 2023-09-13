@@ -430,6 +430,13 @@ impl IR {
                     surrounding_brackets: BracketType::Curly,
                 }
             }
+            Equation::Addition(eqs) => {
+                return IR {
+                    name: vec!['+'],
+                    parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
+                    surrounding_brackets: BracketType::Curly,
+                }
+            }
             _ => {
                 todo!()
             }
