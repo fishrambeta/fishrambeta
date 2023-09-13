@@ -227,7 +227,7 @@ impl IR {
                     return_data.push(closing_bracket);
                 }
             }
-            ['^'] | ['\\', 'f', 'r', 'a', 'c'] => {
+            ['^'] => {
                 if self.parameters.len() != 2 {
                     panic!("Invalid power, not two parameters");
                 }
@@ -242,6 +242,31 @@ impl IR {
                 );
                 data.push(closing_bracket);
                 data.append(&mut self.name);
+                data.push(opening_bracket);
+                data.append(
+                    &mut self
+                        .parameters
+                        .remove(0)
+                        .ir_to_latex(implicit_multiplication),
+                );
+                data.push(closing_bracket);
+                return data;
+            }
+            ['\\', 'f', 'r', 'a', 'c'] => {
+                if self.parameters.len() != 2 {
+                    panic!("Invalid power, not two parameters");
+                }
+                let opening_bracket = self.surrounding_brackets.opening_bracket();
+                let closing_bracket = self.surrounding_brackets.closing_bracket();
+                let mut data = self.name;
+                data.push(opening_bracket);
+                data.append(
+                    &mut self
+                        .parameters
+                        .remove(0)
+                        .ir_to_latex(implicit_multiplication),
+                );
+                data.push(closing_bracket);
                 data.push(opening_bracket);
                 data.append(
                     &mut self
