@@ -779,6 +779,8 @@ pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
         .collect::<String>()
         .replace("\\cdot", "*")
         .replace(" ", "")
+        .replace("\\left", "")
+        .replace("\\right", "")
         .chars()
         .collect::<Vec<char>>();
 }
