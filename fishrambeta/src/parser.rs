@@ -712,6 +712,7 @@ impl IR {
         }
         return depth_diff;
     }
+    ///Get the first parameter (brackets required)
     pub fn get_first_parameter(latex: &mut Vec<char>, implicit_multiplication: bool) -> Self {
         let bracket_type = BracketType::get_opening_bracket_type(latex.remove(0));
         let mut parameter = vec![];
