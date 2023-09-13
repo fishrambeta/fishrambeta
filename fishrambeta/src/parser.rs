@@ -208,7 +208,7 @@ impl IR {
         let name = self.name.clone();
         let mut return_data = vec![];
         match name[..] {
-            ['+'] | ['-'] | ['*'] | ['/'] => {
+            ['+'] | ['-'] | ['*'] => {
                 return_data.push(self.parameters[0].surrounding_brackets.opening_bracket());
                 let closing_bracket = self.parameters[0].surrounding_brackets.closing_bracket();
                 return_data.append(&mut Self::ir_to_latex(
@@ -379,6 +379,28 @@ impl IR {
                     return Equation::Multiplication(params);
                 }
             }
+            ['f', 'r', 'a', 'c'] => {
+                if self.parameters.len() == 2 {
+                    return Equation::Division(Box::new((
+                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).ir_to_equation(),
+                    )));
+                } else {
+                    let frac = Equation::Division(Box::new((
+                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).ir_to_equation(),
+                    )));
+                    let mut params = Vec::from([frac]);
+                    params.append(
+                        &mut self
+                            .parameters
+                            .into_iter()
+                            .map(|param| param.ir_to_equation())
+                            .collect::<Vec<_>>(),
+                    );
+                    return Equation::Multiplication(params);
+                }
+            }
             _ => {
                 if self.parameters.len() == 0 {
                     let is_numeric = self.name.iter().all(|char| char.is_numeric());
@@ -468,6 +490,14 @@ impl IR {
                     parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
                     surrounding_brackets: BracketType::Round,
                 }
+            }
+            Equation::Division(div) => {
+                let (lhs, rhs) = *div;
+                return IR {
+                    name: vec!['\\', 'f', 'r', 'a', 'c'],
+                    parameters: vec![Self::equation_to_ir(lhs), Self::equation_to_ir(rhs)],
+                    surrounding_brackets: BracketType::Curly,
+                };
             }
             _ => {
                 todo!()
@@ -698,7 +728,7 @@ impl IR {
                 depth -= 1;
             }
         }
-        latex.remove(0);
+        parameter.push(latex.remove(0));
         return Self::latex_to_ir(parameter, implicit_multiplication, bracket_type);
     }
 }
