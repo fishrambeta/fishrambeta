@@ -80,7 +80,7 @@
       values_fields.push([key_mathfield, value_mathfield]);
     }
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
       add_new_value_field();
     }
 
@@ -88,8 +88,9 @@
       var equation = equation_mathfield.latex();
       var keys = [];
       var values = [];
-      for (keyvaluepair of values_fields.reverse()) {
+      for (keyvaluepair of values_fields.toReversed()) {
         try {
+          console.log(keyvaluepair[0].latex(), keyvaluepair[1].latex());
           var key = keyvaluepair[0].latex();
           var value = calculate(keyvaluepair[1].latex(), "", []);
           keys.push(key);
@@ -99,7 +100,6 @@
       }
       console.log(keys);
       console.log(values);
-      values_fields.reverse();
       var result = calculate(equation, keys.join("\\n\\n"), values);
       var result_text = document.getElementById("result");
       result_text.innerHTML = result;
