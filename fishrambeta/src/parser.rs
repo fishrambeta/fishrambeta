@@ -759,10 +759,6 @@ impl TopLevelOperators {
 #[cfg(test)]
 mod test {
     #[test]
-    fn check_full_circle() {
-        todo!()
-    }
-    #[test]
     fn test_check_if_caret_is_power() {
         assert_eq!(
             super::IR::check_if_caret_is_power(&"\\int^10{a}{b}".chars().collect::<Vec<char>>(), 4),
