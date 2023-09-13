@@ -419,7 +419,7 @@ impl IR {
                         .into_iter()
                         .map(|subeq| Self::equation_to_ir(subeq))
                         .collect(),
-                    surrounding_brackets: BracketType::Curly,
+                    surrounding_brackets: BracketType::Round,
                 }
             }
             Equation::Power(data) => {
@@ -427,7 +427,7 @@ impl IR {
                 IR {
                     name: vec!['^'],
                     parameters: vec![Self::equation_to_ir(lower), Self::equation_to_ir(upper)],
-                    surrounding_brackets: BracketType::Curly,
+                    surrounding_brackets: BracketType::Round,
                 }
             }
             Equation::Addition(eqs) => {
