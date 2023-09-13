@@ -434,14 +434,14 @@ impl IR {
                 return IR {
                     name: vec!['+'],
                     parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
-                    surrounding_brackets: BracketType::Curly,
+                    surrounding_brackets: BracketType::Round,
                 }
             }
             Equation::Subtraction(eqs) => {
                 return IR {
                     name: vec!['-'],
                     parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
-                    surrounding_brackets: BracketType::Curly,
+                    surrounding_brackets: BracketType::Round,
                 }
             }
             _ => {
