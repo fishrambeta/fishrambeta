@@ -80,24 +80,25 @@
       values_fields.push([key_mathfield, value_mathfield]);
     }
 
-    add_new_value_field();
+    for (let i = 0; i < 100; i++) {
+      add_new_value_field();
+    }
 
     function do_calculate() {
       var equation = equation_mathfield.latex();
-      keys = "";
+      keys = [];
       values = [];
       for (keyvaluepair of values_fields.reverse()) {
         try {
-          var key = keyvaluepair[0].latex() + "\\n\\n";
+          var key = keyvaluepair[0].latex();
           var value = calculate(keyvaluepair[1].latex(), "", []);
-          keys += key;
+          keys.push(key);
           values.push(value);
         } catch (e) {
         }
-        break;
       }
-      keys = keys.slice(0, -4);
-      var result = calculate(equation, keys, values);
+      values_fields.reverse();
+      var result = calculate(equation, keys.join("\\n\\n"), values);
       var result_text = document.getElementById("result");
       result_text.innerHTML = result;
     }
