@@ -157,8 +157,10 @@ impl IR {
                     }
                 } else {
                     if latex.len() == 0 {
+                        let mut slash_command = vec!['\\'];
+                        slash_command.append(&mut command);
                         return Self {
-                            name: command,
+                            name: slash_command,
                             parameters: vec![],
                             surrounding_brackets,
                         };
