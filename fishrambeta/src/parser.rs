@@ -523,9 +523,10 @@ impl IR {
                         multiplications_and_divisions.push(i);
                     }
                     '^' => {
-                        if Self::check_if_caret_is_power(latex, i)
-                            && Self::check_if_power_is_top_level(latex, i, implicit_multiplication)
-                        {
+                        let is_power = Self::check_if_caret_is_power(latex, i);
+                        let is_top_level =
+                            Self::check_if_power_is_top_level(latex, i, implicit_multiplication);
+                        if is_power && is_top_level {
                             powers.push(i);
                         }
                     }
@@ -597,7 +598,7 @@ impl IR {
                 if part_between.len() == 1 {
                     return false;
                 }
-                return Self::check_if_part_is_single_expression(
+                return !Self::check_if_part_is_single_expression(
                     part_between,
                     implicit_multiplication,
                 );
