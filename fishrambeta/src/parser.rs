@@ -79,6 +79,13 @@ impl IR {
                 }
             };
         } else {
+            if BracketType::is_opening_bracket(latex[0])
+                && BracketType::is_closing_bracket(latex[latex.len() - 1])
+            {
+                let bracket_type = BracketType::get_opening_bracket_type(latex.remove(0));
+                latex.remove(latex.len() - 1);
+                return Self::latex_to_ir(latex, implicit_multiplication, bracket_type);
+            }
             if latex.starts_with(&['\\']) {
                 latex.remove(0);
                 let mut command = vec![];
