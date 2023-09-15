@@ -8,8 +8,35 @@ pub fn simplify(equation: &str) -> String {
         equation.to_string().chars().collect::<Vec<_>>(),
         true,
     );
-    let simplified = parsed.simplify().simplify();
+    let simplified = parsed
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify();
     let parsed_back = fishrambeta::parser::IR::equation_to_latex(simplified, true);
+    return parsed_back;
+}
+
+#[wasm_bindgen]
+pub fn differentiate(equation: &str) -> String {
+    let parsed = fishrambeta::parser::IR::latex_to_equation(
+        equation.to_string().chars().collect::<Vec<_>>(),
+        true,
+    );
+    let differentiated = parsed
+        .differentiate(&Variable::Letter("x".to_string()))
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify()
+        .simplify();
+    let parsed_back = fishrambeta::parser::IR::equation_to_latex(differentiated, true);
     return parsed_back;
 }
 
