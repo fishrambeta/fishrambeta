@@ -146,18 +146,18 @@ impl IR {
                         name: command.to_vec(),
                         parameters,
                     };
-                    if latex.len() == 0 {
-                        return sqrt;
+                    return if latex.len() == 0 {
+                        sqrt
                     } else {
                         let other_ir = Self::latex_to_ir(latex, implicit_multiplication);
-                        return Self {
+                        Self {
                             name: command.to_vec(),
                             parameters: vec![
                                 (sqrt, BracketType::None),
                                 (other_ir, BracketType::None),
                             ],
-                        };
-                    }
+                        }
+                    };
                 } else if command == ['s', 'i', 'n']
                     || command == ['c', 'o', 's']
                     || command == ['t', 'a', 'n']
@@ -289,8 +289,8 @@ impl IR {
                 if self.parameters.len() != 2 {
                     panic!("Invalid power, not two parameters");
                 }
-                let opening_bracket = self.parameters[1].1.opening_bracket();
-                let closing_bracket = self.parameters[1].1.closing_bracket();
+                let opening_bracket = self.parameters[0].1.opening_bracket();
+                let closing_bracket = self.parameters[0].1.closing_bracket();
                 let mut data = self.name;
                 data.push(opening_bracket);
                 data.append(
@@ -301,8 +301,8 @@ impl IR {
                         .ir_to_latex(implicit_multiplication),
                 );
                 data.push(closing_bracket);
-                let opening_bracket = self.parameters[1].1.opening_bracket();
-                let closing_bracket = self.parameters[1].1.closing_bracket();
+                let opening_bracket = self.parameters[0].1.opening_bracket();
+                let closing_bracket = self.parameters[0].1.closing_bracket();
                 data.push(opening_bracket);
                 data.append(
                     &mut self
