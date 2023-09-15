@@ -212,7 +212,21 @@ impl IR {
                     }
                 }
             } else if latex.contains(&'\\') {
-                todo!();
+                let slash = latex.iter().position(|f| f == &'\\').unwrap();
+                let (lhs, rhs) = latex.split_at(slash);
+                return Self {
+                    name: vec!['*'],
+                    parameters: vec![
+                        (
+                            Self::latex_to_ir(lhs.to_vec(), implicit_multiplication),
+                            BracketType::Round,
+                        ),
+                        (
+                            Self::latex_to_ir(rhs.to_vec(), implicit_multiplication),
+                            BracketType::Round,
+                        ),
+                    ],
+                };
             } else if latex.contains(&'{')
                 || latex.contains(&'(')
                 || latex.contains(&'[')
