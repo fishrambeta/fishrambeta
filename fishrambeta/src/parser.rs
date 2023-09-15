@@ -97,6 +97,7 @@ impl IR {
         } else {
             if BracketType::is_opening_bracket(latex[0])
                 && BracketType::is_closing_bracket(latex[latex.len() - 1])
+                && Self::first_and_last_bracket_connected(&latex)
             {
                 let bracket_type = BracketType::get_opening_bracket_type(latex.remove(0));
                 latex.remove(latex.len() - 1);
@@ -219,10 +220,28 @@ impl IR {
             {
                 if BracketType::is_opening_bracket(latex[0])
                     && BracketType::is_closing_bracket(latex[latex.len() - 1])
+                    && Self::first_and_last_bracket_connected(&latex)
                 {
                     latex.remove(0);
                     latex.remove(latex.len() - 1);
                     return Self::latex_to_ir(latex, implicit_multiplication);
+                } else if BracketType::is_opening_bracket(latex[0])
+                    && BracketType::is_closing_bracket(latex[latex.len() - 1])
+                {
+                    let (lhs, rhs) = Self::split_on_brackets(latex);
+                    return Self {
+                        name: vec!['*'],
+                        parameters: vec![
+                            (
+                                Self::latex_to_ir(lhs, implicit_multiplication),
+                                BracketType::Round,
+                            ),
+                            (
+                                Self::latex_to_ir(rhs, implicit_multiplication),
+                                BracketType::Round,
+                            ),
+                        ],
+                    };
                 }
                 todo!()
             } else if latex.iter().any(|char| char.is_numeric()) {
@@ -910,6 +929,36 @@ impl IR {
         let nominator: i64 =
             int.parse::<i64>().unwrap() * denominator + dec.parse::<i64>().unwrap();
         return Equation::Variable(Variable::Rational((nominator, denominator)));
+    }
+    pub fn first_and_last_bracket_connected(latex: &Vec<char>) -> bool {
+        let mut depth = 1;
+        for i in 1..(latex.len() - 1) {
+            if BracketType::is_opening_bracket(latex[i]) {
+                depth += 1
+            } else if BracketType::is_closing_bracket(latex[i]) {
+                depth -= 1
+            }
+            if depth == 0 {
+                return false;
+            }
+        }
+        return true;
+    }
+    pub fn split_on_brackets(latex: Vec<char>) -> (Vec<char>, Vec<char>) {
+        let mut depth = 1;
+        for i in 1..(latex.len() - 1) {
+            if BracketType::is_opening_bracket(latex[i]) {
+                depth += 1
+            } else if BracketType::is_closing_bracket(latex[i]) {
+                depth -= 1
+            }
+            if depth == 0 {
+                let (lhs, rhs) = latex.split_at(i + 1);
+                let (lhs, rhs) = (lhs.to_vec(), rhs.to_vec());
+                return (lhs, rhs);
+            }
+        }
+        panic!()
     }
 }
 pub enum BracketType {
