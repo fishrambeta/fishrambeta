@@ -2,20 +2,14 @@ use crate::math::{Constant, Equation, Variable};
 //TODO: it would probably be neater to have seperate closing brackets for each parameter, but this is something for later.
 pub struct IR {
     name: Vec<char>,
-    parameters: Vec<IR>,
-    surrounding_brackets: BracketType,
+    parameters: Vec<(IR, BracketType)>,
 }
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
         if !Self::calculate_depth_difference(&latex) == 0 {
             panic!("Invalid latex");
         }
-        return Self::latex_to_ir(
-            cleanup_latex(latex),
-            implicit_multiplication,
-            BracketType::None,
-        )
-        .ir_to_equation();
+        return Self::latex_to_ir(cleanup_latex(latex), implicit_multiplication).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
         return Self::equation_to_ir(equation)
@@ -23,11 +17,7 @@ impl IR {
             .into_iter()
             .collect::<String>();
     }
-    pub fn latex_to_ir(
-        latex: Vec<char>,
-        implicit_multiplication: bool,
-        surrounding_brackets: BracketType,
-    ) -> Self {
+    pub fn latex_to_ir(latex: Vec<char>, implicit_multiplication: bool) -> Self {
         let mut latex = latex;
         let top_level_operators =
             Self::get_operators_in_top_level_from_latex(&latex, implicit_multiplication);
@@ -39,10 +29,15 @@ impl IR {
                 IR {
                     name: vec![operator],
                     parameters: vec![
-                        Self::latex_to_ir(lhs, implicit_multiplication, BracketType::None),
-                        Self::latex_to_ir(rhs, implicit_multiplication, BracketType::None),
+                        (
+                            Self::latex_to_ir(lhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
+                        (
+                            Self::latex_to_ir(rhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
                     ],
-                    surrounding_brackets,
                 }
             } else if top_level_operators.multiplications_and_divisions.len() > 0 {
                 let (lhs, rhs) =
@@ -52,10 +47,15 @@ impl IR {
                 IR {
                     name: vec![operator],
                     parameters: vec![
-                        Self::latex_to_ir(lhs, implicit_multiplication, BracketType::None),
-                        Self::latex_to_ir(rhs, implicit_multiplication, BracketType::None),
+                        (
+                            Self::latex_to_ir(lhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
+                        (
+                            Self::latex_to_ir(rhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
                     ],
-                    surrounding_brackets,
                 }
             } else {
                 let mut parts = vec![];
@@ -72,10 +72,12 @@ impl IR {
                     parameters: parts
                         .into_iter()
                         .map(|parts| {
-                            Self::latex_to_ir(parts, implicit_multiplication, BracketType::None)
+                            (
+                                Self::latex_to_ir(parts, implicit_multiplication),
+                                BracketType::None,
+                            )
                         })
                         .collect::<Vec<_>>(),
-                    surrounding_brackets,
                 }
             };
         } else {
@@ -84,7 +86,7 @@ impl IR {
             {
                 let bracket_type = BracketType::get_opening_bracket_type(latex.remove(0));
                 latex.remove(latex.len() - 1);
-                return Self::latex_to_ir(latex, implicit_multiplication, bracket_type);
+                return Self::latex_to_ir(latex, implicit_multiplication);
             }
             if latex.starts_with(&['\\']) {
                 latex.remove(0);
@@ -113,46 +115,46 @@ impl IR {
                         panic!("Invalid fraction");
                     }
                     let first = Self::get_first_parameter(&mut latex, implicit_multiplication);
-                    params.push(first);
-                    params.push(Self::get_first_parameter(
-                        &mut latex,
-                        implicit_multiplication,
+                    params.push((first, BracketType::Curly));
+                    params.push((
+                        Self::get_first_parameter(&mut latex, implicit_multiplication),
+                        BracketType::Curly,
                     ));
                     let fraction = Self {
                         name: vec!['f', 'r', 'a', 'c'],
                         parameters: params,
-                        surrounding_brackets: BracketType::Curly,
                     };
                     if latex.len() == 0 {
                         return fraction;
                     } else {
-                        let other_ir =
-                            Self::latex_to_ir(latex, implicit_multiplication, BracketType::None);
+                        let other_ir = Self::latex_to_ir(latex, implicit_multiplication);
                         return Self {
                             name: vec!['*'],
-                            surrounding_brackets: BracketType::Curly,
-                            parameters: vec![fraction, other_ir],
+                            parameters: vec![
+                                (fraction, BracketType::Curly),
+                                (other_ir, BracketType::Curly),
+                            ],
                         };
                     }
                 } else if command == ['s', 'q', 'r', 't'] {
-                    let parameters = vec![Self::get_first_parameter(
-                        &mut latex,
-                        implicit_multiplication,
+                    let parameters = vec![(
+                        Self::get_first_parameter(&mut latex, implicit_multiplication),
+                        BracketType::Curly,
                     )];
                     let sqrt = Self {
                         name: command.to_vec(),
                         parameters,
-                        surrounding_brackets: BracketType::None,
                     };
                     if latex.len() == 0 {
                         return sqrt;
                     } else {
-                        let other_ir =
-                            Self::latex_to_ir(latex, implicit_multiplication, BracketType::None);
+                        let other_ir = Self::latex_to_ir(latex, implicit_multiplication);
                         return Self {
                             name: command.to_vec(),
-                            parameters: vec![sqrt, other_ir],
-                            surrounding_brackets: BracketType::None,
+                            parameters: vec![
+                                (sqrt, BracketType::None),
+                                (other_ir, BracketType::None),
+                            ],
                         };
                     }
                 } else {
@@ -162,7 +164,6 @@ impl IR {
                         return Self {
                             name: slash_command,
                             parameters: vec![],
-                            surrounding_brackets,
                         };
                     } else {
                         //TODO!
@@ -181,7 +182,7 @@ impl IR {
                 {
                     latex.remove(0);
                     latex.remove(latex.len() - 1);
-                    return Self::latex_to_ir(latex, implicit_multiplication, surrounding_brackets);
+                    return Self::latex_to_ir(latex, implicit_multiplication);
                 }
                 todo!()
             } else if latex.iter().any(|char| char.is_numeric()) {
@@ -191,20 +192,17 @@ impl IR {
                     return IR {
                         name: latex,
                         parameters: vec![],
-                        surrounding_brackets,
                     };
                 }
             } else if implicit_multiplication {
                 return Self {
                     name: latex,
-                    surrounding_brackets: BracketType::None,
                     parameters: vec![],
                 };
             } else {
                 return IR {
                     name: latex,
                     parameters: vec![],
-                    surrounding_brackets,
                 };
             }
         }
@@ -214,19 +212,19 @@ impl IR {
         let mut return_data = vec![];
         match name[..] {
             ['+'] | ['-'] | ['*'] => {
-                return_data.push(self.parameters[0].surrounding_brackets.opening_bracket());
-                let closing_bracket = self.parameters[0].surrounding_brackets.closing_bracket();
+                return_data.push(self.parameters[0].1.opening_bracket());
+                let closing_bracket = self.parameters[0].1.closing_bracket();
                 return_data.append(&mut Self::ir_to_latex(
-                    self.parameters.remove(0),
+                    self.parameters.remove(0).0,
                     implicit_multiplication,
                 ));
                 return_data.push(closing_bracket);
                 while self.parameters.len() > 0 {
                     return_data.push(self.name[0]); // The operator
-                    return_data.push(self.parameters[0].surrounding_brackets.opening_bracket());
-                    let closing_bracket = self.parameters[0].surrounding_brackets.closing_bracket();
+                    return_data.push(self.parameters[0].1.opening_bracket());
+                    let closing_bracket = self.parameters[0].1.closing_bracket();
                     return_data.append(&mut Self::ir_to_latex(
-                        self.parameters.remove(0),
+                        self.parameters.remove(0).0,
                         implicit_multiplication,
                     ));
                     return_data.push(closing_bracket);
@@ -236,22 +234,26 @@ impl IR {
                 if self.parameters.len() != 2 {
                     panic!("Invalid power, not two parameters");
                 }
-                let opening_bracket = self.surrounding_brackets.opening_bracket();
-                let closing_bracket = self.surrounding_brackets.closing_bracket();
+                let opening_bracket = self.parameters[0].1.opening_bracket();
+                let closing_bracket = self.parameters[0].1.closing_bracket();
                 let mut data = vec![opening_bracket];
                 data.append(
                     &mut self
                         .parameters
                         .remove(0)
+                        .0
                         .ir_to_latex(implicit_multiplication),
                 );
                 data.push(closing_bracket);
+                let opening_bracket = self.parameters[0].1.opening_bracket();
+                let closing_bracket = self.parameters[0].1.closing_bracket();
                 data.append(&mut self.name);
                 data.push(opening_bracket);
                 data.append(
                     &mut self
                         .parameters
                         .remove(0)
+                        .0
                         .ir_to_latex(implicit_multiplication),
                 );
                 data.push(closing_bracket);
@@ -261,22 +263,26 @@ impl IR {
                 if self.parameters.len() != 2 {
                     panic!("Invalid power, not two parameters");
                 }
-                let opening_bracket = self.surrounding_brackets.opening_bracket();
-                let closing_bracket = self.surrounding_brackets.closing_bracket();
+                let opening_bracket = self.parameters[1].1.opening_bracket();
+                let closing_bracket = self.parameters[1].1.closing_bracket();
                 let mut data = self.name;
                 data.push(opening_bracket);
                 data.append(
                     &mut self
                         .parameters
                         .remove(0)
+                        .0
                         .ir_to_latex(implicit_multiplication),
                 );
                 data.push(closing_bracket);
+                let opening_bracket = self.parameters[1].1.opening_bracket();
+                let closing_bracket = self.parameters[1].1.closing_bracket();
                 data.push(opening_bracket);
                 data.append(
                     &mut self
                         .parameters
                         .remove(0)
+                        .0
                         .ir_to_latex(implicit_multiplication),
                 );
                 data.push(closing_bracket);
@@ -298,7 +304,7 @@ impl IR {
                 return Equation::Addition(
                     self.parameters
                         .into_iter()
-                        .map(|param| param.ir_to_equation())
+                        .map(|param| param.0.ir_to_equation())
                         .collect::<Vec<_>>(),
                 );
             }
@@ -306,7 +312,7 @@ impl IR {
                 return Equation::Subtraction(
                     self.parameters
                         .into_iter()
-                        .map(|param| param.ir_to_equation())
+                        .map(|param| param.0.ir_to_equation())
                         .collect::<Vec<_>>(),
                 );
             }
@@ -314,63 +320,63 @@ impl IR {
                 return Equation::Multiplication(
                     self.parameters
                         .into_iter()
-                        .map(|param| param.ir_to_equation())
+                        .map(|param| param.0.ir_to_equation())
                         .collect::<Vec<_>>(),
                 );
             }
             ['/'] => {
                 return if self.parameters.len() != 2 {
                     let actual_division = Equation::Division(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                     )));
                     let mut params = Vec::from([actual_division]);
                     params.append(
                         &mut self
                             .parameters
                             .into_iter()
-                            .map(|param| param.ir_to_equation())
+                            .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
                     Equation::Multiplication(params)
                 } else {
                     Equation::Division(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                     )))
                 }
             }
             ['^'] => {
                 return if self.parameters.len() != 2 {
                     let actual_power = Equation::Power(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                     )));
                     let mut params = Vec::from([actual_power]);
                     params.append(
                         &mut self
                             .parameters
                             .into_iter()
-                            .map(|param| param.ir_to_equation())
+                            .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
                     Equation::Multiplication(params)
                 } else {
                     Equation::Power(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                     )))
                 }
             }
             ['s', 'q', 'r', 't'] => {
                 if self.parameters.len() == 1 {
                     return Equation::Power(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                         Equation::Variable(Variable::Rational((1, 2))),
                     )));
                 } else {
                     let sqrt = Equation::Power(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                         Equation::Variable(Variable::Rational((1, 2))),
                     )));
                     let mut params = Vec::from([sqrt]);
@@ -378,7 +384,7 @@ impl IR {
                         &mut self
                             .parameters
                             .into_iter()
-                            .map(|param| param.ir_to_equation())
+                            .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
                     return Equation::Multiplication(params);
@@ -386,21 +392,21 @@ impl IR {
             }
             ['f', 'r', 'a', 'c'] => {
                 if self.parameters.len() == 2 {
-                    let first = self.parameters.remove(0).ir_to_equation();
-                    let second = self.parameters.remove(0).ir_to_equation();
+                    let first = self.parameters.remove(0).0.ir_to_equation();
+                    let second = self.parameters.remove(0).0.ir_to_equation();
                     println!("{:?},second,{:?}", first, second);
                     return Equation::Division(Box::new((first, second)));
                 } else {
                     let frac = Equation::Division(Box::new((
-                        self.parameters.remove(0).ir_to_equation(),
-                        self.parameters.remove(0).ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
+                        self.parameters.remove(0).0.ir_to_equation(),
                     )));
                     let mut params = Vec::from([frac]);
                     params.append(
                         &mut self
                             .parameters
                             .into_iter()
-                            .map(|param| param.ir_to_equation())
+                            .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
                     return Equation::Multiplication(params);
@@ -428,38 +434,42 @@ impl IR {
                     Variable::Letter(letter) => IR {
                         name: letter.chars().collect::<Vec<char>>(),
                         parameters: vec![],
-                        surrounding_brackets: BracketType::None,
                     },
                     Variable::Integer(integer) => IR {
                         name: integer.to_string().chars().collect::<Vec<char>>(),
                         parameters: vec![],
-                        surrounding_brackets: BracketType::None,
                     },
                     Variable::Vector(vector) => IR {
                         name: format!("\\vec{{{}}}", vector)
                             .chars()
                             .collect::<Vec<char>>(),
                         parameters: vec![],
-                        surrounding_brackets: BracketType::None,
                     },
                     Variable::Rational(ratio) => IR {
                         name: vec!['\\', 'f', 'r', 'a', 'c'],
                         parameters: vec![
-                            Self::equation_to_ir(Equation::Variable(Variable::Integer(ratio.0))),
-                            Self::equation_to_ir(Equation::Variable(Variable::Integer(ratio.1))),
+                            (
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    ratio.0,
+                                ))),
+                                BracketType::Curly,
+                            ),
+                            (
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    ratio.1,
+                                ))),
+                                BracketType::Curly,
+                            ),
                         ],
-                        surrounding_brackets: BracketType::Curly,
                     },
                     Variable::Constant(constant) => match constant {
                         Constant::PI => IR {
                             name: vec!['\\', 'p', 'i'],
                             parameters: vec![],
-                            surrounding_brackets: BracketType::None,
                         },
                         Constant::E => IR {
                             name: vec!['e'],
                             parameters: vec![],
-                            surrounding_brackets: BracketType::None,
                         },
                     },
                 }
@@ -469,39 +479,46 @@ impl IR {
                     name: vec!['*'],
                     parameters: eq
                         .into_iter()
-                        .map(|subeq| Self::equation_to_ir(subeq))
+                        .map(|subeq| (Self::equation_to_ir(subeq), BracketType::Round))
                         .collect(),
-                    surrounding_brackets: BracketType::Round,
                 }
             }
             Equation::Power(data) => {
                 let (lower, upper) = *data;
                 IR {
                     name: vec!['^'],
-                    parameters: vec![Self::equation_to_ir(lower), Self::equation_to_ir(upper)],
-                    surrounding_brackets: BracketType::Round,
+                    parameters: vec![
+                        (Self::equation_to_ir(lower), BracketType::Round),
+                        (Self::equation_to_ir(upper), BracketType::Curly),
+                    ],
                 }
             }
             Equation::Addition(eqs) => {
                 return IR {
                     name: vec!['+'],
-                    parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
-                    surrounding_brackets: BracketType::Round,
+                    parameters: eqs
+                        .into_iter()
+                        .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
+                        .collect(),
                 }
             }
             Equation::Subtraction(eqs) => {
                 return IR {
                     name: vec!['-'],
-                    parameters: eqs.into_iter().map(|eq| Self::equation_to_ir(eq)).collect(),
-                    surrounding_brackets: BracketType::Round,
+                    parameters: eqs
+                        .into_iter()
+                        .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
+                        .collect(),
                 }
             }
             Equation::Division(div) => {
                 let (lhs, rhs) = *div;
                 return IR {
                     name: vec!['\\', 'f', 'r', 'a', 'c'],
-                    parameters: vec![Self::equation_to_ir(lhs), Self::equation_to_ir(rhs)],
-                    surrounding_brackets: BracketType::Curly,
+                    parameters: vec![
+                        (Self::equation_to_ir(lhs), BracketType::Curly),
+                        (Self::equation_to_ir(rhs), BracketType::Curly),
+                    ],
                 };
             }
             _ => {
@@ -736,7 +753,7 @@ impl IR {
             parameter.push(latex.remove(0));
         }
         parameter.remove(parameter.len() - 1);
-        return Self::latex_to_ir(parameter, implicit_multiplication, bracket_type);
+        return Self::latex_to_ir(parameter, implicit_multiplication);
     }
 }
 pub enum BracketType {
