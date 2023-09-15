@@ -1,5 +1,5 @@
 use crate::math::{Equation, Variable};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 impl Equation {
     pub fn simplify(self) -> Self {
@@ -51,7 +51,7 @@ impl Equation {
 }
 
 fn simplify_addition(addition: Vec<Equation>) -> Equation {
-    let mut terms: HashMap<Equation, i64> = HashMap::new();
+    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
     for equation in addition.iter() {
         let simplified = equation.clone().simplify();
         if simplified != Equation::Variable(Variable::Integer(0)) {
@@ -83,7 +83,7 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
 }
 
 fn simplify_subtraction(subtraction: Vec<Equation>) -> Equation {
-    let mut terms: HashMap<Equation, i64> = HashMap::new();
+    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
     let first_term = subtraction[0].clone().simplify();
     let mut has_matched_first_term = false;
     for equation in subtraction.iter().skip(1) {
@@ -124,7 +124,7 @@ fn simplify_subtraction(subtraction: Vec<Equation>) -> Equation {
 }
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
-    let mut terms: HashMap<Equation, i64> = HashMap::new();
+    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
     let mut negative = false;
     for equation in multiplication.iter() {
         let mut simplified = equation.clone().simplify();

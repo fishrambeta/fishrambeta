@@ -1,8 +1,8 @@
 use crate::math::{Equation, Variable};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 impl Equation {
-    pub fn calculate(self: &Self, values: &HashMap<Variable, f64>) -> f64 {
+    pub fn calculate(self: &Self, values: &BTreeMap<Variable, f64>) -> f64 {
         match self {
             Equation::Variable(variable) => {
                 match variable {
