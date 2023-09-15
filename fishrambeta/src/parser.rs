@@ -226,7 +226,7 @@ impl IR {
                 }
                 todo!()
             } else if latex.iter().any(|char| char.is_numeric()) {
-                if latex.iter().any(|char| !char.is_numeric()) {
+                if latex.iter().any(|char| !char.is_numeric() && char != &'.') {
                     todo!()
                 } else {
                     return IR {
@@ -533,11 +533,19 @@ impl IR {
             }
             _ => {
                 if self.parameters.len() == 0 {
-                    let is_numeric = self.name.iter().all(|char| char.is_numeric());
-                    let expression = self.name.into_iter().collect::<String>();
-                    return if is_numeric {
+                    let is_int = self.name.iter().all(|char| char.is_numeric());
+                    let is_float = self
+                        .name
+                        .iter()
+                        .all(|char| char.is_numeric() || char == &'.');
+
+                    return if is_int {
+                        let expression = self.name.into_iter().collect::<String>();
                         Equation::Variable(Variable::Integer(expression.parse::<i64>().unwrap()))
+                    } else if is_float {
+                        Self::parse_float(self.name)
                     } else {
+                        let expression = self.name.into_iter().collect::<String>();
                         Equation::Variable(Variable::Letter(expression))
                     };
                 } else {
@@ -891,6 +899,17 @@ impl IR {
         }
         parameter.remove(parameter.len() - 1);
         return Self::latex_to_ir(parameter, implicit_multiplication);
+    }
+    pub fn parse_float(float: Vec<char>) -> Equation {
+        let period_pos = float.iter().position(|c| c == &'.').unwrap();
+        let (int, dec) = float.split_at(period_pos);
+        let int: String = int.into_iter().collect();
+        let mut dec: String = dec.into_iter().collect();
+        dec.remove(0);
+        let denominator = 10i64.pow(dec.len() as u32);
+        let nominator: i64 =
+            int.parse::<i64>().unwrap() * denominator + dec.parse::<i64>().unwrap();
+        return Equation::Variable(Variable::Rational((nominator, denominator)));
     }
 }
 pub enum BracketType {
