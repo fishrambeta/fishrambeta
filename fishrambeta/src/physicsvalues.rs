@@ -1,8 +1,8 @@
 use crate::math::Variable;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-pub fn physics_values() -> HashMap<Variable, f64> {
-    let mut values = HashMap::new();
+pub fn physics_values() -> BTreeMap<Variable, f64> {
+    let mut values = BTreeMap::new();
     values.insert(Variable::Letter("g".to_string()), 9.81);
     values.insert(Variable::Letter("\\hbar".to_string()), 1.054571817e-34);
     values.insert(Variable::Letter("m_e".to_string()), 9.1093837015e-31);

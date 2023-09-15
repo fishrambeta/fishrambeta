@@ -1,4 +1,4 @@
-use crate::math::{Equation, Variable};
+use crate::math::Equation;
 use crate::parser::IR;
 
 impl Equation {

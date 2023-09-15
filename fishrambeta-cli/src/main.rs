@@ -2,7 +2,7 @@ use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
 use fishrambeta::parser;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -50,7 +50,7 @@ fn main() {
 fn process_operation(
     equation: Equation,
     operation: Operation,
-    value_dict: HashMap<Variable, f64>,
+    value_dict: BTreeMap<Variable, f64>,
 ) -> Result {
     match operation {
         Operation::Simplify => {
@@ -66,7 +66,7 @@ fn process_operation(
             let mut equation = equation
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
-            println!("Unsimplified: {}", equation.to_latex());
+            //println!("Unsimplified: {}", equation.to_latex());
             for _ in 0..10 {
                 equation = equation.simplify();
                 println!("{}", equation.to_latex());
