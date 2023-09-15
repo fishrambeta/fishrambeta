@@ -18,7 +18,9 @@ impl Equation {
             Equation::Variable(variable) => return Equation::Variable(variable),
             Equation::Negative(negative) => match *negative {
                 Equation::Negative(negative) => return (*negative).simplify(),
-                Equation::Variable(Variable::Integer(0)) => return Equation::Variable(Variable::Integer(0)),
+                Equation::Variable(Variable::Integer(0)) => {
+                    return Equation::Variable(Variable::Integer(0))
+                }
                 negative => return Equation::Negative(Box::new(negative.simplify())),
             },
             Equation::Addition(addition) => return simplify_addition(addition),
@@ -123,11 +125,20 @@ fn simplify_subtraction(subtraction: Vec<Equation>) -> Equation {
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     let mut terms: HashMap<Equation, i64> = HashMap::new();
+    let mut negative = false;
     for equation in multiplication.iter() {
-        let simplified = equation.clone().simplify();
+        let mut simplified = equation.clone().simplify();
         if simplified == Equation::Variable(Variable::Integer(0)) {
             return Equation::Variable(Variable::Integer(0));
         } else if simplified != Equation::Variable(Variable::Integer(1)) {
+            simplified = match simplified {
+                Equation::Negative(neg) => {
+                    negative = !negative;
+                    *neg
+                }
+                simplified => simplified,
+            };
+
             if let Equation::Power(ref power) = simplified {
                 if let Equation::Variable(variable) = &power.1 {
                     if let Variable::Integer(n) = variable {
@@ -172,8 +183,11 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     )
     .multiply_by(&simplified_multiplication[0]); //TODO this performance can be improved by
                                                  //omitting the clone but I don't know how yet
-
-    return more_simplified_multiplication;
+    if negative {
+        return Equation::Negative(Box::new(more_simplified_multiplication));
+    } else {
+        return more_simplified_multiplication;
+    }
 }
 
 fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
