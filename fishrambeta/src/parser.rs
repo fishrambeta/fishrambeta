@@ -236,9 +236,21 @@ impl IR {
                     };
                 }
             } else if implicit_multiplication {
+                let letters = latex
+                    .into_iter()
+                    .map(|c| {
+                        (
+                            Self {
+                                name: vec![c],
+                                parameters: vec![],
+                            },
+                            BracketType::None,
+                        )
+                    })
+                    .collect();
                 return Self {
-                    name: latex,
-                    parameters: vec![],
+                    name: vec!['*'],
+                    parameters: letters,
                 };
             } else {
                 return IR {
