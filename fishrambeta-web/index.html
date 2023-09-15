@@ -35,7 +35,7 @@
     <option value="simplify">Simplify</option>
     <option value="differentiate">Differentiate</option>
   </select>
-  <p id="result"></p>
+  <p><span id="result"></span></p>
   <p>Values</p>
   <div id="values">
 
@@ -54,6 +54,9 @@
         }
       }
     });
+
+    var resultSpan = document.getElementById('result');
+    let result_mathfield = MQ.StaticMath(resultSpan);
 
     var values_fields = [];
     function add_new_value_field() {
@@ -120,8 +123,7 @@
           break;
       }
 
-      var result_text = document.getElementById("result");
-      result_text.innerHTML = result;
+      result_mathfield.latex(result);
     }
 
   </script>
