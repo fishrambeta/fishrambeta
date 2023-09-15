@@ -97,6 +97,7 @@ impl IR {
                         || latex[0] == '['
                         || latex[0] == '^'
                         || latex[0] == '_'
+                        || latex[0] == '\\'
                     {
                         break;
                     }
@@ -157,6 +158,18 @@ impl IR {
                             ],
                         };
                     }
+                } else if command == ['s', 'i', 'n']
+                    || command == ['c', 'o', 's']
+                    || command == ['t', 'a', 'n']
+                {
+                    let parameters = vec![(
+                        Self::get_first_parameter(&mut latex, implicit_multiplication),
+                        BracketType::Curly,
+                    )];
+                    return Self {
+                        name: command.to_vec(),
+                        parameters,
+                    };
                 } else {
                     if latex.len() == 0 {
                         let mut slash_command = vec!['\\'];
@@ -167,7 +180,20 @@ impl IR {
                         };
                     } else {
                         //TODO!
-                        panic!("Unexpected parsing error, there was still latex after the command parsed, {}", command.iter().collect::<String>())
+                        let command = Self {
+                            parameters: vec![],
+                            name: command,
+                        };
+                        return Self {
+                            name: vec!['*'],
+                            parameters: vec![
+                                (command, BracketType::Round),
+                                (
+                                    Self::latex_to_ir(latex, implicit_multiplication),
+                                    BracketType::Round,
+                                ),
+                            ],
+                        };
                     }
                 }
             } else if latex.contains(&'\\') {
@@ -291,8 +317,15 @@ impl IR {
             _ => {
                 if self.parameters.len() == 0 {
                     return self.name;
+                } else {
+                    let mut string = self.name.into_iter().collect::<Vec<_>>();
+                    for parameter in self.parameters {
+                        string.push(parameter.1.opening_bracket());
+                        string.append(&mut Self::ir_to_latex(parameter.0, implicit_multiplication));
+                        string.push(parameter.1.closing_bracket())
+                    }
+                    return string;
                 }
-                todo!()
             }
         }
         return return_data;
@@ -394,7 +427,7 @@ impl IR {
                 if self.parameters.len() == 2 {
                     let first = self.parameters.remove(0).0.ir_to_equation();
                     let second = self.parameters.remove(0).0.ir_to_equation();
-                    println!("{:?},second,{:?}", first, second);
+
                     return Equation::Division(Box::new((first, second)));
                 } else {
                     let frac = Equation::Division(Box::new((
@@ -410,6 +443,46 @@ impl IR {
                             .collect::<Vec<_>>(),
                     );
                     return Equation::Multiplication(params);
+                }
+            }
+            ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] => {
+                return if self.parameters.len() == 1 {
+                    let param = self.parameters.remove(0).0.ir_to_equation();
+                    match name[..] {
+                        ['s', 'i', 'n'] => return Equation::Sin(Box::new(param)),
+                        ['c', 'o', 's'] => return Equation::Cos(Box::new(param)),
+                        ['t', 'a', 'n'] => {
+                            return Equation::Division(Box::new((
+                                Equation::Sin(Box::new(param.clone())),
+                                Equation::Cos(Box::new(param)),
+                            )))
+                        }
+                        _ => {
+                            panic!()
+                        }
+                    }
+                } else {
+                    let param = self.parameters.remove(0).0.ir_to_equation();
+                    let gonio = match name[..] {
+                        ['s', 'i', 'n'] => Equation::Sin(Box::new(param)),
+                        ['c', 'o', 's'] => Equation::Cos(Box::new(param)),
+                        ['t', 'a', 'n'] => Equation::Division(Box::new((
+                            Equation::Sin(Box::new(param.clone())),
+                            Equation::Cos(Box::new(param)),
+                        ))),
+                        _ => {
+                            panic!()
+                        }
+                    };
+                    let mut params = Vec::from([gonio]);
+                    params.append(
+                        &mut self
+                            .parameters
+                            .into_iter()
+                            .map(|param| param.0.ir_to_equation())
+                            .collect::<Vec<_>>(),
+                    );
+                    Equation::Multiplication(params)
                 }
             }
             _ => {
@@ -520,6 +593,18 @@ impl IR {
                         (Self::equation_to_ir(rhs), BracketType::Curly),
                     ],
                 };
+            }
+            Equation::Cos(cos) => {
+                return IR {
+                    name: vec!['\\', 'c', 'o', 's'],
+                    parameters: vec![(Self::equation_to_ir(*cos), BracketType::Round)],
+                }
+            }
+            Equation::Sin(sin) => {
+                return IR {
+                    name: vec!['\\', 's', 'i', 'n'],
+                    parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
+                }
             }
             _ => {
                 todo!()
