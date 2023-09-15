@@ -10,7 +10,6 @@ impl IR {
             panic!("Invalid latex");
         }
         let mut sanitized_latex = cleanup_latex(latex);
-        sanitized_latex.insert(0, '-');
         return Self::latex_to_ir(sanitized_latex, implicit_multiplication).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
