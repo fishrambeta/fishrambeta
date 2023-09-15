@@ -17,8 +17,9 @@ impl Equation {
         match self {
             Equation::Variable(variable) => return Equation::Variable(variable),
             Equation::Negative(negative) => match *negative {
-                Equation::Negative(negative) => return *negative,
-                negative => return Equation::Negative(Box::new(negative)),
+                Equation::Negative(negative) => return (*negative).simplify(),
+                Equation::Variable(Variable::Integer(0)) => return Equation::Variable(Variable::Integer(0)),
+                negative => return Equation::Negative(Box::new(negative.simplify())),
             },
             Equation::Addition(addition) => return simplify_addition(addition),
             Equation::Subtraction(subtraction) => return simplify_subtraction(subtraction),
