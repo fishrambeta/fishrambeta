@@ -80,7 +80,7 @@ impl Equation {
             Equation::Cos(sin) => {
                 return Equation::Negative(Box::new(Equation::Multiplication(vec![
                     sin.differentiate(differentiate_to),
-                    Equation::Cos(sin.clone()),
+                    Equation::Sin(sin.clone()),
                 ])))
             }
             Equation::Equals(equals) => {
