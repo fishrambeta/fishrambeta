@@ -1,5 +1,5 @@
 use crate::math::{Constant, Equation, Variable};
-//TODO: it would probably be neater to have seperate closing brackets for each parameter, but this is something for later.
+
 pub struct IR {
     name: Vec<char>,
     parameters: Vec<(IR, BracketType)>,
@@ -9,7 +9,9 @@ impl IR {
         if !Self::calculate_depth_difference(&latex) == 0 {
             panic!("Invalid latex");
         }
-        return Self::latex_to_ir(cleanup_latex(latex), implicit_multiplication).ir_to_equation();
+        let mut sanitized_latex = cleanup_latex(latex);
+        sanitized_latex.insert(0, '-');
+        return Self::latex_to_ir(sanitized_latex, implicit_multiplication).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
         return Self::equation_to_ir(equation)
@@ -19,6 +21,9 @@ impl IR {
     }
     pub fn latex_to_ir(latex: Vec<char>, implicit_multiplication: bool) -> Self {
         let mut latex = latex;
+        while latex[0] == '+' {
+            latex.remove(0);
+        }
         let top_level_operators =
             Self::get_operators_in_top_level_from_latex(&latex, implicit_multiplication);
         if top_level_operators.any() {
@@ -26,18 +31,28 @@ impl IR {
                 let (lhs, rhs) = latex.split_at(top_level_operators.additions_and_subtractions[0]);
                 let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
                 let operator = rhs.remove(0);
-                IR {
-                    name: vec![operator],
-                    parameters: vec![
-                        (
-                            Self::latex_to_ir(lhs, implicit_multiplication),
-                            BracketType::None,
-                        ),
-                        (
+                if lhs.len() == 0 && operator == '-' {
+                    IR {
+                        name: vec!['\\', 'i', 'n', 'v'],
+                        parameters: vec![(
                             Self::latex_to_ir(rhs, implicit_multiplication),
-                            BracketType::None,
-                        ),
-                    ],
+                            BracketType::Round,
+                        )],
+                    }
+                } else {
+                    IR {
+                        name: vec![operator],
+                        parameters: vec![
+                            (
+                                Self::latex_to_ir(lhs, implicit_multiplication),
+                                BracketType::None,
+                            ),
+                            (
+                                Self::latex_to_ir(rhs, implicit_multiplication),
+                                BracketType::None,
+                            ),
+                        ],
+                    }
                 }
             } else if top_level_operators.multiplications_and_divisions.len() > 0 {
                 let (lhs, rhs) =
@@ -314,6 +329,23 @@ impl IR {
                 data.push(closing_bracket);
                 return data;
             }
+            ['\\', 'i', 'n', 'v'] => {
+                if self.parameters.len() == 1 {
+                    let mut result = vec!['-'];
+                    result.push(self.parameters[0].1.opening_bracket());
+                    let closing_bracket = self.parameters[0].1.closing_bracket();
+                    result.append(
+                        &mut self
+                            .parameters
+                            .remove(0)
+                            .0
+                            .ir_to_latex(implicit_multiplication),
+                    );
+                    result.push(closing_bracket);
+                    return result;
+                }
+                panic!();
+            }
             _ => {
                 if self.parameters.len() == 0 {
                     return self.name;
@@ -485,6 +517,9 @@ impl IR {
                     Equation::Multiplication(params)
                 }
             }
+            ['\\', 'i', 'n', 'v'] => {
+                Equation::Negative(Box::new(self.parameters.remove(0).0.ir_to_equation()))
+            }
             _ => {
                 if self.parameters.len() == 0 {
                     let is_numeric = self.name.iter().all(|char| char.is_numeric());
@@ -604,6 +639,12 @@ impl IR {
                 return IR {
                     name: vec!['\\', 's', 'i', 'n'],
                     parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
+                }
+            }
+            Equation::Negative(core) => {
+                return IR {
+                    name: vec!['\\', 'i', 'n', 'v'],
+                    parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
                 }
             }
             _ => {
