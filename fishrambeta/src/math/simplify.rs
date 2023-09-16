@@ -21,6 +21,13 @@ impl Equation {
                 Equation::Variable(Variable::Integer(0)) => {
                     return Equation::Variable(Variable::Integer(0))
                 }
+                Equation::Variable(Variable::Integer(integer)) => {
+                    return Equation::Variable(Variable::Integer(-integer))
+                }
+                Equation::Variable(Variable::Rational(rational)) => {
+                    return Equation::Variable(Variable::Rational((-rational.0, rational.1)))
+                }
+
                 negative => return Equation::Negative(Box::new(negative.simplify())),
             },
             Equation::Addition(addition) => return simplify_addition(addition),
