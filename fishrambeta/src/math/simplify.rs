@@ -210,12 +210,14 @@ fn simplify_division(division: Box<(Equation, Equation)>) -> Equation {
             denominator = denominator.remove_factor(&factor);
         }
     }
-    
+
     numerator = numerator.simplify();
     denominator = denominator.simplify();
 
     return if numerator == Equation::Variable(Variable::Integer(0)) {
         Equation::Variable(Variable::Integer(0))
+    } else if denominator == Equation::Variable(Variable::Integer(1)) {
+        numerator
     } else {
         Equation::Division(Box::new((numerator, denominator)))
     };
