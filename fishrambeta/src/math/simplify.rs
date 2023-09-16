@@ -26,15 +26,7 @@ impl Equation {
             Equation::Addition(addition) => return simplify_addition(addition),
             Equation::Subtraction(subtraction) => return simplify_subtraction(subtraction),
             Equation::Multiplication(multiplication) => simplify_multiplication(multiplication),
-            Equation::Division(division) => {
-                let numerator = division.0.simplify();
-                let denominator = division.1.simplify();
-                return if numerator == Equation::Variable(Variable::Integer(0)) {
-                    Equation::Variable(Variable::Integer(0))
-                } else {
-                    Equation::Division(Box::new((numerator, denominator)))
-                };
-            }
+            Equation::Division(division) => return simplify_division(division),
             Equation::Power(power) => return simplify_power(power),
             Equation::Ln(ln) => return Equation::Ln(Box::new(ln.simplify())),
             Equation::Sin(sin) => return Equation::Sin(Box::new(sin.simplify())),
@@ -43,10 +35,6 @@ impl Equation {
                 return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }
         }
-    }
-
-    pub fn get_factors(&self) -> Vec<Equation> {
-        return Vec::new();
     }
 }
 
@@ -210,4 +198,27 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
     }
 
     return Equation::Power(Box::new((base, exponent)));
+}
+
+fn simplify_division(division: Box<(Equation, Equation)>) -> Equation {
+    let mut numerator = division.0.simplify();
+    let mut denominator = division.1.simplify();
+
+    for factor in denominator.shared_factors(&numerator) {
+        if (&numerator).has_factor(&factor) && (&denominator).has_factor(&factor) {
+            numerator = numerator.remove_factor(&factor);
+            denominator = denominator.remove_factor(&factor);
+        }
+    }
+
+    numerator = numerator.simplify();
+    denominator = denominator.simplify();
+
+    return if numerator == Equation::Variable(Variable::Integer(0)) {
+        Equation::Variable(Variable::Integer(0))
+    } else if denominator == Equation::Variable(Variable::Integer(1)) {
+        numerator
+    } else {
+        Equation::Division(Box::new((numerator, denominator)))
+    };
 }
