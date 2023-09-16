@@ -7,8 +7,9 @@ impl Equation {
         }
 
         match self {
-            //TODO Implement this for power
-            //Equation::Power(power) => return power.0.has_factor(factor),
+            Equation::Power(power) => {
+                return power.0 == *factor;
+            }
             Equation::Multiplication(multiplication) => {
                 return multiplication.iter().any(|x| x.clone().has_factor(factor))
             }
@@ -27,7 +28,8 @@ impl Equation {
         let mut factors = vec![self.clone()];
         match self {
             Equation::Multiplication(multiplication) => factors.append(&mut multiplication.clone()),
-            _ => {},
+            Equation::Power(power) => factors.push(power.0.clone()),
+            _ => {}
         }
         return factors;
     }
@@ -67,8 +69,12 @@ impl Equation {
                         .collect(),
                 );
             }
-            //TODO implement this for power
-            //Equation::Power(power) => return power.0.has_factor(factor),
+            Equation::Power(power) => {
+                return Equation::Power(Box::new((
+                    power.0,
+                    Equation::Subtraction(vec![power.1, Equation::Variable(Variable::Integer(1))]),
+                )))
+            }
             Equation::Addition(addition) => {
                 return Equation::Addition(
                     addition
