@@ -194,11 +194,22 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
             }
             return Equation::Multiplication(simplified_power);
         }
-        Equation::Power(power) => {
-            return Equation::Power(Box::new((
-                power.0,
-                Equation::Multiplication(vec![exponent, power.1]),
-            ))).simplify()
+        Equation::Power(ref power) => {
+            if let Equation::Variable(ref exponent_as_variable) = exponent {
+                if let Equation::Variable(ref exponent2_as_variable) = power.1 {
+                    if (matches!(exponent_as_variable, Variable::Integer(_))
+                        && matches!(exponent2_as_variable, Variable::Integer(_)))
+                        || (matches!(exponent_as_variable, Variable::Rational(_))
+                            && matches!(exponent2_as_variable, Variable::Rational(_)))
+                    {
+                        return Equation::Power(Box::new((
+                            power.0.clone(),
+                            Equation::Multiplication(vec![exponent, power.1.clone()]),
+                        )))
+                        .simplify();
+                    }
+                }
+            }
         }
         _ => {}
     }
