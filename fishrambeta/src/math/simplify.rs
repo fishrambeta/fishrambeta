@@ -186,13 +186,19 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
         return base;
     }
 
-    match base.clone() {
+    match base {
         Equation::Multiplication(terms) => {
             let mut simplified_power: Vec<Equation> = vec![];
             for term in terms.iter() {
                 simplified_power.push(Equation::Power(Box::new((term.clone(), exponent.clone()))));
             }
             return Equation::Multiplication(simplified_power);
+        }
+        Equation::Power(power) => {
+            return Equation::Power(Box::new((
+                power.0,
+                Equation::Multiplication(vec![exponent, power.1]),
+            ))).simplify()
         }
         _ => {}
     }
