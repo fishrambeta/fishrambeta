@@ -24,11 +24,12 @@ impl Equation {
 
     fn get_all_factors(self: &Equation) -> Vec<Equation> {
         //TODO add other factors than just multiplication
+        let mut factors = vec![self.clone()];
         match self {
-            Equation::Variable(variable) => return vec![Equation::Variable(variable.clone())],
-            Equation::Multiplication(multiplication) => return multiplication.clone(),
-            _ => return vec![],
+            Equation::Multiplication(multiplication) => factors.append(&mut multiplication.clone()),
+            _ => {},
         }
+        return factors;
     }
 
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
