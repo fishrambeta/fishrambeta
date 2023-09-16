@@ -9,7 +9,7 @@ impl IR {
         if !Self::calculate_depth_difference(&latex) == 0 {
             panic!("Invalid latex");
         }
-        let mut sanitized_latex = cleanup_latex(latex);
+        let mut sanitized_latex = vec!['-', '3', '-', '8']; //cleanup_latex(latex);
         return Self::latex_to_ir(sanitized_latex, implicit_multiplication).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
@@ -30,28 +30,18 @@ impl IR {
                 let (lhs, rhs) = latex.split_at(top_level_operators.additions_and_subtractions[0]);
                 let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
                 let operator = rhs.remove(0);
-                if lhs.len() == 0 && operator == '-' {
-                    IR {
-                        name: vec!['\\', 'i', 'n', 'v'],
-                        parameters: vec![(
+                IR {
+                    name: vec![operator],
+                    parameters: vec![
+                        (
+                            Self::latex_to_ir(lhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
+                        (
                             Self::latex_to_ir(rhs, implicit_multiplication),
-                            BracketType::Round,
-                        )],
-                    }
-                } else {
-                    IR {
-                        name: vec![operator],
-                        parameters: vec![
-                            (
-                                Self::latex_to_ir(lhs, implicit_multiplication),
-                                BracketType::None,
-                            ),
-                            (
-                                Self::latex_to_ir(rhs, implicit_multiplication),
-                                BracketType::None,
-                            ),
-                        ],
-                    }
+                            BracketType::None,
+                        ),
+                    ],
                 }
             } else if top_level_operators.multiplications_and_divisions.len() > 0 {
                 let (lhs, rhs) =
@@ -260,6 +250,16 @@ impl IR {
                 todo!()
             } else if latex.iter().any(|char| char.is_numeric()) {
                 if latex.iter().any(|char| !char.is_numeric() && char != &'.') {
+                    if latex[0] == '-' {
+                        latex.remove(0);
+                        return IR {
+                            name: vec!['\\', 'i', 'n', 'v'],
+                            parameters: vec![(
+                                Self::latex_to_ir(latex, implicit_multiplication),
+                                BracketType::Round,
+                            )],
+                        };
+                    }
                     todo!()
                 } else {
                     return IR {
@@ -721,7 +721,9 @@ impl IR {
             } else if depth == 0 {
                 match char {
                     '+' | '-' => {
-                        additions_and_subtractions.push(i);
+                        if i != 0 || char == &'+' {
+                            additions_and_subtractions.push(i);
+                        }
                     }
                     '*' | '/' => {
                         multiplications_and_divisions.push(i);
