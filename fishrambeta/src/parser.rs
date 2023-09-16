@@ -9,7 +9,7 @@ impl IR {
         if !Self::calculate_depth_difference(&latex) == 0 {
             panic!("Invalid latex");
         }
-        let mut sanitized_latex = vec!['-', '3', '-', '8']; //cleanup_latex(latex);
+        let mut sanitized_latex = cleanup_latex(latex);
         return Self::latex_to_ir(sanitized_latex, implicit_multiplication).ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
