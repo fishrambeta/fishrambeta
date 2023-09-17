@@ -28,6 +28,7 @@ pub fn differentiate(equation: &str) -> String {
         true,
     );
     let differentiated = parsed
+        .simplify()
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify()
         .simplify()
