@@ -18,14 +18,6 @@ impl Equation {
             Equation::Addition(addition) => {
                 return addition.iter().map(|x| x.calculate(&values)).sum()
             }
-            Equation::Subtraction(subtraction) => {
-                let minus: f64 = subtraction
-                    .iter()
-                    .skip(1)
-                    .map(|x| x.calculate(&values))
-                    .sum();
-                return subtraction[0].calculate(&values) - minus;
-            } // TODO make this in one statement, but rust hates me
             Equation::Multiplication(multiplication) => {
                 return multiplication
                     .iter()

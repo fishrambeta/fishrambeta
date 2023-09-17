@@ -418,10 +418,17 @@ impl IR {
                 );
             }
             ['-'] => {
-                return Equation::Subtraction(
+                return Equation::Addition(
                     self.parameters
                         .into_iter()
-                        .map(|param| param.0.ir_to_equation())
+                        .enumerate()
+                        .map(|(index, param)| {
+                            if index == 0 {
+                                param.0.ir_to_equation()
+                            } else {
+                                Equation::Negative(Box::new(param.0.ir_to_equation()))
+                            }
+                        })
                         .collect::<Vec<_>>(),
                 );
             }
@@ -656,15 +663,6 @@ impl IR {
             Equation::Addition(eqs) => {
                 return IR {
                     name: vec!['+'],
-                    parameters: eqs
-                        .into_iter()
-                        .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
-                        .collect(),
-                }
-            }
-            Equation::Subtraction(eqs) => {
-                return IR {
-                    name: vec!['-'],
                     parameters: eqs
                         .into_iter()
                         .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))

@@ -31,7 +31,6 @@ impl Equation {
                 negative => return Equation::Negative(Box::new(negative.simplify())),
             },
             Equation::Addition(addition) => return simplify_addition(addition),
-            Equation::Subtraction(subtraction) => return simplify_subtraction(subtraction),
             Equation::Multiplication(multiplication) => simplify_multiplication(multiplication),
             Equation::Division(division) => return simplify_division(division),
             Equation::Power(power) => return simplify_power(power),
@@ -75,47 +74,6 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
         return simplified_addition[0].clone();
     }
     return Equation::Addition(simplified_addition);
-}
-
-fn simplify_subtraction(subtraction: Vec<Equation>) -> Equation {
-    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
-    let first_term = subtraction[0].clone().simplify();
-    let mut has_matched_first_term = false;
-    for equation in subtraction.iter().skip(1) {
-        let simplified = equation.clone().simplify();
-        if !has_matched_first_term && simplified == first_term {
-            has_matched_first_term = true;
-        } else if simplified != Equation::Variable(Variable::Integer(0)) {
-            terms.insert(
-                simplified.clone(),
-                *terms.get(&simplified).unwrap_or(&0) + 1,
-            );
-        }
-    }
-    let mut simplified_subtraction: Vec<Equation> = Vec::new();
-    if !has_matched_first_term {
-        simplified_subtraction.push(first_term.clone());
-    }
-    for (equation, count) in terms.iter() {
-        if *count == 1 {
-            simplified_subtraction.push(equation.clone())
-        } else {
-            simplified_subtraction.push(
-                Equation::Multiplication(vec![
-                    Equation::Variable(Variable::Integer(*count)),
-                    equation.clone(),
-                ])
-                .simplify(),
-            );
-        }
-    }
-
-    if simplified_subtraction.len() == 1 {
-        return simplified_subtraction[0].clone();
-    } else if simplified_subtraction.len() == 0 {
-        return Equation::Variable(Variable::Integer(0));
-    }
-    return Equation::Subtraction(simplified_subtraction);
 }
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {

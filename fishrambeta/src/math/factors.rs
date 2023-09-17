@@ -16,9 +16,7 @@ impl Equation {
             Equation::Addition(addition) => {
                 return addition.iter().all(|x| x.clone().has_factor(factor))
             }
-            Equation::Subtraction(subtraction) => {
-                return subtraction.iter().all(|x| x.clone().has_factor(factor))
-            }
+            Equation::Negative(negative) => return negative.has_factor(factor),
             _ => return false,
         }
     }
@@ -72,20 +70,12 @@ impl Equation {
             Equation::Power(power) => {
                 return Equation::Power(Box::new((
                     power.0,
-                    Equation::Subtraction(vec![power.1, Equation::Variable(Variable::Integer(1))]),
+                    Equation::Addition(vec![power.1, Equation::Variable(Variable::Integer(-1))]),
                 )))
             }
             Equation::Addition(addition) => {
                 return Equation::Addition(
                     addition
-                        .iter()
-                        .map(|x| x.clone().remove_factor(factor))
-                        .collect(),
-                );
-            }
-            Equation::Subtraction(subtraction) => {
-                return Equation::Subtraction(
-                    subtraction
                         .iter()
                         .map(|x| x.clone().remove_factor(factor))
                         .collect(),

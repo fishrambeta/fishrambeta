@@ -12,7 +12,6 @@ pub enum Equation {
     Variable(Variable),
     Negative(Box<Equation>),
     Addition(Vec<Equation>),
-    Subtraction(Vec<Equation>),
     Multiplication(Vec<Equation>),
     Division(Box<(Equation, Equation)>),
     Power(Box<(Equation, Equation)>),

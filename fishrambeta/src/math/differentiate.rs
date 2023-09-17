@@ -21,14 +21,6 @@ impl Equation {
                         .collect::<Vec<_>>(),
                 )
             }
-            Equation::Subtraction(subtraction) => {
-                return Equation::Addition(
-                    subtraction
-                        .iter()
-                        .map(|x| x.differentiate(&differentiate_to))
-                        .collect::<Vec<_>>(),
-                )
-            }
             Equation::Multiplication(multiplication) => {
                 return Equation::Addition(
                     multiplication
@@ -48,15 +40,15 @@ impl Equation {
                 )
             }
             Equation::Division(division) => {
-                let numerator = Equation::Subtraction(vec![
+                let numerator = Equation::Addition(vec![
                     Equation::Multiplication(vec![
                         division.1.clone(),
                         division.0.differentiate(differentiate_to),
                     ]),
-                    Equation::Multiplication(vec![
+                    Equation::Negative(Box::new(Equation::Multiplication(vec![
                         division.0.clone(),
                         division.1.differentiate(differentiate_to),
-                    ]),
+                    ]))),
                 ]);
                 let denominator = Equation::Power(Box::new((
                     division.1.clone(),
@@ -96,9 +88,9 @@ impl Equation {
 fn differentiate_power(power: &Box<(Equation, Equation)>, differentiate_to: &Variable) -> Equation {
     let first_term = Equation::Power(Box::new((
         power.0.clone(),
-        Equation::Subtraction(vec![
+        Equation::Addition(vec![
             power.1.clone(),
-            Equation::Variable(Variable::Integer(1)),
+            Equation::Variable(Variable::Integer(-1)),
         ]),
     )));
     let g_f_accent = Equation::Multiplication(vec![

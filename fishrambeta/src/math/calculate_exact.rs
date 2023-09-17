@@ -17,18 +17,6 @@ impl Equation {
             Equation::Addition(addition) => {
                 return addition.iter().map(|x| x.calculate_exact()).sum()
             }
-            Equation::Subtraction(subtraction) => {
-                let minus: Option<Rational64> = subtraction
-                    .iter()
-                    .skip(1)
-                    .map(|x| x.calculate_exact())
-                    .sum();
-                let plus: Option<Rational64> = subtraction[0].calculate_exact();
-                if minus.is_none() || plus.is_none() {
-                    return None;
-                }
-                return Some(plus.unwrap() - minus.unwrap());
-            } // TODO make this in one statement, but rust hates me
             Equation::Multiplication(multiplication) => {
                 return multiplication.iter().map(|x| x.calculate_exact()).product()
             }
