@@ -48,7 +48,12 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
     for equation in addition.iter() {
         let simplified = equation.clone().simplify();
-        if simplified != Equation::Variable(Variable::Integer(0)) {
+        if simplified == Equation::Variable(Variable::Integer(0)) {
+            continue;
+        }
+        if let Equation::Negative(negative) = simplified {
+            terms.insert(*negative.clone(), *terms.get(&negative).unwrap_or(&0) - 1);
+        } else {
             terms.insert(
                 simplified.clone(),
                 *terms.get(&simplified).unwrap_or(&0) + 1,
