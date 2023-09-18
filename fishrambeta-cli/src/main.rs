@@ -55,9 +55,9 @@ fn process_operation(
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
-            for _ in 0..10 {
+            for i in 0..10 {
                 equation = equation.simplify();
-                println!("{}", equation.to_latex());
+                println!("{}: {}", i, equation);
             }
             return Result::Equation(equation);
         }

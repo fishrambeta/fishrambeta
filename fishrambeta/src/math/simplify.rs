@@ -45,10 +45,33 @@ impl Equation {
 }
 
 fn simplify_addition(addition: Vec<Equation>) -> Equation {
+    if addition.len() == 1 {
+        return addition[0].clone();
+    }
     let mut terms: BTreeMap<Equation, Vec<Equation>> = BTreeMap::new();
 
     for equation in addition.iter() {
         let (term, count) = match equation.clone().simplify() {
+            Equation::Multiplication(multiplication) => {
+                let variables: Vec<Equation> = multiplication
+                    .iter()
+                    .filter(|x| matches!(x, Equation::Variable(Variable::Integer(_))))
+                    .cloned()
+                    .collect();
+                let term: Vec<Equation> = multiplication
+                    .iter()
+                    .filter(|x| !matches!(x, Equation::Variable(Variable::Integer(_))))
+                    .cloned()
+                    .collect();
+                if variables.len() == 0 || term.len() == 0 {
+                    (multiplication, Equation::Variable(Variable::Integer(1)));
+                    break;
+                }
+                (
+                    Equation::Multiplication(term.clone()).simplify(),
+                    Equation::Multiplication(variables.clone()).simplify(),
+                )
+            }
             Equation::Negative(negative) => (*negative, Equation::Variable(Variable::Integer(-1))),
             other => (other, Equation::Variable(Variable::Integer(1))),
         };
