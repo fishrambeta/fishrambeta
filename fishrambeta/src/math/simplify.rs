@@ -45,39 +45,33 @@ impl Equation {
 }
 
 fn simplify_addition(addition: Vec<Equation>) -> Equation {
-    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
+    let mut terms: BTreeMap<Equation, Vec<Equation>> = BTreeMap::new();
+
     for equation in addition.iter() {
-        let simplified = equation.clone().simplify();
-        if simplified == Equation::Variable(Variable::Integer(0)) {
-            continue;
-        }
-        if let Equation::Negative(negative) = simplified {
-            terms.insert(*negative.clone(), *terms.get(&negative).unwrap_or(&0) - 1);
-        } else {
-            terms.insert(
-                simplified.clone(),
-                *terms.get(&simplified).unwrap_or(&0) + 1,
-            );
-        }
-    }
-    let mut simplified_addition: Vec<Equation> = Vec::new();
-    for (equation, count) in terms.iter() {
-        if *count == 1 {
-            simplified_addition.push(equation.clone())
-        } else {
-            simplified_addition.push(
-                Equation::Multiplication(vec![
-                    Equation::Variable(Variable::Integer(*count)),
-                    equation.clone(),
-                ])
-                .simplify(),
-            );
+        let (term, count) = match equation.clone().simplify() {
+            Equation::Negative(negative) => (*negative, Equation::Variable(Variable::Integer(-1))),
+            other => (other, Equation::Variable(Variable::Integer(1))),
+        };
+
+        match terms.get_mut(&term) {
+            Some(total_count) => total_count.push(count),
+            None => {
+                terms.insert(term, vec![count]);
+                ()
+            }
         }
     }
 
-    if simplified_addition.len() == 1 {
-        return simplified_addition[0].clone();
+    let mut simplified_addition: Vec<Equation> = Vec::new();
+    for (equation, count) in terms.iter() {
+        let next_term = Equation::Multiplication(vec![
+            equation.clone(),
+            Equation::Addition(count.clone()).simplify(),
+        ])
+        .simplify();
+        simplified_addition.push(next_term);
     }
+
     return Equation::Addition(simplified_addition);
 }
 
@@ -129,7 +123,10 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     }
 
     if simplified_multiplication.len() == 1 {
-        return simplified_multiplication[0].clone();
+        return match negative {
+            false => simplified_multiplication[0].clone(),
+            true => Equation::Negative(Box::new(simplified_multiplication[0].clone())),
+        };
     }
 
     let more_simplified_multiplication: Equation = Equation::Multiplication(
