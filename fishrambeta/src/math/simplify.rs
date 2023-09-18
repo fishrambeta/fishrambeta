@@ -52,6 +52,7 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
 
     for equation in addition.iter() {
         let (term, count) = match equation.clone().simplify() {
+            Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Multiplication(multiplication) => {
                 let variables: Vec<Equation> = multiplication
                     .iter()
