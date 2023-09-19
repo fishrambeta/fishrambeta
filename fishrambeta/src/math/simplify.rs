@@ -94,8 +94,21 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     return Equation::Addition(simplified_addition);
 }
 
+fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation>{
+    let mut new_mult = vec![];
+    for term in multiplication {
+        match term {
+            Equation::Multiplication(m) => {new_mult.append(&mut flatten_multiplication(m));},
+            other => {new_mult.push(other.clone())},
+        };
+    }
+    return new_mult;
+}
+
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
+    let multiplication = flatten_multiplication(multiplication.clone());
     let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
+    let mut total_integer_factor: i64 = 1;
     for equation in &multiplication {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => {
@@ -104,13 +117,20 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
             Equation::Variable(Variable::Integer(1)) => {
                 continue;
             }
+            Equation::Variable(Variable::Integer(n)) => {
+                total_integer_factor = total_integer_factor * n;
+                continue;
+            }
             term => (term, 1),
         };
         let previous_count = *terms.get(&term).unwrap_or(&0);
         terms.insert(term, previous_count + count);
     }
 
-    let mut simplified_multiplication: Vec<Equation> = Vec::new();
+    let mut simplified_multiplication: Vec<Equation> = match total_integer_factor {
+        1 => vec![],
+        n => vec![Equation::Variable(Variable::Integer(n))],
+    };
     for (term, count) in terms {
         simplified_multiplication.push(
             Equation::Power(Box::new((
