@@ -3,6 +3,7 @@ use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
 use fishrambeta::parser;
 use std::collections::BTreeMap;
+use std::fmt;
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -16,8 +17,12 @@ pub struct Args {
     verbose: clap_verbosity_flag::Verbosity,
     #[arg(short, long)]
     log_out: Option<String>,
+    //Assume consecutive letters multiply variables with those names
     #[arg(long, default_value_t = false)]
     implicit_multiplication: bool,
+    //Variables to propagate errors of, seperated by commas
+    #[arg(long, default_value = "")]
+    propagate_variables: String,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -26,12 +31,22 @@ enum Operation {
     Solve,
     Calculate,
     Differentiate,
+    Error,
 }
 
 #[derive(Debug)]
 enum Result {
     Equation(Equation),
     Value(f64),
+}
+
+impl fmt::Display for Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Result::Equation(equation) => write!(f, "{}", equation),
+            Result::Value(value) => write!(f, "{}", value),
+        }
+    }
 }
 
 fn main() {
@@ -41,16 +56,22 @@ fn main() {
         args.implicit_multiplication,
     );
 
-    println!("{}", equation.to_latex());
+    println!("Input equation: {}", equation);
     let value_dict = fishrambeta::physicsvalues::physics_values();
-    let result = process_operation(equation.clone(), args.operation, value_dict);
-    println!("{:?}", result);
+    let result = process_operation(
+        equation.clone(),
+        args.operation,
+        value_dict,
+        args.propagate_variables,
+    );
+    println!("{}", result);
 }
 
 fn process_operation(
     equation: Equation,
     operation: Operation,
     value_dict: BTreeMap<Variable, f64>,
+    propagate_variables: String,
 ) -> Result {
     match operation {
         Operation::Simplify => {
@@ -66,11 +87,37 @@ fn process_operation(
             let mut equation = equation
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
+            println!("{:?}", equation);
             for _ in 0..10 {
-                equation = equation.simplify();
-                println!("{}", equation.to_latex());
+                equation = equation.simplify().simplify().simplify();
+                println!("{:?}", equation);
             }
             return Result::Equation(equation);
+        }
+        Operation::Error => {
+            let variables = propagate_variables.split(",").collect::<Vec<_>>();
+            let mut terms: Vec<Equation> = Vec::new();
+            for variable in variables {
+                let mut derivative =
+                    equation.differentiate(&Variable::Letter(variable.to_string()));
+                for _ in 0..10 {
+                    derivative = derivative.simplify();
+                }
+                let term = Equation::Power(Box::new((
+                    Equation::Multiplication(vec![
+                        derivative,
+                        Equation::Variable(Variable::Letter(format!("s_{}", variable.to_string()))),
+                    ]),
+                    Equation::Variable(Variable::Integer(2)),
+                )));
+                terms.push(term);
+            }
+            let result = Equation::Power(Box::new((
+                Equation::Addition(terms),
+                Equation::Variable(Variable::Rational((1, 2))),
+            )));
+            println!("{}", result);
+            Result::Equation(result)
         }
         _ => {
             panic!("Operation not yet supported")

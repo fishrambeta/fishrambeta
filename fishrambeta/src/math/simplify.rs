@@ -48,49 +48,44 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     if addition.len() == 1 {
         return addition[0].clone();
     }
-    let mut terms: BTreeMap<Equation, Vec<Equation>> = BTreeMap::new();
+    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
 
     for equation in addition.iter() {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Multiplication(multiplication) => {
-                let variables: Vec<Equation> = multiplication
+                let count: i64 = multiplication
                     .iter()
                     .filter(|x| matches!(x, Equation::Variable(Variable::Integer(_))))
-                    .cloned()
-                    .collect();
+                    .map(|x| match *x {
+                        Equation::Variable(Variable::Integer(i)) => i,
+                        _ => unreachable!(),
+                    })
+                    .product();
                 let term: Vec<Equation> = multiplication
                     .iter()
                     .filter(|x| !matches!(x, Equation::Variable(Variable::Integer(_))))
                     .cloned()
                     .collect();
-                if variables.len() == 0 || term.len() == 0 {
+                if count == 0 || term.len() == 0 {
                     (multiplication, Equation::Variable(Variable::Integer(1)));
                     break;
                 }
-                (
-                    Equation::Multiplication(term.clone()).simplify(),
-                    Equation::Multiplication(variables.clone()).simplify(),
-                )
+                (Equation::Multiplication(term.clone()).simplify(), count)
             }
-            Equation::Negative(negative) => (*negative, Equation::Variable(Variable::Integer(-1))),
-            other => (other, Equation::Variable(Variable::Integer(1))),
+            Equation::Negative(negative) => (*negative, -1),
+            other => (other, 1),
         };
 
-        match terms.get_mut(&term) {
-            Some(total_count) => total_count.push(count),
-            None => {
-                terms.insert(term, vec![count]);
-                ()
-            }
-        }
+        let previous_count = *terms.get(&term).unwrap_or(&0);
+        terms.insert(term, previous_count + count);
     }
 
     let mut simplified_addition: Vec<Equation> = Vec::new();
     for (equation, count) in terms.iter() {
         let next_term = Equation::Multiplication(vec![
             equation.clone(),
-            Equation::Addition(count.clone()).simplify(),
+            Equation::Variable(Variable::Integer(*count)),
         ])
         .simplify();
         simplified_addition.push(next_term);
@@ -101,72 +96,36 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
-    let mut negative = false;
-    for equation in multiplication.iter() {
-        let mut simplified = equation.clone().simplify();
-        if simplified == Equation::Variable(Variable::Integer(0)) {
-            return Equation::Variable(Variable::Integer(0));
-        } else if simplified != Equation::Variable(Variable::Integer(1)) {
-            simplified = match simplified {
-                Equation::Negative(neg) => {
-                    negative = !negative;
-                    *neg
-                }
-                simplified => simplified,
-            };
-
-            if let Equation::Power(ref power) = simplified {
-                if let Equation::Variable(variable) = &power.1 {
-                    if let Variable::Integer(n) = variable {
-                        //terms.insert(power.0.clone(), *terms.get(&simplified).unwrap_or(&0) + n);
-                        //continue;
-                        //TODO this breaks everythign for some reason
-                    }
-                }
+    for equation in &multiplication {
+        let (term, count) = match equation.clone().simplify() {
+            Equation::Variable(Variable::Integer(0)) => {
+                return Equation::Variable(Variable::Integer(0));
             }
-            terms.insert(
-                simplified.clone(),
-                *terms.get(&simplified).unwrap_or(&0) + 1,
-            );
-        }
+            Equation::Variable(Variable::Integer(1)) => {
+                continue;
+            }
+            term => (term, 1),
+        };
+        let previous_count = *terms.get(&term).unwrap_or(&0);
+        terms.insert(term, previous_count + count);
     }
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
-    for (equation, count) in terms.iter() {
-        if *count == 1 {
-            simplified_multiplication.push(equation.clone())
-        } else {
-            simplified_multiplication.push(
-                Equation::Power(Box::new((
-                    equation.clone(),
-                    Equation::Variable(Variable::Integer(*count)),
-                )))
-                .simplify(),
-            );
-        }
+    for (term, count) in terms {
+        simplified_multiplication.push(
+            Equation::Power(Box::new((
+                term,
+                Equation::Variable(Variable::Integer(count)),
+            )))
+            .simplify(),
+        );
     }
 
     if simplified_multiplication.len() == 1 {
-        return match negative {
-            false => simplified_multiplication[0].clone(),
-            true => Equation::Negative(Box::new(simplified_multiplication[0].clone())),
-        };
+        return simplified_multiplication.remove(0);
     }
 
-    let more_simplified_multiplication: Equation = Equation::Multiplication(
-        simplified_multiplication
-            .iter()
-            .skip(1)
-            .map(|x| x.clone())
-            .collect::<Vec<_>>(),
-    )
-    .multiply_by(&simplified_multiplication[0]); //TODO this performance can be improved by
-                                                 //omitting the clone but I don't know how yet
-    if negative {
-        return Equation::Negative(Box::new(more_simplified_multiplication));
-    } else {
-        return more_simplified_multiplication;
-    }
+    return Equation::Multiplication(simplified_multiplication);
 }
 
 fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
