@@ -103,7 +103,7 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     for (equation, count) in terms.iter() {
         let next_term = Equation::Multiplication(vec![
             equation.clone(),
-            Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))),
+            Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
         ])
         .simplify();
         simplified_addition.push(next_term);
@@ -169,7 +169,7 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         simplified_multiplication.push(
             Equation::Power(Box::new((
                 term,
-                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))),
+                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
             )))
             .simplify(),
         );
