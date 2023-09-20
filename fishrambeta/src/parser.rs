@@ -297,6 +297,35 @@ impl IR {
                             )],
                         };
                     }
+                    if latex.iter().any(|c| c.is_alphabetic()) {
+                        let mut parts = vec![];
+                        let mut is_number = latex[0].is_numeric();
+                        let mut next_buf = vec![];
+                        for char in latex.into_iter() {
+                            if (is_number && (char.is_numeric() || char == '.'))
+                                || (!is_number && !char.is_numeric())
+                            {
+                                next_buf.push(char)
+                            } else {
+                                parts.push(next_buf);
+                                is_number = char.is_numeric();
+                                next_buf = vec![char];
+                            }
+                        }
+                        parts.push(next_buf);
+                        return Self {
+                            name: vec!['*'],
+                            parameters: parts
+                                .into_iter()
+                                .map(|part| {
+                                    return (
+                                        Self::latex_to_ir(part, implicit_multiplication),
+                                        BracketType::Round,
+                                    );
+                                })
+                                .collect::<Vec<_>>(),
+                        };
+                    }
                     todo!()
                 } else {
                     return IR {
