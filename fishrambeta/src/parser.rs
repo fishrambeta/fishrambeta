@@ -287,6 +287,15 @@ impl IR {
                         parameters: vec![],
                     };
                 }
+            } else if latex[0] == '-' {
+                latex.remove(0);
+                return IR {
+                    name: vec!['\\', 'i', 'n', 'v'],
+                    parameters: vec![(
+                        Self::latex_to_ir(latex, implicit_multiplication),
+                        BracketType::Round,
+                    )],
+                };
             } else if implicit_multiplication {
                 let letters = latex
                     .into_iter()
