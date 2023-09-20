@@ -144,7 +144,7 @@ impl IR {
                         BracketType::Curly,
                     ));
                     let fraction = Self {
-                        name: vec!['f', 'r', 'a', 'c'],
+                        name: vec!['/'],
                         parameters: params,
                     };
                     if latex.len() == 0 {
@@ -537,16 +537,14 @@ impl IR {
                 )))
             }
             ['s', 'q', 'r', 't'] => {
-                if self.parameters.len() == 1 {
-                    return Equation::Power(Box::new((
+                return if self.parameters.len() == 1 {
+                    Equation::Power(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
                         Equation::Variable(Variable::Rational((1, 2))),
-                    )));
+                    )))
                 } else {
-                    let sqrt = Equation::Power(Box::new((
-                        self.parameters.remove(0).0.ir_to_equation(),
-                        Equation::Variable(Variable::Rational((1, 2))),
-                    )));
+                    let sqrt = self.parameters.remove(0).0.ir_to_equation();
+                    println!("{:?}", sqrt);
                     let mut params = Vec::from([sqrt]);
                     params.append(
                         &mut self
@@ -555,29 +553,8 @@ impl IR {
                             .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
-                    return Equation::Multiplication(params);
-                }
-            }
-            ['f', 'r', 'a', 'c'] => {
-                if self.parameters.len() == 2 {
-                    let first = self.parameters.remove(0).0.ir_to_equation();
-                    let second = self.parameters.remove(0).0.ir_to_equation();
-
-                    return Equation::Division(Box::new((first, second)));
-                } else {
-                    let frac = Equation::Division(Box::new((
-                        self.parameters.remove(0).0.ir_to_equation(),
-                        self.parameters.remove(0).0.ir_to_equation(),
-                    )));
-                    let mut params = Vec::from([frac]);
-                    params.append(
-                        &mut self
-                            .parameters
-                            .into_iter()
-                            .map(|param| param.0.ir_to_equation())
-                            .collect::<Vec<_>>(),
-                    );
-                    return Equation::Multiplication(params);
+                    println!("{:?}", params);
+                    Equation::Multiplication(params)
                 }
             }
             ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] | ['l', 'n'] | ['l', 'o', 'g'] => {
