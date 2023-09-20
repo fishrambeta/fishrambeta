@@ -166,30 +166,50 @@ impl IR {
                 } else if command == ['s', 'i', 'n']
                     || command == ['c', 'o', 's']
                     || command == ['t', 'a', 'n']
+                    || command == ['l', 'n']
+                    || command == ['l', 'o', 'g']
                 {
                     let parameters = vec![(
                         Self::get_first_parameter(&mut latex, implicit_multiplication),
                         BracketType::Curly,
                     )];
-                    return Self {
-                        name: command.to_vec(),
-                        parameters,
+                    return if latex.len() == 0 {
+                        Self {
+                            name: command.to_vec(),
+                            parameters,
+                        }
+                    } else {
+                        Self {
+                            name: vec!['*'],
+                            parameters: vec![
+                                (
+                                    Self {
+                                        name: command.to_vec(),
+                                        parameters,
+                                    },
+                                    BracketType::Round,
+                                ),
+                                (
+                                    Self::latex_to_ir(latex, implicit_multiplication),
+                                    BracketType::Round,
+                                ),
+                            ],
+                        }
                     };
                 } else {
-                    if latex.len() == 0 {
+                    return if latex.len() == 0 {
                         let mut slash_command = vec!['\\'];
                         slash_command.append(&mut command);
-                        return Self {
+                        Self {
                             name: slash_command,
                             parameters: vec![],
-                        };
+                        }
                     } else {
-                        //TODO!
                         let command = Self {
                             parameters: vec![],
                             name: command,
                         };
-                        return Self {
+                        Self {
                             name: vec!['*'],
                             parameters: vec![
                                 (command, BracketType::Round),
@@ -198,8 +218,8 @@ impl IR {
                                     BracketType::Round,
                                 ),
                             ],
-                        };
-                    }
+                        }
+                    };
                 }
             } else if latex.contains(&'\\') {
                 let slash = latex.iter().position(|f| f == &'\\').unwrap();
@@ -528,12 +548,19 @@ impl IR {
                     return Equation::Multiplication(params);
                 }
             }
-            ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] => {
+            ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] | ['l', 'n'] | ['l', 'o', 'g'] => {
                 return if self.parameters.len() == 1 {
                     let param = self.parameters.remove(0).0.ir_to_equation();
                     match name[..] {
                         ['s', 'i', 'n'] => return Equation::Sin(Box::new(param)),
                         ['c', 'o', 's'] => return Equation::Cos(Box::new(param)),
+                        ['l', 'n'] => return Equation::Ln(Box::new(param)),
+                        ['l', 'o', 'g'] => {
+                            return Equation::Division(Box::new((
+                                Equation::Ln(Box::new(param)),
+                                Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
+                            )))
+                        }
                         ['t', 'a', 'n'] => {
                             return Equation::Division(Box::new((
                                 Equation::Sin(Box::new(param.clone())),
@@ -552,6 +579,11 @@ impl IR {
                         ['t', 'a', 'n'] => Equation::Division(Box::new((
                             Equation::Sin(Box::new(param.clone())),
                             Equation::Cos(Box::new(param)),
+                        ))),
+                        ['l', 'n'] => Equation::Ln(Box::new(param)),
+                        ['l', 'o', 'g'] => Equation::Division(Box::new((
+                            param,
+                            Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
                         ))),
                         _ => {
                             panic!()
@@ -694,6 +726,12 @@ impl IR {
             Equation::Negative(core) => {
                 return IR {
                     name: vec!['\\', 'i', 'n', 'v'],
+                    parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+                }
+            }
+            Equation::Ln(core) => {
+                return IR {
+                    name: vec!['\\', 'l', 'n'],
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
                 }
             }
