@@ -1,4 +1,3 @@
-use num_rational::Ratio;
 use num_rational::Rational64;
 
 use crate::math::{Equation, Variable};
@@ -18,7 +17,16 @@ impl Equation {
             )));
         }
         match self {
-            Equation::Variable(variable) => return Equation::Variable(variable),
+            Equation::Variable(variable) => match variable {
+                Variable::Rational((n, d)) => {
+                    return if d == 1 {
+                        Equation::Variable(Variable::Integer(n))
+                    } else {
+                        Equation::Variable(Variable::Rational((n, d)))
+                    }
+                }
+                variable => return Equation::Variable(variable),
+            },
             Equation::Negative(negative) => match *negative {
                 Equation::Negative(negative) => return (*negative).simplify(),
                 Equation::Variable(Variable::Integer(0)) => {
