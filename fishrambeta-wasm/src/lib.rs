@@ -52,7 +52,7 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
     values.extend(user_values_hashmap);
     let equationstring = equation.to_string().chars().collect::<Vec<_>>();
     let parsed: fishrambeta::math::Equation =
-        fishrambeta::parser::IR::latex_to_equation(equationstring, false);
+        fishrambeta::parser::IR::latex_to_equation(equationstring, true);
     let result = parsed.calculate(&values);
     return result;
 }
