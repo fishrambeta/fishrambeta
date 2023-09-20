@@ -87,10 +87,10 @@ fn process_operation(
             let mut equation = equation
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
-            println!("Unsimplified: {:?}", equation);
+            println!("Unsimplified: {}", equation);
             for _ in 0..10 {
                 equation = equation.simplify().simplify().simplify();
-                println!("{:?}", equation);
+                println!("{}", equation);
             }
             return Result::Equation(equation);
         }
