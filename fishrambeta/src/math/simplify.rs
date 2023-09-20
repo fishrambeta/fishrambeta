@@ -1,3 +1,6 @@
+use num_rational::Ratio;
+use num_rational::Rational64;
+
 use crate::math::{Equation, Variable};
 use std::collections::BTreeMap;
 
@@ -48,36 +51,36 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     if addition.len() == 1 {
         return addition[0].clone();
     }
-    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
+    let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
 
     for equation in addition.iter() {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Multiplication(multiplication) => {
-                let count: i64 = multiplication
+                let count: Rational64 = multiplication
                     .iter()
-                    .filter(|x| matches!(x, Equation::Variable(Variable::Integer(_))))
-                    .map(|x| match *x {
-                        Equation::Variable(Variable::Integer(i)) => i,
-                        _ => unreachable!(),
-                    })
+                    .filter_map(|x| -> Option<Rational64> {match x {
+                        Equation::Variable(Variable::Integer(i)) => Some(Rational64::from(*i)),
+                        Equation::Variable(Variable::Rational(r)) => Some(Rational64::new(r.0, r.1)),
+                        _ => None,
+                    }})
                     .product();
                 let term: Vec<Equation> = multiplication
                     .iter()
-                    .filter(|x| !matches!(x, Equation::Variable(Variable::Integer(_))))
+                    .filter(|x| !matches!(x, Equation::Variable(Variable::Integer(_))) && !matches!(x, Equation::Variable(Variable::Rational(_))))
                     .cloned()
                     .collect();
-                if count == 0 || term.len() == 0 {
+                if count == 0.into() || term.len() == 0 {
                     (multiplication, Equation::Variable(Variable::Integer(1)));
                     break;
                 }
                 (Equation::Multiplication(term.clone()).simplify(), count)
             }
-            Equation::Negative(negative) => (*negative, -1),
-            other => (other, 1),
+            Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
+            other => (other, 1.into()),
         };
 
-        let previous_count = *terms.get(&term).unwrap_or(&0);
+        let previous_count = *terms.get(&term).unwrap_or(&0.into());
         terms.insert(term, previous_count + count);
     }
 
@@ -85,7 +88,7 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     for (equation, count) in terms.iter() {
         let next_term = Equation::Multiplication(vec![
             equation.clone(),
-            Equation::Variable(Variable::Integer(*count)),
+            Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))),
         ])
         .simplify();
         simplified_addition.push(next_term);
@@ -94,12 +97,14 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
     return Equation::Addition(simplified_addition);
 }
 
-fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation>{
+fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
     let mut new_mult = vec![];
     for term in multiplication {
         match term {
-            Equation::Multiplication(m) => {new_mult.append(&mut flatten_multiplication(m));},
-            other => {new_mult.push(other.clone())},
+            Equation::Multiplication(m) => {
+                new_mult.append(&mut flatten_multiplication(m));
+            }
+            other => new_mult.push(other.clone()),
         };
     }
     return new_mult;
@@ -107,8 +112,8 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation>{
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     let multiplication = flatten_multiplication(multiplication.clone());
-    let mut terms: BTreeMap<Equation, i64> = BTreeMap::new();
-    let mut total_integer_factor: i64 = 1;
+    let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
+    let mut total_rational_factor: Rational64 = 1.into();
     for equation in &multiplication {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => {
@@ -118,24 +123,31 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
                 continue;
             }
             Equation::Variable(Variable::Integer(n)) => {
-                total_integer_factor = total_integer_factor * n;
+                total_rational_factor = total_rational_factor * n;
+                continue;
+            }
+            Equation::Variable(Variable::Rational(r)) => {
+                total_rational_factor *= Rational64::new(r.0, r.1);
                 continue;
             }
             term => (term, 1),
         };
-        let previous_count = *terms.get(&term).unwrap_or(&0);
+        let previous_count = *terms.get(&term).unwrap_or(&0.into());
         terms.insert(term, previous_count + count);
     }
 
-    let mut simplified_multiplication: Vec<Equation> = match total_integer_factor {
-        1 => vec![],
-        n => vec![Equation::Variable(Variable::Integer(n))],
-    };
+    let mut simplified_multiplication: Vec<Equation> = Vec::new();
+    if total_rational_factor != 1.into() {
+        simplified_multiplication.push(Equation::Variable(Variable::Rational((
+            *total_rational_factor.numer(),
+            *total_rational_factor.denom(),
+        ))));
+    }
     for (term, count) in terms {
         simplified_multiplication.push(
             Equation::Power(Box::new((
                 term,
-                Equation::Variable(Variable::Integer(count)),
+                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))),
             )))
             .simplify(),
         );
