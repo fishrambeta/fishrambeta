@@ -26,7 +26,24 @@ impl IR {
         let top_level_operators =
             Self::get_operators_in_top_level_from_latex(&latex, implicit_multiplication);
         if top_level_operators.any() {
-            return if top_level_operators.additions_and_subtractions.len() > 0 {
+            return if top_level_operators.equals.len() > 0 {
+                let (lhs, rhs) = latex.split_at(top_level_operators.equals[0]);
+                let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
+                let operator = rhs.remove(0);
+                IR {
+                    name: vec![operator],
+                    parameters: vec![
+                        (
+                            Self::latex_to_ir(lhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
+                        (
+                            Self::latex_to_ir(rhs, implicit_multiplication),
+                            BracketType::None,
+                        ),
+                    ],
+                }
+            } else if top_level_operators.additions_and_subtractions.len() > 0 {
                 let (lhs, rhs) = latex.split_at(top_level_operators.additions_and_subtractions[0]);
                 let (lhs, mut rhs) = (lhs.to_vec(), rhs.to_vec());
                 let operator = rhs.remove(0);
@@ -325,7 +342,7 @@ impl IR {
         let name = self.name.clone();
         let mut return_data = vec![];
         match name[..] {
-            ['+'] | ['-'] | ['*'] => {
+            ['+'] | ['-'] | ['*'] | ['='] => {
                 return_data.push(self.parameters[0].1.opening_bracket());
                 let closing_bracket = self.parameters[0].1.closing_bracket();
                 return_data.append(&mut Self::ir_to_latex(
@@ -512,6 +529,12 @@ impl IR {
                         self.parameters.remove(0).0.ir_to_equation(),
                     )))
                 }
+            }
+            ['='] => {
+                return Equation::Equals(Box::new((
+                    self.parameters.remove(0).0.ir_to_equation(),
+                    self.parameters.remove(0).0.ir_to_equation(),
+                )))
             }
             ['s', 'q', 'r', 't'] => {
                 if self.parameters.len() == 1 {
@@ -744,6 +767,16 @@ impl IR {
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
                 }
             }
+            Equation::Equals(core) => {
+                let (lhs, rhs) = *core;
+                return IR {
+                    name: vec!['='],
+                    parameters: vec![
+                        (Self::equation_to_ir(lhs), BracketType::Curly),
+                        (Self::equation_to_ir(rhs), BracketType::Curly),
+                    ],
+                };
+            }
             _ => {
                 todo!()
             }
@@ -758,6 +791,7 @@ impl IR {
         let mut powers = vec![];
         let mut multiplications_and_divisions = vec![];
         let mut additions_and_subtractions = vec![];
+        let mut equals = vec![];
         for (i, char) in latex.iter().enumerate() {
             if char == &'{' || char == &'(' || char == &'[' {
                 depth += 1;
@@ -765,6 +799,9 @@ impl IR {
                 depth -= 1;
             } else if depth == 0 {
                 match char {
+                    '=' => {
+                        equals.push(i);
+                    }
                     '+' | '-' => {
                         if i != 0 || char == &'+' {
                             additions_and_subtractions.push(i);
@@ -786,6 +823,7 @@ impl IR {
             }
         }
         return TopLevelOperators {
+            equals,
             powers,
             multiplications_and_divisions,
             additions_and_subtractions,
@@ -1068,12 +1106,14 @@ struct TopLevelOperators {
     powers: Vec<usize>,
     multiplications_and_divisions: Vec<usize>,
     additions_and_subtractions: Vec<usize>,
+    equals: Vec<usize>,
 }
 impl TopLevelOperators {
     pub fn any(&self) -> bool {
         return self.powers.len() > 0
             || self.multiplications_and_divisions.len() > 0
-            || self.additions_and_subtractions.len() > 0;
+            || self.additions_and_subtractions.len() > 0
+            || self.equals.len() > 0;
     }
 }
 #[cfg(test)]
