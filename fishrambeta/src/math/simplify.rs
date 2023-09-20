@@ -126,7 +126,7 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
 }
 
 fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
-    let multiplication = flatten_multiplication(multiplication.clone());
+    let mut multiplication = flatten_multiplication(multiplication.to_owned());
     let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
     let mut total_rational_factor: Rational64 = 1.into();
     for equation in &multiplication {
@@ -151,6 +151,20 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
                 } else {
                     (Equation::Power(power), 1.into())
                 }
+            }
+            Equation::Division(division) => {
+                multiplication.push(division.0.clone());
+                multiplication.retain(|x| {
+                    if let Equation::Division(d) = x {
+                        *d != division
+                    } else {
+                        true
+                    }
+                });
+                return Equation::Division(Box::new((
+                    Equation::Multiplication(multiplication),
+                    division.1,
+                )));
             }
             term => (term, 1.into()),
         };
