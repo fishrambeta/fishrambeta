@@ -59,15 +59,22 @@ fn simplify_addition(addition: Vec<Equation>) -> Equation {
             Equation::Multiplication(multiplication) => {
                 let count: Rational64 = multiplication
                     .iter()
-                    .filter_map(|x| -> Option<Rational64> {match x {
-                        Equation::Variable(Variable::Integer(i)) => Some(Rational64::from(*i)),
-                        Equation::Variable(Variable::Rational(r)) => Some(Rational64::new(r.0, r.1)),
-                        _ => None,
-                    }})
+                    .filter_map(|x| -> Option<Rational64> {
+                        match x {
+                            Equation::Variable(Variable::Integer(i)) => Some(Rational64::from(*i)),
+                            Equation::Variable(Variable::Rational(r)) => {
+                                Some(Rational64::new(r.0, r.1))
+                            }
+                            _ => None,
+                        }
+                    })
                     .product();
                 let term: Vec<Equation> = multiplication
                     .iter()
-                    .filter(|x| !matches!(x, Equation::Variable(Variable::Integer(_))) && !matches!(x, Equation::Variable(Variable::Rational(_))))
+                    .filter(|x| {
+                        !matches!(x, Equation::Variable(Variable::Integer(_)))
+                            && !matches!(x, Equation::Variable(Variable::Rational(_)))
+                    })
                     .cloned()
                     .collect();
                 if count == 0.into() || term.len() == 0 {
@@ -104,7 +111,7 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
             Equation::Multiplication(m) => {
                 new_mult.append(&mut flatten_multiplication(m));
             }
-            other => new_mult.push(other.clone()),
+            other => new_mult.push(other),
         };
     }
     return new_mult;
@@ -130,7 +137,14 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
                 total_rational_factor *= Rational64::new(r.0, r.1);
                 continue;
             }
-            term => (term, 1),
+            Equation::Power(power) => {
+                if let Some(n) = power.1.get_number_or_none() {
+                    (power.0, n)
+                } else {
+                    (Equation::Power(power), 1.into())
+                }
+            }
+            term => (term, 1.into()),
         };
         let previous_count = *terms.get(&term).unwrap_or(&0.into());
         terms.insert(term, previous_count + count);

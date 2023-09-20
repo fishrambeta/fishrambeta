@@ -1,3 +1,5 @@
+use num_rational::Rational64;
+
 mod calculate;
 mod calculate_exact;
 mod differentiate;
@@ -34,4 +36,14 @@ pub enum Variable {
 pub enum Constant {
     PI,
     E,
+}
+
+impl Equation {
+    fn get_number_or_none(&self) -> Option<Rational64> {
+        match self {
+            Equation::Variable(Variable::Integer(n)) => Some((*n).into()),
+            Equation::Variable(Variable::Rational(r)) => Some(Rational64::new(r.0, r.1)),
+            _ => None,
+        }
+    }
 }
