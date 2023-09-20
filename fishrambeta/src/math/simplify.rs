@@ -160,10 +160,13 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
     if total_rational_factor != 1.into() {
-        simplified_multiplication.push(Equation::Variable(Variable::Rational((
-            *total_rational_factor.numer(),
-            *total_rational_factor.denom(),
-        ))).simplify());
+        simplified_multiplication.push(
+            Equation::Variable(Variable::Rational((
+                *total_rational_factor.numer(),
+                *total_rational_factor.denom(),
+            )))
+            .simplify(),
+        );
     }
     for (term, count) in terms {
         simplified_multiplication.push(
@@ -199,6 +202,17 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
             return Equation::Multiplication(simplified_power);
         }
         Equation::Power(ref power) => {
+            if let Some(n1) = exponent.get_number_or_none() {
+                if let Some(n2) = power.1.get_number_or_none() {
+                    return Equation::Power(Box::new((
+                        power.0.to_owned(),
+                        Equation::Variable(Variable::Rational((
+                            *(n1 * n2).numer(),
+                            *(n1 * n2).denom(),
+                        ))),
+                    )));
+                }
+            }
             if let Equation::Variable(ref exponent_as_variable) = exponent {
                 if let Equation::Variable(ref exponent2_as_variable) = power.1 {
                     if (matches!(exponent_as_variable, Variable::Integer(_))
