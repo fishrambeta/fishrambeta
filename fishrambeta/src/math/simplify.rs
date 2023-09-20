@@ -163,7 +163,7 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
         simplified_multiplication.push(Equation::Variable(Variable::Rational((
             *total_rational_factor.numer(),
             *total_rational_factor.denom(),
-        ))));
+        ))).simplify());
     }
     for (term, count) in terms {
         simplified_multiplication.push(
