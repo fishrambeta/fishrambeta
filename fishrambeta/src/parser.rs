@@ -544,7 +544,6 @@ impl IR {
                     )))
                 } else {
                     let sqrt = self.parameters.remove(0).0.ir_to_equation();
-                    println!("{:?}", sqrt);
                     let mut params = Vec::from([sqrt]);
                     params.append(
                         &mut self
@@ -553,7 +552,6 @@ impl IR {
                             .map(|param| param.0.ir_to_equation())
                             .collect::<Vec<_>>(),
                     );
-                    println!("{:?}", params);
                     Equation::Multiplication(params)
                 }
             }
