@@ -155,7 +155,7 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
             Equation::Division(division) => {
                 multiplication.retain(|x| {
                     if let Equation::Division(d) = x {
-                        *d != division
+                        Equation::Division(Box::new(*d.clone())).simplify() != Equation::Division(division.clone())
                     } else {
                         true
                     }
@@ -203,8 +203,10 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
     let base = power.0.simplify();
     let exponent = power.1.simplify();
 
-    if exponent == Equation::Variable(Variable::Integer(1)) {
-        return base;
+    if let Some(n) = exponent.get_number_or_none() {
+        if n == 1.into() {
+            return base;
+        }
     }
 
     match base {
