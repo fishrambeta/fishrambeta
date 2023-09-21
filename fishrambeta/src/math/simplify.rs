@@ -129,6 +129,8 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     let mut multiplication = flatten_multiplication(multiplication);
     let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
     let mut total_rational_factor: Rational64 = 1.into();
+
+    let mut total_is_negative = false;
     for equation in &multiplication {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => {
@@ -144,6 +146,10 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
             Equation::Variable(Variable::Rational(r)) => {
                 total_rational_factor *= Rational64::new(r.0, r.1);
                 continue;
+            }
+            Equation::Negative(negative) => {
+                total_is_negative = !total_is_negative;
+                (*negative, 1.into())
             }
             Equation::Power(power) => {
                 if let Some(n) = power.1.get_number_or_none() {
@@ -194,10 +200,20 @@ fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     }
 
     if simplified_multiplication.len() == 1 {
-        return simplified_multiplication.remove(0);
+        return if total_is_negative {
+            Equation::Negative(Box::new(simplified_multiplication.remove(0)))
+        } else {
+            simplified_multiplication.remove(0)
+        };
     }
 
-    return Equation::Multiplication(simplified_multiplication);
+    return if total_is_negative {
+        Equation::Negative(Box::new(Equation::Multiplication(
+            simplified_multiplication,
+        )))
+    } else {
+        Equation::Multiplication(simplified_multiplication)
+    };
 }
 
 fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
