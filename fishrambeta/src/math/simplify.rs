@@ -227,19 +227,15 @@ fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
                     )));
                 }
             }
-            if let Equation::Variable(ref exponent_as_variable) = exponent {
-                if let Equation::Variable(ref exponent2_as_variable) = power.1 {
-                    if (matches!(exponent_as_variable, Variable::Integer(_))
-                        && matches!(exponent2_as_variable, Variable::Integer(_)))
-                        || (matches!(exponent_as_variable, Variable::Rational(_))
-                            && matches!(exponent2_as_variable, Variable::Rational(_)))
-                    {
-                        return Equation::Power(Box::new((
-                            power.0.clone(),
-                            Equation::Multiplication(vec![exponent, power.1.clone()]),
-                        )))
-                        .simplify();
-                    }
+            if let Some(e1) = exponent.get_number_or_none() {
+                if let Some(e2) = power.1.get_number_or_none() {
+                    return Equation::Power(Box::new((
+                        power.0.clone(),
+                        Equation::Variable(Variable::Rational((
+                            *(e1 * e2).numer(),
+                            *(e1 * e2).denom(),
+                        ))),
+                    )));
                 }
             }
         }
