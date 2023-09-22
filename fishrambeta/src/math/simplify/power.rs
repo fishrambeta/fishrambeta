@@ -21,17 +21,6 @@ pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
             return Equation::Multiplication(simplified_power);
         }
         Equation::Power(ref power) => {
-            if let Some(n1) = exponent.get_number_or_none() {
-                if let Some(n2) = power.1.get_number_or_none() {
-                    return Equation::Power(Box::new((
-                        power.0.clone(),
-                        Equation::Variable(Variable::Rational((
-                            *(n1 * n2).numer(),
-                            *(n1 * n2).denom(),
-                        ))),
-                    )));
-                }
-            }
             if let Some(e1) = exponent.get_number_or_none() {
                 if let Some(e2) = power.1.get_number_or_none() {
                     return Equation::Power(Box::new((
