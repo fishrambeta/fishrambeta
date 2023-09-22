@@ -39,10 +39,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 (Equation::Multiplication(term).simplify(), count)
             }
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
-            other => {
-                println!("Other: {}", other);
-                (other, 1.into())
-            }
+            other => (other, 1.into()),
         };
 
         let previous_count = *terms.get(&term).unwrap_or(&0.into());
