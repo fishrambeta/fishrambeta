@@ -21,7 +21,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     let mut total_rational_factor: Rational64 = 1.into();
 
     let mut total_is_negative = false;
-    for equation in &multiplication {
+    for (index, equation) in multiplication.iter().enumerate() {
         let (term, count) = match equation.clone().simplify() {
             Equation::Variable(Variable::Integer(0)) => {
                 return Equation::Variable(Variable::Integer(0));
@@ -49,14 +49,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                 }
             }
             Equation::Division(division) => {
-                multiplication.retain(|x| {
-                    if let Equation::Division(d) = x {
-                        Equation::Division(Box::new(*d.clone())).simplify()
-                            != Equation::Division(division.clone())
-                    } else {
-                        true
-                    }
-                });
+                multiplication.remove(index);
                 multiplication.push(division.0);
                 return Equation::Division(Box::new((
                     Equation::Multiplication(multiplication),
@@ -70,6 +63,10 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     }
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
+
+    if total_is_negative {
+        total_rational_factor *= -1;
+    }
     if total_rational_factor != 1.into() {
         simplified_multiplication.push(
             Equation::Variable(Variable::Rational((
@@ -78,7 +75,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
             )))
             .simplify(),
         );
-    }
+    } 
     for (term, count) in terms {
         simplified_multiplication.push(
             Equation::Power(Box::new((
@@ -90,18 +87,8 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     }
 
     if simplified_multiplication.len() == 1 {
-        return if total_is_negative {
-            Equation::Negative(Box::new(simplified_multiplication.remove(0)))
-        } else {
-            simplified_multiplication.remove(0)
-        };
+        return simplified_multiplication.remove(0);
     }
 
-    return if total_is_negative {
-        Equation::Negative(Box::new(Equation::Multiplication(
-            simplified_multiplication,
-        )))
-    } else {
-        Equation::Multiplication(simplified_multiplication)
-    };
+    return Equation::Multiplication(simplified_multiplication);
 }
