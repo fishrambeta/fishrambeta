@@ -39,7 +39,10 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 (Equation::Multiplication(term).simplify(), count)
             }
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
-            other => (other, 1.into()),
+            other => {
+                println!("Other: {}", other);
+                (other, 1.into())
+            }
         };
 
         let previous_count = *terms.get(&term).unwrap_or(&0.into());
@@ -48,12 +51,16 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
 
     let mut simplified_addition: Vec<Equation> = Vec::new();
     for (equation, count) in terms.into_iter() {
-        let next_term = Equation::Multiplication(vec![
-            equation,
-            Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
-        ])
-        .simplify();
-        simplified_addition.push(next_term);
+        if count == 1.into() {
+            simplified_addition.push(equation);
+        } else {
+            let next_term = Equation::Multiplication(vec![
+                equation,
+                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
+            ])
+            .simplify();
+            simplified_addition.push(next_term);
+        }
     }
 
     return Equation::Addition(simplified_addition);
