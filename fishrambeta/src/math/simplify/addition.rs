@@ -81,27 +81,33 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         cos_squares.remove(&sin);
         sin_count -= number_of_ones;
         cos_count -= number_of_ones;
-        simplified_addition.push(Equation::Variable(Variable::Integer(number_of_ones)));
-        simplified_addition.push(
-            Equation::Multiplication(vec![
-                Equation::Variable(Variable::Integer(sin_count)),
-                Equation::Power(Box::new((
-                    Equation::Sin(Box::new(sin.clone())),
-                    Equation::Variable(Variable::Integer(2)),
-                ))),
-            ])
-            .simplify(),
-        );
-        simplified_addition.push(
-            Equation::Multiplication(vec![
-                Equation::Variable(Variable::Integer(cos_count)),
-                Equation::Power(Box::new((
-                    Equation::Cos(Box::new(sin)),
-                    Equation::Variable(Variable::Integer(2)),
-                ))),
-            ])
-            .simplify(),
-        );
+        if number_of_ones != 0 {
+            simplified_addition.push(Equation::Variable(Variable::Integer(number_of_ones)));
+        }
+        if sin_count != 0 {
+            simplified_addition.push(
+                Equation::Multiplication(vec![
+                    Equation::Variable(Variable::Integer(sin_count)),
+                    Equation::Power(Box::new((
+                        Equation::Sin(Box::new(sin.clone())),
+                        Equation::Variable(Variable::Integer(2)),
+                    ))),
+                ])
+                .simplify(),
+            );
+        }
+        if cos_count != 0 {
+            simplified_addition.push(
+                Equation::Multiplication(vec![
+                    Equation::Variable(Variable::Integer(cos_count)),
+                    Equation::Power(Box::new((
+                        Equation::Cos(Box::new(sin)),
+                        Equation::Variable(Variable::Integer(2)),
+                    ))),
+                ])
+                .simplify(),
+            );
+        }
     }
     for (cos, cos_count) in cos_squares.into_iter() {
         simplified_addition.push(
