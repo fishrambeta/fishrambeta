@@ -57,28 +57,37 @@ fn main() {
     );
 
     println!("Input equation: {}", equation);
+    use std::time::Instant;
+    let now = Instant::now();
     let value_dict = fishrambeta::physicsvalues::physics_values();
     let result = process_operation(
         equation.clone(),
         args.operation,
-        value_dict,
-        args.propagate_variables,
+        &value_dict,
+        &args.propagate_variables,
     );
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
     println!("{}", result);
 }
 
 fn process_operation(
     equation: Equation,
     operation: Operation,
-    value_dict: BTreeMap<Variable, f64>,
-    propagate_variables: String,
+    value_dict: &BTreeMap<Variable, f64>,
+    propagate_variables: &String,
 ) -> Result {
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
-            for i in 0..10 {
+            let mut previous = equation.to_latex();
+            for i in 1..10 {
                 equation = equation.simplify();
                 println!("{}: {}", i, equation);
+                if equation.to_latex() == previous {
+                    break;
+                }
+                previous = equation.to_latex();
             }
             return Result::Equation(equation);
         }
@@ -88,9 +97,14 @@ fn process_operation(
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
-            for _ in 0..10 {
-                equation = equation.simplify().simplify().simplify();
-                println!("{}", equation);
+            let mut previous = equation.to_latex();
+            for i in 1..10 {
+                equation = equation.simplify();
+                println!("{}: {}", i, equation);
+                if equation.to_latex() == previous {
+                    break;
+                }
+                previous = equation.to_latex();
             }
             return Result::Equation(equation);
         }

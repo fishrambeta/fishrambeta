@@ -7,6 +7,7 @@ mod factors;
 mod multiply_by;
 mod simplify;
 mod to_latex;
+mod compare;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
@@ -47,3 +48,14 @@ impl Equation {
         }
     }
 }
+
+impl Variable {
+    fn get_number_or_none(&self) -> Option<Rational64> {
+        match self {
+            Variable::Integer(n) => Some((*n).into()),
+            Variable::Rational(r) => Some(Rational64::new(r.0, r.1)),
+            _ => None,
+        }
+    }
+}
+
