@@ -12,30 +12,32 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         let (term, count) = match equation.simplify() {
             Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Multiplication(multiplication) => {
+                let mut number_of_numbers = 0;
                 let count: Rational64 = multiplication
                     .iter()
                     .filter_map(|x| -> Option<Rational64> {
-                        match x {
-                            Equation::Variable(Variable::Integer(i)) => Some(Rational64::from(*i)),
-                            Equation::Variable(Variable::Rational(r)) => {
-                                Some(Rational64::new(r.0, r.1))
-                            }
-                            _ => None,
+                        if let Some(n) = x.get_number_or_none() {
+                            number_of_numbers += 1;
+                            Some(n)
+                        } else {
+                            None
                         }
                     })
                     .product();
-                let term: Vec<Equation> = multiplication
-                    .iter()
-                    .filter(|x| {
-                        !matches!(x, Equation::Variable(Variable::Integer(_)))
-                            && !matches!(x, Equation::Variable(Variable::Rational(_)))
-                    })
-                    .cloned()
-                    .collect();
-                if count == 0.into() || term.len() == 0 {
+                if count == 0.into() || multiplication.len() - number_of_numbers == 0 {
                     (multiplication, Equation::Variable(Variable::Integer(1)));
                     break;
                 }
+                let term: Vec<Equation> = multiplication
+                    .into_iter()
+                    .filter(|x| {
+                        if let None = x.get_number_or_none() {
+                            true
+                        } else {
+                            false
+                        }
+                    })
+                    .collect();
                 (Equation::Multiplication(term).simplify(), count)
             }
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
