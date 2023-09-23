@@ -6,18 +6,20 @@ mod multiplication;
 mod power;
 
 impl Equation {
-    pub fn simplify_until_complete(mut self) -> Self {
-        let mut previous = self.to_latex();
+    pub fn simplify_until_complete(self) -> Self {
+        let mut equation = self.clone();
+        let mut previous = equation.to_latex();
         for i in 1..100 {
-            self = self.simplify();
-            println!("{}: {}", i, self);
-            if self.to_latex() == previous {
+            equation = equation.simplify();
+            println!("{}: {}", i, equation);
+            if equation.to_latex() == previous {
                 break;
             }
-            previous = self.to_latex();
+            previous = equation.to_latex();
         }
-        return self;
+        return equation;
     }
+
     pub(super) fn simplify(self) -> Self {
         let calculated_wrapped = self.calculate_exact();
         if calculated_wrapped.is_some() {
