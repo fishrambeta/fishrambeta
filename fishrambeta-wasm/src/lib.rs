@@ -8,15 +8,7 @@ pub fn simplify(equation: &str) -> String {
         equation.to_string().chars().collect::<Vec<_>>(),
         true,
     );
-    let simplified = parsed
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify();
+    let simplified = parsed.simplify_until_complete();
     let parsed_back = fishrambeta::parser::IR::equation_to_latex(simplified, true);
     return parsed_back;
 }
@@ -28,15 +20,8 @@ pub fn differentiate(equation: &str) -> String {
         true,
     );
     let differentiated = parsed
-        .simplify()
         .differentiate(&Variable::Letter("x".to_string()))
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify()
-        .simplify();
+        .simplify_until_complete();
     let parsed_back = fishrambeta::parser::IR::equation_to_latex(differentiated, true);
     return parsed_back;
 }

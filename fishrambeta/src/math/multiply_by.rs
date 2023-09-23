@@ -1,5 +1,4 @@
-use crate::math::{Equation, Variable};
-use std::iter;
+/*use crate::math::{Equation, Variable};
 
 impl Equation {
     pub fn multiply_by(self: Self, by: &Self) -> Self {
@@ -45,3 +44,4 @@ impl Equation {
         }
     }
 }
+*/

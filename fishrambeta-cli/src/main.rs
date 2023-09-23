@@ -80,15 +80,7 @@ fn process_operation(
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
-            let mut previous = equation.to_latex();
-            for i in 1..10 {
-                equation = equation.simplify();
-                println!("{}: {}", i, equation);
-                if equation.to_latex() == previous {
-                    break;
-                }
-                previous = equation.to_latex();
-            }
+            equation = equation.simplify_until_complete();
             return Result::Equation(equation);
         }
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
@@ -97,15 +89,7 @@ fn process_operation(
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
-            let mut previous = equation.to_latex();
-            for i in 1..10 {
-                equation = equation.simplify();
-                println!("{}: {}", i, equation);
-                if equation.to_latex() == previous {
-                    break;
-                }
-                previous = equation.to_latex();
-            }
+            equation = equation.simplify_until_complete();
             return Result::Equation(equation);
         }
         Operation::Error => {
@@ -114,9 +98,7 @@ fn process_operation(
             for variable in variables {
                 let mut derivative =
                     equation.differentiate(&Variable::Letter(variable.to_string()));
-                for _ in 0..10 {
-                    derivative = derivative.simplify();
-                }
+                derivative = derivative.simplify_until_complete();
                 let term = Equation::Power(Box::new((
                     Equation::Multiplication(vec![
                         derivative,
