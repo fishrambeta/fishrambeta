@@ -8,6 +8,7 @@ mod multiply_by;
 mod simplify;
 mod to_latex;
 mod compare;
+mod integrate;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]

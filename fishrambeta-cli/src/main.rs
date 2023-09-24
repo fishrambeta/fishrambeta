@@ -32,6 +32,7 @@ enum Operation {
     Solve,
     Calculate,
     Differentiate,
+    Integrate,
     Error,
 }
 
@@ -89,6 +90,14 @@ fn process_operation(
             let mut equation = equation
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
+            println!("Unsimplified: {}", equation);
+            equation = equation.simplify_until_complete();
+            return Result::Equation(equation);
+        }
+        Operation::Integrate => {
+            let mut equation = equation
+                .clone()
+                .integrate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
             equation = equation.simplify_until_complete();
             return Result::Equation(equation);
