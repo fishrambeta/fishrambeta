@@ -8,7 +8,7 @@ impl Equation {
                 match variable {
                     Variable::Integer(integer) => return *integer as f64,
                     Variable::Rational(rational) => {
-                        return (rational.0 as f64) / (rational.1 as f64)
+                        return *(*rational).numer() as f64 / *(*rational).denom() as f64
                     }
                     _ => {}
                 }

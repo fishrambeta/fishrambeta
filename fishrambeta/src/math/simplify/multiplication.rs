@@ -34,7 +34,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                 continue;
             }
             Equation::Variable(Variable::Rational(r)) => {
-                total_rational_factor *= Rational64::new(r.0, r.1);
+                total_rational_factor *= r;
                 continue;
             }
             Equation::Negative(negative) => {
@@ -68,19 +68,14 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
         total_rational_factor *= -1;
     }
     if total_rational_factor != 1.into() {
-        simplified_multiplication.push(
-            Equation::Variable(Variable::Rational((
-                *total_rational_factor.numer(),
-                *total_rational_factor.denom(),
-            )))
-            .simplify(),
-        );
-    } 
+        simplified_multiplication
+            .push(Equation::Variable(Variable::Rational(total_rational_factor)).simplify());
+    }
     for (term, count) in terms {
         simplified_multiplication.push(
             Equation::Power(Box::new((
                 term,
-                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
+                Equation::Variable(Variable::Rational(count)).simplify(),
             )))
             .simplify(),
         );

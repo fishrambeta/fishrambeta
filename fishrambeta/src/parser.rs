@@ -1,3 +1,5 @@
+use num_rational::Rational64;
+
 use crate::math::{Constant, Equation, Variable};
 
 pub struct IR {
@@ -569,7 +571,7 @@ impl IR {
                 return if self.parameters.len() == 1 {
                     Equation::Power(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
-                        Equation::Variable(Variable::Rational((1, 2))),
+                        Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
                     )))
                 } else {
                     let sqrt = self.parameters.remove(0).0.ir_to_equation();
@@ -685,13 +687,13 @@ impl IR {
                         parameters: vec![
                             (
                                 Self::equation_to_ir(Equation::Variable(Variable::Integer(
-                                    ratio.0,
+                                    *ratio.numer(),
                                 ))),
                                 BracketType::Curly,
                             ),
                             (
                                 Self::equation_to_ir(Equation::Variable(Variable::Integer(
-                                    ratio.1,
+                                    *ratio.denom(),
                                 ))),
                                 BracketType::Curly,
                             ),
@@ -1031,7 +1033,7 @@ impl IR {
         let denominator = 10i64.pow(dec.len() as u32);
         let nominator: i64 =
             int.parse::<i64>().unwrap() * denominator + dec.parse::<i64>().unwrap();
-        return Equation::Variable(Variable::Rational((nominator, denominator)));
+        return Equation::Variable(Variable::Rational(Rational64::new(nominator, denominator)));
     }
     pub fn first_and_last_bracket_connected(latex: &Vec<char>) -> bool {
         let mut depth = 1;

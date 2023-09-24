@@ -4,6 +4,7 @@ use fishrambeta::math::{Equation, Variable};
 use fishrambeta::parser;
 use std::collections::BTreeMap;
 use std::fmt;
+use num_rational::Rational64;
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -110,7 +111,7 @@ fn process_operation(
             }
             let result = Equation::Power(Box::new((
                 Equation::Addition(terms),
-                Equation::Variable(Variable::Rational((1, 2))),
+                Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
             )));
             println!("{}", result);
             Result::Equation(result)

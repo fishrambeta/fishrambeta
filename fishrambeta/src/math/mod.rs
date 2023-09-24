@@ -27,7 +27,7 @@ pub enum Equation {
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
 pub enum Variable {
     Integer(i64),
-    Rational((i64, i64)),
+    Rational(Rational64),
     Constant(Constant),
     Letter(String),
     Vector(String),
@@ -43,7 +43,7 @@ impl Equation {
     fn get_number_or_none(&self) -> Option<Rational64> {
         match self {
             Equation::Variable(Variable::Integer(n)) => Some((*n).into()),
-            Equation::Variable(Variable::Rational(r)) => Some(Rational64::new(r.0, r.1)),
+            Equation::Variable(Variable::Rational(r)) => Some(*r),
             _ => None,
         }
     }
@@ -53,7 +53,7 @@ impl Variable {
     fn get_number_or_none(&self) -> Option<Rational64> {
         match self {
             Variable::Integer(n) => Some((*n).into()),
-            Variable::Rational(r) => Some(Rational64::new(r.0, r.1)),
+            Variable::Rational(r) => Some(*r),
             _ => None,
         }
     }

@@ -25,10 +25,7 @@ pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
                 if let Some(e2) = power.1.get_number_or_none() {
                     return Equation::Power(Box::new((
                         power.0.clone(),
-                        Equation::Variable(Variable::Rational((
-                            *(e1 * e2).numer(),
-                            *(e1 * e2).denom(),
-                        ))),
+                        Equation::Variable(Variable::Rational(e1 * e2)),
                     )));
                 }
             }

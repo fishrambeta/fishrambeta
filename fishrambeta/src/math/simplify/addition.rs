@@ -68,7 +68,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         } else {
             let next_term = Equation::Multiplication(vec![
                 equation,
-                Equation::Variable(Variable::Rational((*count.numer(), *count.denom()))).simplify(),
+                Equation::Variable(Variable::Rational(count)).simplify(),
             ])
             .simplify();
             simplified_addition.push(next_term);

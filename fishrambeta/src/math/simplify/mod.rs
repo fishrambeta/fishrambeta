@@ -27,18 +27,15 @@ impl Equation {
             if calculated.is_integer() {
                 return Equation::Variable(Variable::Integer(calculated.to_integer()));
             }
-            return Equation::Variable(Variable::Rational((
-                *calculated.numer(),
-                *calculated.denom(),
-            )));
+            return Equation::Variable(Variable::Rational(calculated));
         }
         match self {
             Equation::Variable(variable) => match variable {
-                Variable::Rational((n, d)) => {
-                    return if d == 1 {
-                        Equation::Variable(Variable::Integer(n))
+                Variable::Rational(r) => {
+                    return if r.is_integer() {
+                        Equation::Variable(Variable::Integer(r.to_integer()))
                     } else {
-                        Equation::Variable(Variable::Rational((n, d)))
+                        Equation::Variable(Variable::Rational(r))
                     }
                 }
                 variable => return Equation::Variable(variable),
@@ -52,7 +49,7 @@ impl Equation {
                     return Equation::Variable(Variable::Integer(-integer))
                 }
                 Equation::Variable(Variable::Rational(rational)) => {
-                    return Equation::Variable(Variable::Rational((-rational.0, rational.1)))
+                    return Equation::Variable(Variable::Rational(-rational))
                 }
 
                 negative => return Equation::Negative(Box::new(negative.simplify())),
