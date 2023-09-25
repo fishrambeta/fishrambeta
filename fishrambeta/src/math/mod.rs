@@ -2,13 +2,13 @@ use num_rational::Rational64;
 
 mod calculate;
 mod calculate_exact;
+mod compare;
 mod differentiate;
 mod factors;
+mod integrate;
 mod multiply_by;
 mod simplify;
 mod to_latex;
-mod compare;
-mod integrate;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
@@ -59,4 +59,3 @@ impl Variable {
         }
     }
 }
-

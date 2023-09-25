@@ -7,9 +7,7 @@ impl Equation {
             Equation::Variable(variable) => {
                 match variable {
                     Variable::Integer(integer) => return Some(Rational64::from(*integer)),
-                    Variable::Rational(rational) => {
-                        return Some(*rational)
-                    }
+                    Variable::Rational(rational) => return Some(*rational),
                     _ => {}
                 }
                 return None;

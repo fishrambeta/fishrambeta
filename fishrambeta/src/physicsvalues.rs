@@ -1,4 +1,4 @@
-use crate::math::{Variable, Constant};
+use crate::math::{Constant, Variable};
 use std::collections::BTreeMap;
 
 pub fn physics_values() -> BTreeMap<Variable, f64> {

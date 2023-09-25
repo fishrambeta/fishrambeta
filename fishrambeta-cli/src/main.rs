@@ -2,9 +2,9 @@ use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
 use fishrambeta::parser;
+use num_rational::Rational64;
 use std::collections::BTreeMap;
 use std::fmt;
-use num_rational::Rational64;
 
 #[derive(Parser, Debug)]
 pub struct Args {
