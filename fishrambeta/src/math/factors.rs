@@ -32,6 +32,14 @@ impl Equation {
         return factors;
     }
 
+    pub fn get_factors(self: &Equation) -> Vec<Equation> {
+        return self
+            .get_all_factors()
+            .into_iter()
+            .filter(|x| self.has_factor(x))
+            .collect();
+    }
+
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
         let factors = self.get_all_factors();
         let mut shared_factors = vec![];
