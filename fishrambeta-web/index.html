@@ -20,11 +20,12 @@
 
 <body>
   <script type="module">
-    import init, {simplify, calculate, differentiate} from "./pkg/fishrambeta_wasm.js";
+    import init, {simplify, calculate, differentiate, integrate} from "./pkg/fishrambeta_wasm.js";
     init().then(() => {
       window.calculate = calculate;
       window.differentiate = differentiate;
       window.simplify = simplify;
+      window.integrate = integrate;
     });
   </script>
 
@@ -34,6 +35,7 @@
     <option value="calculate">Calculate</option>
     <option value="simplify">Simplify</option>
     <option value="differentiate">Differentiate</option>
+    <option value="integrate">Integrate</option>
   </select>
   <p><span id="result"></span></p>
   <p>Values</p>
@@ -120,6 +122,9 @@
           break;
         case "simplify":
           var result = simplify(equation);
+          break;
+        case "integrate":
+          var result = integrate(equation);
           break;
       }
 
