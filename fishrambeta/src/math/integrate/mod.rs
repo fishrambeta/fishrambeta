@@ -75,6 +75,14 @@ impl Equation {
                     ))),
                 ])
             }
+            Equation::Sin(box x) if *x == Equation::Variable(integrate_to.clone()) => {
+                return Equation::Negative(Box::new(Equation::Cos(Box::new(Equation::Variable(
+                    integrate_to.clone(),
+                )))))
+            }
+            Equation::Cos(box x) if *x == Equation::Variable(integrate_to.clone()) => {
+                return Equation::Sin(Box::new(Equation::Variable(integrate_to.clone())))
+            }
             _ => todo!(),
         }
     }
