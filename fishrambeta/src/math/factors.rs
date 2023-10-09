@@ -62,18 +62,21 @@ impl Equation {
 
         match self {
             Equation::Multiplication(multiplication) => {
-                return Equation::Multiplication(
-                    multiplication
-                        .iter()
-                        .map(|x| {
-                            if x.has_factor(factor) {
-                                x.clone().remove_factor(factor)
-                            } else {
-                                x.clone()
-                            }
-                        })
-                        .collect(),
-                );
+                let new: Vec<_> = multiplication
+                    .iter()
+                    .map(|x| {
+                        if x.has_factor(factor) {
+                            x.clone().remove_factor(factor)
+                        } else {
+                            x.clone()
+                        }
+                    })
+                    .collect();
+                return if new.len() != 0 {
+                    Equation::Multiplication(new)
+                } else {
+                    Equation::Variable(Variable::Integer(1))
+                };
             }
             Equation::Power(power) => {
                 return Equation::Power(Box::new((

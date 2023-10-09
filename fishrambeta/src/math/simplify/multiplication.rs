@@ -30,7 +30,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                 continue;
             }
             Equation::Variable(Variable::Integer(n)) => {
-                total_rational_factor = total_rational_factor * n;
+                total_rational_factor *= n;
                 continue;
             }
             Equation::Variable(Variable::Rational(r)) => {
@@ -67,7 +67,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     if total_is_negative {
         total_rational_factor *= -1;
     }
-    if total_rational_factor != 1.into() {
+    if total_rational_factor != 1.into() || terms.len() == 0 {
         simplified_multiplication
             .push(Equation::Variable(Variable::Rational(total_rational_factor)).simplify());
     }

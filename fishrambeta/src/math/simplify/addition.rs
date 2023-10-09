@@ -123,5 +123,9 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         );
     }
 
+    if simplified_addition.len() == 0 {
+        return Equation::Variable(Variable::Integer(0))
+    }
+
     return Equation::Addition(simplified_addition);
 }
