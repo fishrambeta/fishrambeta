@@ -48,6 +48,12 @@ impl Equation {
             _ => None,
         }
     }
+    fn get_integer_or_none(&self) -> Option<i64> {
+        match self {
+            Equation::Variable(Variable::Integer(n)) => Some((*n)),
+            _ => None,
+        }
+    }
 }
 
 impl Variable {
@@ -55,6 +61,12 @@ impl Variable {
         match self {
             Variable::Integer(n) => Some((*n).into()),
             Variable::Rational(r) => Some(*r),
+            _ => None,
+        }
+    }
+    fn get_integer_or_none(&self) -> Option<i64> {
+        match self {
+            Variable::Integer(n) => Some((*n)),
             _ => None,
         }
     }

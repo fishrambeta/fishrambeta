@@ -108,11 +108,12 @@ fn random_equation(
 
 impl Equation {
     pub(super) fn bogointegrate(&self, integrate_to: &Variable) -> Equation {
+        let simplified = self.clone().simplify_until_complete();
         for primitive in primitives_iter(integrate_to) {
             if primitive
                 .differentiate(integrate_to)
                 .simplify_until_complete()
-                == *self
+                == simplified
             {
                 return primitive;
             }
