@@ -12,3 +12,4 @@ wasm-bindgen = "0.2.86"
 fishrambeta = {path="../fishrambeta"}
 slog = "*"
 console_error_panic_hook = "0.1.7"
+getrandom = { version = "*", features = ["js"] }
