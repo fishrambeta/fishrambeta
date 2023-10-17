@@ -118,11 +118,11 @@ fn process_operation(
                 )));
                 terms.push(term);
             }
-            let result = Equation::Power(Box::new((
+            let mut result = Equation::Power(Box::new((
                 Equation::Addition(terms),
                 Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
             )));
-            println!("{}", result);
+            result = result.simplify_until_complete();
             Result::Equation(result)
         }
         _ => {
