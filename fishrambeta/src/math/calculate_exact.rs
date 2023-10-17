@@ -1,4 +1,5 @@
 use crate::math::{Equation, Variable};
+use num::checked_pow;
 use num_rational::Rational64;
 
 impl Equation {
@@ -24,6 +25,9 @@ impl Equation {
                 if numerator.is_none() || denominator.is_none() {
                     return None;
                 }
+                if denominator.unwrap() == 0.into() {
+                    return None;
+                }
                 return Some(numerator.unwrap() / denominator.unwrap());
             }
             Equation::Power(power) => {
@@ -35,10 +39,20 @@ impl Equation {
                 if !exponent.unwrap().is_integer() {
                     return None;
                 }
-                return Some(
-                    base.unwrap()
-                        .pow(exponent.unwrap().to_integer().try_into().unwrap()),
-                );
+                let base_num = base.unwrap();
+                let exponent_num: usize = match exponent.unwrap().to_integer().try_into() {
+                    Ok(x) => x,
+                    Err(_) => return None,
+                };
+                let numerator = match checked_pow(*base_num.numer(), exponent_num) {
+                    Some(x) => x,
+                    None => return None,
+                };
+                let denominator = match checked_pow(*base_num.denom(), exponent_num) {
+                    Some(x) => x,
+                    None => return None,
+                };
+                return Some(Rational64::new(numerator, denominator));
             }
             _ => None,
         }
