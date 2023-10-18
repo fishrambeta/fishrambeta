@@ -11,7 +11,7 @@ impl Equation {
         let mut previous = equation.to_latex();
         for i in 1..3 {
             equation = equation.simplify();
-            //println!("{}: {}", i, equation);
+            println!("{}: {}", i, equation);
             if equation.to_latex() == previous {
                 break;
             }

@@ -61,6 +61,9 @@ impl Equation {
         }
 
         match self {
+            Equation::Negative(negative) => {
+                return Equation::Negative(Box::new(negative.remove_factor(factor)))
+            }
             Equation::Multiplication(multiplication) => {
                 let new: Vec<_> = multiplication
                     .iter()
