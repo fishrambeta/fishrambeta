@@ -1,8 +1,8 @@
 use super::{Equation, Variable};
-use crate::parser::IR;
 use num_rational::Rational64;
 use rand::rngs::ThreadRng;
 use rand::{seq::SliceRandom, Rng};
+use rayon::prelude::*;
 
 struct AllPrimitives {
     integrate_to: Variable,
@@ -10,13 +10,15 @@ struct AllPrimitives {
     rng: ThreadRng,
 }
 
+unsafe impl Send for AllPrimitives {}
+
 impl Iterator for AllPrimitives {
     type Item = Equation;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
         let equation = random_equation(&vec!["x".to_string()], &mut self.rng, 0);
-        println!("{}: Guessing equation: {}", self.index, equation);
+        //println!("{}: Guessing equation: {}", self.index, equation);
         return Some(equation);
     }
 }
@@ -42,47 +44,47 @@ fn random_equation(
                 random_equation(relevant_variables, rng, complexity + 2),
             ])
         }
-        10..=20 => {
+        11..=20 => {
             return Equation::Multiplication(vec![
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             ])
         }
-        20..=30 => {
+        21..=30 => {
             return Equation::Division(Box::new((
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             )))
         }
-        30..=40 => {
+        31..=40 => {
             return Equation::Sin(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 2,
             )))
         }
-        40..=50 => {
+        41..=50 => {
             return Equation::Cos(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
-        50..=60 => {
+        51..=60 => {
             return Equation::Ln(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
-        60..=70 => {
+        61..=70 => {
             return Equation::Negative(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
-        70..=80 => {
+        71..=80 => {
             return Equation::Power(Box::new((
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
@@ -109,15 +111,19 @@ fn random_equation(
 impl Equation {
     pub(super) fn bogointegrate(&self, integrate_to: &Variable) -> Equation {
         let simplified = self.clone().simplify_until_complete();
-        for primitive in primitives_iter(integrate_to) {
-            if primitive
-                .differentiate(integrate_to)
-                .simplify_until_complete()
-                == simplified
-            {
-                return primitive;
-            }
+        return primitives_iter(integrate_to)
+            .par_bridge()
+            .find_any(|x: &Equation| x.clone().is_primitive(&simplified, integrate_to))
+            .unwrap();
+    }
+
+    fn is_primitive(self, simplified: &Equation, integrate_to: &Variable) -> bool {
+        let is_primitive =
+            self.differentiate(integrate_to).simplify_until_complete() == *simplified;
+        if is_primitive {
+            println!("{} is a primitive of {}", self, simplified);
+
         }
-        unreachable!()
+        return is_primitive;
     }
 }
