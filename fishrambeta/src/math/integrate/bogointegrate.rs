@@ -18,7 +18,9 @@ impl Iterator for AllPrimitives {
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
         let equation = random_equation(&vec!["x".to_string()], &mut self.rng, 0);
-        //println!("{}: Guessing equation: {}", self.index, equation);
+        if self.index % 10000 == 0 {
+            println!("{}: Guessing equation: {}", self.index, equation);
+        }
         return Some(equation);
     }
 }
@@ -122,7 +124,6 @@ impl Equation {
             self.differentiate(integrate_to).simplify_until_complete() == *simplified;
         if is_primitive {
             println!("{} is a primitive of {}", self, simplified);
-
         }
         return is_primitive;
     }
