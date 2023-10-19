@@ -1,9 +1,16 @@
+use num_integer::Integer;
+
 use crate::math::{Equation, Variable};
 
 impl Equation {
     pub fn has_factor(self: &Equation, factor: &Equation) -> bool {
         if self == factor {
             return true;
+        }
+        if let Some(n) = factor.get_integer_or_none() {
+            if self.gcd() % n == 0 {
+                return true;
+            }
         }
 
         match self {
@@ -21,6 +28,28 @@ impl Equation {
         }
     }
 
+    pub fn gcd(self: &Equation) -> i64 {
+        match self {
+            Equation::Variable(Variable::Integer(n)) => return if *n != 0 { *n } else { 1 },
+            Equation::Addition(addition) => {
+                let mut gcd = -1;
+                for x in addition.iter().map(|x| x.gcd()) {
+                    if gcd == -1 {
+                        gcd = x;
+                    } else {
+                        gcd = gcd.gcd(&x);
+                    }
+                }
+                return gcd;
+            }
+            Equation::Multiplication(multiplication) => {
+                return multiplication.iter().map(|x| x.gcd()).product()
+            }
+            Equation::Division(division) => return division.0.gcd().gcd(&division.1.gcd()),
+            _ => return 1,
+        }
+    }
+
     fn get_all_factors(self: &Equation) -> Vec<Equation> {
         //TODO add other factors than just multiplication
         let mut factors = vec![self.clone()];
@@ -33,11 +62,16 @@ impl Equation {
     }
 
     pub fn get_factors(self: &Equation) -> Vec<Equation> {
-        return self
+        let mut factors: Vec<Equation> = self
             .get_all_factors()
             .into_iter()
             .filter(|x| self.has_factor(x))
             .collect();
+        let gcd = self.gcd();
+        if gcd != 1 {
+            factors.push(Equation::Variable(Variable::Integer(gcd)))
+        }
+        return factors;
     }
 
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
@@ -47,6 +81,10 @@ impl Equation {
             if other.has_factor(&factor) {
                 shared_factors.push(factor);
             }
+        }
+        let shared_gcd = self.gcd().gcd(&other.gcd());
+        if shared_gcd != 1 {
+            shared_factors.push(Equation::Variable(Variable::Integer(shared_gcd)));
         }
         return shared_factors;
     }
@@ -96,6 +134,10 @@ impl Equation {
                 );
             }
             _ => {}
+        }
+
+        if let (Some(n), Some(n_factor)) = (self.get_integer_or_none(), factor.get_integer_or_none()) {
+            return Equation::Variable(Variable::Integer(n / n_factor));
         }
 
         return self;
