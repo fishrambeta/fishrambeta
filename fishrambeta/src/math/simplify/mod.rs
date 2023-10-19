@@ -9,7 +9,7 @@ impl Equation {
     pub fn simplify_until_complete(self) -> Self {
         let mut equation = self.clone();
         let mut previous = equation.to_latex();
-        for _ in 1..5 {
+        for _ in 1..3 {
             equation = equation.simplify();
             if equation.to_latex() == previous {
                 break;

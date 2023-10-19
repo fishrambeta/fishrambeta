@@ -8,7 +8,7 @@ impl Equation {
             return true;
         }
         if let Some(n) = factor.get_integer_or_none() {
-            if self.gcd() % n == 0 {
+            if n != 0 && self.gcd() % n == 0 {
                 return true;
             }
         }
@@ -32,10 +32,12 @@ impl Equation {
         match self {
             Equation::Variable(Variable::Integer(n)) => return if *n != 0 { *n } else { 1 },
             Equation::Addition(addition) => {
-                let mut gcd = -1;
+                let mut gcd = 1;
+                let mut first_done = false;
                 for x in addition.iter().map(|x| x.gcd()) {
-                    if gcd == -1 {
+                    if !first_done {
                         gcd = x;
+                        first_done = true;
                     } else {
                         gcd = gcd.gcd(&x);
                     }
@@ -136,7 +138,9 @@ impl Equation {
             _ => {}
         }
 
-        if let (Some(n), Some(n_factor)) = (self.get_integer_or_none(), factor.get_integer_or_none()) {
+        if let (Some(n), Some(n_factor)) =
+            (self.get_integer_or_none(), factor.get_integer_or_none())
+        {
             return Equation::Variable(Variable::Integer(n / n_factor));
         }
 

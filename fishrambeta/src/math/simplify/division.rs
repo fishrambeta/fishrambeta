@@ -35,11 +35,6 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
 
     numerator = numerator.simplify();
     denominator = denominator.simplify();
-    /*let gcd = Equation::Variable(Variable::Integer(numerator.gcd().gcd(&denominator.gcd())));
-    if gcd != Equation::Variable(Variable::Integer(1)) {
-        numerator = numerator.remove_factor(&gcd);
-        denominator = denominator.remove_factor(&gcd);
-    }*/
 
     return if numerator == Equation::Variable(Variable::Integer(0)) {
         Equation::Variable(Variable::Integer(0))

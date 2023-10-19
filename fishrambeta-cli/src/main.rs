@@ -95,6 +95,7 @@ fn process_operation(
             return Result::Equation(equation);
         }
         Operation::Integrate => {
+            println!("Start integrate");
             let mut equation = equation
                 .clone()
                 .integrate(&Variable::Letter("x".to_string()));
