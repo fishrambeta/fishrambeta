@@ -1,6 +1,7 @@
 use fishrambeta::{self, math::Variable, physicsvalues};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+pub use wasm_bindgen_rayon::init_thread_pool;
 
 #[wasm_bindgen]
 pub fn simplify(equation: &str) -> String {

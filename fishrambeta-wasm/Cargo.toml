@@ -13,3 +13,4 @@ fishrambeta = {path="../fishrambeta"}
 slog = "*"
 console_error_panic_hook = "0.1.7"
 getrandom = { version = "*", features = ["js"] }
+wasm-bindgen-rayon = "1.0.3"
