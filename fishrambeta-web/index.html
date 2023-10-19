@@ -20,14 +20,13 @@
 
 <body>
   <script type="module">
-    import init, {initThreadPool, simplify, calculate, differentiate, integrate} from "./pkg/fishrambeta_wasm.js";
-    await init().then(() => {
+    import init, {simplify, calculate, differentiate, integrate} from "./pkg/fishrambeta_wasm.js";
+    init().then(() => {
       window.calculate = calculate;
       window.differentiate = differentiate;
       window.simplify = simplify;
       window.integrate = integrate;
     });
-    await initThreadPool(navigator.hardwareConcurrency);
   </script>
 
   <p>Equation</p>
