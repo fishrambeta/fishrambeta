@@ -19,6 +19,20 @@ impl Equation {
         return equation;
     }
 
+    pub fn simplify_until_complete_with_print(self) -> Self {
+        let mut equation = self.clone();
+        let mut previous = equation.to_latex();
+        for i in 1..5 {
+            equation = equation.simplify();
+            println!("{i}: {equation}");
+            if equation.to_latex() == previous {
+                break;
+            }
+            previous = equation.to_latex();
+        }
+        return equation;
+    }
+
     pub(super) fn simplify(self) -> Self {
         let calculated_wrapped = self.calculate_exact();
         if calculated_wrapped.is_some() {

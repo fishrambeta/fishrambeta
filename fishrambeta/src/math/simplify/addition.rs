@@ -26,9 +26,17 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                         }
                     })
                     .product();
-                if count == 0.into() || multiplication.len() - number_of_numbers == 0 {
-                    (multiplication, Equation::Variable(Variable::Integer(1)));
-                    break;
+                if count == 0.into() {
+                    // The multiplication is zero, so we can skip it
+                    continue;
+                }
+                if multiplication.len() - number_of_numbers == 0 {
+                    // The multiplication is a
+                    // constant factor, so we add that factor to the addition
+                    (
+                        Equation::Variable(Variable::Rational(count)),
+                        Equation::Variable(Variable::Integer(1)),
+                    );
                 }
                 let term: Vec<Equation> = multiplication
                     .into_iter()
@@ -124,7 +132,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     }
 
     if simplified_addition.len() == 0 {
-        return Equation::Variable(Variable::Integer(0))
+        return Equation::Variable(Variable::Integer(0));
     }
 
     return Equation::Addition(simplified_addition);
