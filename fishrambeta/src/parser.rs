@@ -21,7 +21,7 @@ impl IR {
             .collect::<String>();
     }
     pub fn latex_to_ir(latex: Vec<char>, implicit_multiplication: bool) -> Self {
-        let mut latex = latex;
+        let mut latex = Self::add_multiplications(latex);;
         while latex[0] == '+' {
             latex.remove(0);
         }
@@ -1064,6 +1064,46 @@ impl IR {
             }
         }
         panic!()
+    }
+    pub fn add_multiplications(mut latex: Vec<char>) -> Vec<char>{
+        let mut pending_multiplications = vec!();
+        let mut is_parsing_command = false;
+        let mut remaining_parameters = 0;
+        let mut command = vec!();
+        let mut depth = 0;
+        for i in 1..latex.len(){
+            if is_parsing_command && !latex[i].is_alphabetic(){
+                is_parsing_command = false;
+                match command{
+                    _ => {
+                        todo!("{:?}", command);
+                    }
+                }
+            }
+            if BracketType::is_opening_bracket(latex[i]){
+                depth += 1;
+                if depth == 0 && BracketType::is_closing_bracket(latex[i-1]){
+                    if remaining_parameters == 0{
+                        pending_multiplications.push(i);
+                    }
+                }
+
+            }
+            else if BracketType::is_closing_bracket(latex[i]){
+
+                depth -= 1;
+            }
+            else if latex[i] == '\\'{
+                is_parsing_command = true;
+            }
+            else if is_parsing_command && latex[i].is_alphabetic(){
+                command.push(latex[i]);
+            }
+        }
+        for position in pending_multiplications.into_iter().rev(){
+            latex.insert(position, '*')
+        }
+        return latex;
     }
 }
 pub enum BracketType {
