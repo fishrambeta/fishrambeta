@@ -7,6 +7,7 @@ fn simplify() {
 
     assert!(simplified_is_equal("x^2", &valuedicts));
     assert!(simplified_is_equal("\\frac{x}{x}", &valuedicts));
+    assert!(simplified_is_equal("\\frac{\\frac{-x}{x}}{x}", &valuedicts))
 }
 
 #[test]
@@ -68,7 +69,7 @@ fn derivative_is_equal(
 
 fn approx_equal(a: f64, b: f64) -> bool {
     let p = a / 10000.;
-    return (a - b).abs() < p;
+    return (a - b).abs() < p.abs();
 }
 
 #[rustfmt::skip]

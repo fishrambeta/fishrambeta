@@ -58,10 +58,14 @@ impl Equation {
             }
             Equation::Power(power) => return differentiate_power(power, differentiate_to),
             Equation::Ln(ln) => {
+                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0)) { //TODO:
+                    //this can probably be done better
+                    return Equation::Variable(Variable::Integer(0));
+                }
                 return Equation::Division(Box::new((
                     ln.differentiate(differentiate_to),
                     (**ln).clone(),
-                )))
+                )));
             }
             Equation::Sin(sin) => {
                 return Equation::Multiplication(vec![

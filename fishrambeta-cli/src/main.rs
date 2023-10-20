@@ -82,7 +82,7 @@ fn process_operation(
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
-            equation = equation.simplify_until_complete();
+            equation = equation.simplify_until_complete_with_print();
             return Result::Equation(equation);
         }
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
@@ -91,15 +91,16 @@ fn process_operation(
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
-            equation = equation.simplify_until_complete();
+            equation = equation.simplify_until_complete_with_print();
             return Result::Equation(equation);
         }
         Operation::Integrate => {
+            println!("Start integrate");
             let mut equation = equation
                 .clone()
                 .integrate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
-            equation = equation.simplify_until_complete();
+            equation = equation.simplify_until_complete_with_print();
             return Result::Equation(equation);
         }
         Operation::Error => {
@@ -108,7 +109,7 @@ fn process_operation(
             for variable in variables {
                 let mut derivative =
                     equation.differentiate(&Variable::Letter(variable.to_string()));
-                derivative = derivative.simplify_until_complete();
+                derivative = derivative.simplify_until_complete_with_print();
                 let term = Equation::Power(Box::new((
                     Equation::Multiplication(vec![
                         derivative,
@@ -122,7 +123,7 @@ fn process_operation(
                 Equation::Addition(terms),
                 Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
             )));
-            result = result.simplify_until_complete();
+            result = result.simplify_until_complete_with_print();
             Result::Equation(result)
         }
         _ => {

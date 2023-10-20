@@ -1,4 +1,5 @@
 use super::{Equation, Variable};
+use num_integer::Integer;
 
 pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation {
     let mut numerator = division.0.simplify();

@@ -9,9 +9,22 @@ impl Equation {
     pub fn simplify_until_complete(self) -> Self {
         let mut equation = self.clone();
         let mut previous = equation.to_latex();
-        for i in 1..3 {
+        for _ in 1..3 {
             equation = equation.simplify();
-            println!("{}: {}", i, equation);
+            if equation.to_latex() == previous {
+                break;
+            }
+            previous = equation.to_latex();
+        }
+        return equation;
+    }
+
+    pub fn simplify_until_complete_with_print(self) -> Self {
+        let mut equation = self.clone();
+        let mut previous = equation.to_latex();
+        for i in 1..5 {
+            equation = equation.simplify();
+            println!("{i}: {equation}");
             if equation.to_latex() == previous {
                 break;
             }
