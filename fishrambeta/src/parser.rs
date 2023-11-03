@@ -1071,32 +1071,40 @@ impl IR {
         let mut remaining_parameters = 0;
         let mut command = vec!();
         let mut depth = 0;
-        for i in 1..latex.len(){
-            if is_parsing_command && !latex[i].is_alphabetic(){
+        for i in 0..latex.len(){
+            if is_parsing_command && !(latex[i].is_alphabetic() || latex[i] == '_' || latex[i] == '^'){
                 is_parsing_command = false;
-                match command{
+                remaining_parameters = match command[..]{
+                    ['s', 'q', 'r','t'] => {1}
+                    ['f', 'r','a','c'] => {2}
+
                     _ => {
                         todo!("{:?}", command);
                     }
                 }
             }
             if BracketType::is_opening_bracket(latex[i]){
-                depth += 1;
-                if depth == 0 && BracketType::is_closing_bracket(latex[i-1]){
+                if depth == 0 && i != 0 && BracketType::is_closing_bracket(latex[i-1]){
                     if remaining_parameters == 0{
                         pending_multiplications.push(i);
                     }
+                    else{
+                        remaining_parameters -= 1
+                    }
                 }
-
+                depth += 1;
             }
             else if BracketType::is_closing_bracket(latex[i]){
 
                 depth -= 1;
+                if depth == 0 && remaining_parameters > 0{
+                    remaining_parameters -= 1;
+                }
             }
             else if latex[i] == '\\'{
                 is_parsing_command = true;
             }
-            else if is_parsing_command && latex[i].is_alphabetic(){
+            else if is_parsing_command && (latex[i].is_alphabetic() || latex[i] == '_' || latex[i] == '^'){
                 command.push(latex[i]);
             }
         }
