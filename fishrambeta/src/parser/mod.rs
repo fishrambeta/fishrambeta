@@ -2,6 +2,8 @@ use num_rational::Rational64;
 
 use crate::math::{Constant, Equation, Variable};
 
+mod numpy;
+
 pub struct IR {
     name: Vec<char>,
     parameters: Vec<(IR, BracketType)>,
@@ -20,8 +22,14 @@ impl IR {
             .into_iter()
             .collect::<String>();
     }
+    pub fn equation_to_numpy(equation: Equation, implicit_multiplication: bool) -> String {
+        return Self::equation_to_ir(equation)
+            .ir_to_numpy(implicit_multiplication)
+            .into_iter()
+            .collect::<String>();
+    }
     pub fn latex_to_ir(latex: Vec<char>, implicit_multiplication: bool) -> Self {
-        let mut latex = Self::add_multiplications(latex);;
+        let mut latex = Self::add_multiplications(latex);
         while latex[0] == '+' {
             latex.remove(0);
         }

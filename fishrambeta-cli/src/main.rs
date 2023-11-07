@@ -83,6 +83,7 @@ fn process_operation(
         Operation::Simplify => {
             let mut equation = equation.clone();
             equation = equation.simplify_until_complete_with_print();
+            println!("{}", equation.to_numpy());
             return Result::Equation(equation);
         }
         Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
