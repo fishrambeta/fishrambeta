@@ -33,6 +33,7 @@ impl Equation {
             Equation::Ln(ln) => return ln.calculate(values).ln(),
             Equation::Sin(sin) => return sin.calculate(values).sin(),
             Equation::Cos(cos) => return cos.calculate(values).cos(),
+            Equation::Abs(abs) => return abs.calculate(values).abs(),
             Equation::Equals(_) => panic!("Cannot calculate equals"),
         }
     }

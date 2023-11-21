@@ -76,6 +76,7 @@ impl Equation {
             Equation::Ln(ln) => return Equation::Ln(Box::new(ln.simplify())),
             Equation::Sin(sin) => return Equation::Sin(Box::new(sin.simplify())),
             Equation::Cos(cos) => return Equation::Cos(Box::new(cos.simplify())),
+            Equation::Abs(abs) => return Equation::Abs(Box::new(abs.simplify())),
             Equation::Equals(equation) => {
                 return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }

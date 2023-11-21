@@ -85,6 +85,12 @@ impl Equation {
                     equals.1.differentiate(differentiate_to),
                 )))
             }
+            Equation::Abs(abs) => {
+                return Equation::Division(Box::new((
+                    Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
+                    Equation::Abs(abs.clone())
+                )))
+            }
         }
     }
 }

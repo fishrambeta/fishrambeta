@@ -73,6 +73,30 @@ impl IR {
                 return_data.push(')');
 
             }
+            ['\\', 's', 'i', 'n'] => {
+                return_data.extend("np.sin(".chars().collect::<Vec<char>>());
+                return_data.append(&mut IR::ir_to_numpy(
+                    self.parameters.remove(0).0,
+                    implicit_multiplication,
+                ));
+                return_data.push(')');
+            }
+            ['\\', 'c', 'o', 's'] => {
+                return_data.extend("np.cos(".chars().collect::<Vec<char>>());
+                return_data.append(&mut IR::ir_to_numpy(
+                    self.parameters.remove(0).0,
+                    implicit_multiplication,
+                ));
+                return_data.push(')');
+            }
+            ['\\', 'l', 'n'] => {
+                return_data.extend("np.log(".chars().collect::<Vec<char>>());
+                return_data.append(&mut IR::ir_to_numpy(
+                    self.parameters.remove(0).0,
+                    implicit_multiplication,
+                ));
+                return_data.push(')');
+            }
             _ => {
                 if self.parameters.len() == 0 {
                     return self.name;

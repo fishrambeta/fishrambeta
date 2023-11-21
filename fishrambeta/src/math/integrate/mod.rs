@@ -102,6 +102,7 @@ impl Equation {
             Equation::Ln(t) => return t.term_is_constant(integrate_to),
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
             Equation::Variable(v) => return v != integrate_to,
+            Equation::Abs(a) => return a.term_is_constant(integrate_to),
         }
     }
 }

@@ -23,6 +23,7 @@ pub enum Equation {
     Equals(Box<(Equation, Equation)>),
     Sin(Box<Equation>),
     Cos(Box<Equation>),
+    Abs(Box<Equation>),
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]

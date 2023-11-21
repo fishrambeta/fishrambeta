@@ -1,5 +1,7 @@
 use crate::math::{Equation, Variable};
 use num::checked_pow;
+use num::Signed;
+use num_rational::Ratio;
 use num_rational::Rational64;
 
 impl Equation {
@@ -53,6 +55,13 @@ impl Equation {
                     None => return None,
                 };
                 return Some(Rational64::new(numerator, denominator));
+            }
+            Equation::Abs(abs) => {
+                let abs = abs.calculate_exact();
+                if abs.is_none() {
+                    return None;
+                }
+                return Some(abs.unwrap().abs());
             }
             _ => None,
         }
