@@ -1,4 +1,4 @@
-use crate::math::{Equation, Variable};
+use crate::math::{Constant, Equation, Variable};
 use num::checked_pow;
 use num::Signed;
 use num_rational::Ratio;
@@ -63,7 +63,13 @@ impl Equation {
                 }
                 return Some(abs.unwrap().abs());
             }
-            _ => None,
+            Equation::Ln(ln) => {
+                if ln == Equation::Variable(Variable::Constant(Constant::E)) {
+                    return Equation::Variable(Variable::Integer(1));
+                }
+                return None;
+            }
+            _ => return None,
         }
     }
 }
