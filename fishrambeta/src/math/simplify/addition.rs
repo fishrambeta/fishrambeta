@@ -2,10 +2,25 @@ use super::{Equation, Variable};
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 
+fn flatten_addition(addition: Vec<Equation>) -> Vec<Equation> {
+    let mut new_addition = vec![];
+    for term in addition {
+        match term {
+            Equation::Addition(a) => {
+                new_addition.append(&mut flatten_addition(a));
+            }
+            other => new_addition.push(other),
+        };
+    }
+    return new_addition;
+}
+
 pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     if addition.len() == 1 {
         return addition.remove(0);
     }
+    let addition = flatten_addition(addition);
+    let mut total_rational_term: Rational64 = 0.into();
     let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
     let mut sin_squares: BTreeMap<Equation, Rational64> = BTreeMap::new();
     let mut cos_squares: BTreeMap<Equation, Rational64> = BTreeMap::new();
@@ -13,6 +28,14 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     for equation in addition.into_iter() {
         let (term, count) = match equation.simplify() {
             Equation::Variable(Variable::Integer(0)) => continue,
+            Equation::Variable(Variable::Integer(i)) => {
+                total_rational_term += i;
+                continue;
+            }
+            Equation::Variable(Variable::Rational(r)) => {
+                total_rational_term += r;
+                continue;
+            }
             Equation::Multiplication(multiplication) => {
                 let mut number_of_numbers = 0;
                 let count: Rational64 = multiplication
@@ -70,6 +93,9 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     }
 
     let mut simplified_addition: Vec<Equation> = Vec::new();
+    if total_rational_term != 0.into() {
+        simplified_addition.push(Equation::Variable(Variable::Rational(total_rational_term)).simplify());
+    }
     for (equation, count) in terms.into_iter() {
         if count == 1.into() {
             simplified_addition.push(equation);
