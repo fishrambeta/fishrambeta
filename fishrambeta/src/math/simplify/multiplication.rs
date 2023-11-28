@@ -1,4 +1,4 @@
-use super::{Equation, Variable};
+use super::{Equation, EquationBTreeMap, Variable};
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 
@@ -17,7 +17,7 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
 
 pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
     let mut multiplication = flatten_multiplication(multiplication);
-    let mut terms: BTreeMap<Equation, Rational64> = BTreeMap::new();
+    let mut terms: EquationBTreeMap = EquationBTreeMap::new();
     let mut total_rational_factor: Rational64 = 1.into();
 
     let mut total_is_negative = false;
@@ -39,15 +39,9 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
             }
             Equation::Negative(negative) => {
                 total_is_negative = !total_is_negative;
-                (*negative, 1.into())
+                (*negative, Equation::Variable(Variable::Integer(1)))
             }
-            Equation::Power(power) => {
-                if let Some(n) = power.1.get_number_or_none() {
-                    (power.0, n)
-                } else {
-                    (Equation::Power(power), 1.into())
-                }
-            }
+            Equation::Power(power) => (power.0, power.1),
             Equation::Division(division) => {
                 multiplication.remove(index);
                 multiplication.push(division.0);
@@ -56,10 +50,9 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                     division.1,
                 )));
             }
-            term => (term, 1.into()),
+            term => (term, Equation::Variable(Variable::Integer(1))),
         };
-        let previous_count = *terms.get(&term).unwrap_or(&0.into());
-        terms.insert(term, previous_count + count);
+        terms.insert_or_push(term, count)
     }
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();
@@ -67,17 +60,14 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     if total_is_negative {
         total_rational_factor *= -1;
     }
-    if total_rational_factor != 1.into() || terms.len() == 0 {
+    if total_rational_factor != 1.into() || terms.0.len() == 0 {
         simplified_multiplication
             .push(Equation::Variable(Variable::Rational(total_rational_factor)).simplify());
     }
-    for (term, count) in terms {
+
+    for (term, count) in terms.0 {
         simplified_multiplication.push(
-            Equation::Power(Box::new((
-                term,
-                Equation::Variable(Variable::Rational(count)).simplify(),
-            )))
-            .simplify(),
+            Equation::Power(Box::new((term, Equation::Addition(count).simplify()))).simplify(),
         );
     }
 

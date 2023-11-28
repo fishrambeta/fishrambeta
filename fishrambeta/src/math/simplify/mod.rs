@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::math::{Equation, Variable};
 
 mod addition;
@@ -81,6 +83,21 @@ impl Equation {
             Equation::Equals(equation) => {
                 return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }
+        }
+    }
+}
+
+pub struct EquationBTreeMap(BTreeMap<Equation, Vec<Equation>>);
+
+impl EquationBTreeMap {
+    pub fn new() -> EquationBTreeMap {
+        return EquationBTreeMap(BTreeMap::new());
+    }
+    pub fn insert_or_push(&mut self, term: Equation, equation: Equation) {
+        if self.0.contains_key(&term) {
+            self.0.get_mut(&term).unwrap().push(equation);
+        } else {
+            self.0.insert(term, vec![equation]);
         }
     }
 }
