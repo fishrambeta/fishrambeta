@@ -176,7 +176,11 @@ impl IR {
                         Self::parse_float(self.name)
                     } else {
                         let expression = self.name.into_iter().collect::<String>();
-                        Equation::Variable(Variable::Letter(expression))
+                        match expression.as_str() {
+                            "e" => Equation::Variable(Variable::Constant(Constant::E)),
+                            "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
+                            variable => Equation::Variable(Variable::Letter(expression))
+                        }
                     };
                 } else {
                     todo!();
