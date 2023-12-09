@@ -5,7 +5,7 @@
 
 ```
 @online{fishrambeta,
-  author    = {Dani\"el Visser, Freya Winters},
+  author    = {Dani\"el Visser and Freya Winters},
   title     = {Fishrambeta},
   url       = {https://github.com/Fishrambeta/fishrambeta},
   year      = {2023},
