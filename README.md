@@ -6,7 +6,7 @@
 ```
 @online{fishrambeta,
   author    = {Dani\"el Visser, Freya Winters},
-  title     = {TinyLlama},
+  title     = {Fishrambeta},
   url       = {https://github.com/Fishrambeta/fishrambeta},
   year      = {2023},
   month     = {Mar}
