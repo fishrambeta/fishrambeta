@@ -1,4 +1,6 @@
 use super::{Equation, Variable};
+use num_rational::Rational64;
+use num_rational::Ratio;
 
 pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
     let base = power.0.simplify();
@@ -28,6 +30,17 @@ pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
                         Equation::Variable(Variable::Rational(e1 * e2)),
                     )));
                 }
+            }
+        }
+        Equation::Division(ref division) => {
+            if let Some(number) = division.0.get_number_or_none() {
+                return Equation::Division(Box::new((
+                    Equation::Power(Box::new((
+                        Equation::Variable(Variable::Rational(number)),
+                        exponent.clone(),
+                    ))),
+                    Equation::Power(Box::new((division.1.clone(), exponent))),
+                )));
             }
         }
         _ => {}

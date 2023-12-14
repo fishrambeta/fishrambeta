@@ -42,6 +42,9 @@ impl Equation {
                     return None;
                 }
                 let base_num = base.unwrap();
+                if base_num == 1.into() {
+                    return Some(1.into());
+                }
                 let exponent_num: usize = match exponent.unwrap().to_integer().try_into() {
                     Ok(x) => x,
                     Err(_) => return None,
