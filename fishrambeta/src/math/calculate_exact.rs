@@ -35,15 +35,21 @@ impl Equation {
             Equation::Power(power) => {
                 let base = power.0.calculate_exact();
                 let exponent = power.1.calculate_exact();
-                if base.is_none() || exponent.is_none() {
+                if base.is_none() {
                     return None;
                 }
-                if !exponent.unwrap().is_integer() {
-                    return None;
-                }
+
                 let base_num = base.unwrap();
                 if base_num == 1.into() {
                     return Some(1.into());
+                }
+
+                if exponent.is_none() {
+                    return None;
+                }
+
+                if !exponent.unwrap().is_integer() {
+                    return None;
                 }
                 let exponent_num: usize = match exponent.unwrap().to_integer().try_into() {
                     Ok(x) => x,
