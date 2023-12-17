@@ -13,6 +13,15 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
             )))
             .simplify();
         }
+        Equation::Variable(Variable::Rational(rational)) => {
+            return Equation::Division(Box::new((
+                Equation::Variable(Variable::Integer(*rational.numer())),
+                Equation::Multiplication(vec![
+                    denominator,
+                    Equation::Variable(Variable::Integer(*rational.denom())),
+                ]),
+            )));
+        }
         _ => {}
     }
     match denominator {
@@ -22,6 +31,15 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
                 division.0,
             )))
             .simplify();
+        }
+        Equation::Variable(Variable::Rational(rational)) => {
+            return Equation::Division(Box::new((
+                Equation::Multiplication(vec![
+                    numerator,
+                    Equation::Variable(Variable::Integer(*rational.denom())),
+                ]),
+                Equation::Variable(Variable::Integer(*rational.numer())),
+            )));
         }
         _ => {}
     }
