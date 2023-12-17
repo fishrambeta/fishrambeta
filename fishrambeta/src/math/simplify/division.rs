@@ -1,5 +1,6 @@
 use super::{Equation, Variable};
 use num_integer::Integer;
+use num_rational::Rational64;
 
 pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation {
     let mut numerator = division.0.simplify();
@@ -19,8 +20,32 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
                 Equation::Multiplication(vec![
                     denominator,
                     Equation::Variable(Variable::Integer(*rational.denom())),
-                ]),
+                ])
+                .simplify(),
             )));
+        }
+        Equation::Multiplication(ref mut multiplication) => {
+            if let Some(index) = multiplication
+                .iter()
+                .position(|x| matches!(x, Equation::Variable(Variable::Rational(_))))
+            {
+                let rational = if let Equation::Variable(Variable::Rational(r)) =
+                    multiplication.remove(index)
+                {
+                    r
+                } else {
+                    unreachable!()
+                };
+                multiplication.push(Equation::Variable(Variable::Integer(*rational.numer())));
+                return Equation::Division(Box::new((
+                    Equation::Multiplication(multiplication.clone()),
+                    Equation::Multiplication(vec![
+                        denominator,
+                        Equation::Variable(Variable::Integer(*rational.denom())),
+                    ])
+                    .simplify(),
+                )));
+            }
         }
         _ => {}
     }
@@ -41,6 +66,30 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
                 Equation::Variable(Variable::Integer(*rational.numer())),
             )));
         }
+        Equation::Multiplication(ref mut multiplication) => {
+            if let Some(index) = multiplication
+                .iter()
+                .position(|x| matches!(x, Equation::Variable(Variable::Rational(_))))
+            {
+                let rational = if let Equation::Variable(Variable::Rational(r)) =
+                    multiplication.remove(index)
+                {
+                    r
+                } else {
+                    unreachable!()
+                };
+                multiplication.push(Equation::Variable(Variable::Integer(*rational.numer())));
+                return Equation::Division(Box::new((
+                    Equation::Multiplication(vec![
+                        numerator,
+                        Equation::Variable(Variable::Integer(*rational.denom())),
+                    ])
+                    .simplify(),
+                    Equation::Multiplication(multiplication.clone()),
+                )));
+            }
+        }
+
         _ => {}
     }
 
