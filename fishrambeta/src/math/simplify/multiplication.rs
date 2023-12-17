@@ -41,7 +41,15 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                 total_is_negative = !total_is_negative;
                 (*negative, Equation::Variable(Variable::Integer(1)))
             }
-            Equation::Power(power) => (power.0, power.1),
+            Equation::Power(power) => {
+                if let Equation::Division(division) = power.0 {
+                    terms.insert_or_push(division.0, power.1.clone());
+                    terms.insert_or_push(division.1, Equation::Negative(Box::new(power.1)));
+                    continue;
+                } else {
+                    (power.0, power.1)
+                }
+            }
             Equation::Division(division) => {
                 multiplication.remove(index);
                 multiplication.push(division.0);
