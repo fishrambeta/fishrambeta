@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use std::collections::BTreeMap;
 
 use crate::math::{Equation, Variable};

@@ -1,4 +1,5 @@
 use super::{Equation, Variable};
+use num::Signed;
 use num_rational::Ratio;
 use num_rational::Rational64;
 
@@ -58,6 +59,25 @@ pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
             }
         }
         _ => {}
+    }
+
+    if let Equation::Negative(new_exponent) = exponent {
+        return Equation::Division(Box::new((
+            Equation::Variable(Variable::Integer(1)),
+            Equation::Power(Box::new((base, *new_exponent))),
+        )));
+    }
+
+    if let Some(n) = exponent.get_number_or_none()
+        && n < 0.into()
+    {
+        return Equation::Division(Box::new((
+            Equation::Variable(Variable::Integer(1)),
+            Equation::Power(Box::new((
+                base,
+                Equation::Variable(Variable::Rational(n.abs())).simplify(),
+            ))),
+        )));
     }
 
     return Equation::Power(Box::new((base, exponent)));
