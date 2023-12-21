@@ -66,6 +66,12 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
                 Equation::Variable(Variable::Integer(*rational.numer())),
             )));
         }
+        Equation::Variable(Variable::Integer(n)) => {
+            return Equation::Multiplication(vec![
+                Equation::Variable(Variable::Rational(Rational64::new(1, n))),
+                numerator,
+            ])
+        }
         Equation::Multiplication(ref mut multiplication) => {
             if let Some(index) = multiplication
                 .iter()
@@ -93,7 +99,6 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
         _ => {}
     }
 
-    println!("{:?}", denominator.get_factors());
     for factor in denominator.shared_factors(&numerator) {
         if (&numerator).has_factor(&factor) && (&denominator).has_factor(&factor) {
             numerator = numerator.remove_factor(&factor);
