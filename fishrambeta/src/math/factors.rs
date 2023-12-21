@@ -56,7 +56,11 @@ impl Equation {
         //TODO add other factors than just multiplication
         let mut factors = vec![self.clone()];
         match self {
-            Equation::Multiplication(multiplication) => factors.append(&mut multiplication.clone()),
+            Equation::Multiplication(multiplication) => {
+                for factor in multiplication {
+                    factors.append(&mut factor.get_all_factors())
+                }
+            }
             Equation::Power(power) => factors.push(power.0.clone()),
             _ => {}
         }

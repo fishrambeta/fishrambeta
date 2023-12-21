@@ -93,6 +93,7 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
         _ => {}
     }
 
+    println!("{:?}", denominator.get_factors());
     for factor in denominator.shared_factors(&numerator) {
         if (&numerator).has_factor(&factor) && (&denominator).has_factor(&factor) {
             numerator = numerator.remove_factor(&factor);
