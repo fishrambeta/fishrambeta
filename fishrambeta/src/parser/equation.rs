@@ -158,7 +158,7 @@ impl IR {
                     Equation::Multiplication(params)
                 }
             }
-            ['\\', 'i', 'n', 'v'] => {
+            ['i', 'n', 'v'] => {
                 Equation::Negative(Box::new(self.parameters.remove(0).0.ir_to_equation()))
             }
             _ => {
@@ -179,7 +179,7 @@ impl IR {
                         match expression.as_str() {
                             "e" => Equation::Variable(Variable::Constant(Constant::E)),
                             "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
-                            variable => Equation::Variable(Variable::Letter(expression))
+                            _ => Equation::Variable(Variable::Letter(expression)),
                         }
                     };
                 } else {
@@ -210,15 +210,15 @@ impl IR {
                         name: vec!['\\', 'f', 'r', 'a', 'c'],
                         parameters: vec![
                             (
-                                Self::equation_to_ir(
-                                    Equation::Variable(Variable::Integer(*ratio.numer()))
-                                ),
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    *ratio.numer(),
+                                ))),
                                 BracketType::Curly,
                             ),
                             (
-                                Self::equation_to_ir(
-                                    Equation::Variable(Variable::Integer(*ratio.denom()))
-                                ),
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    *ratio.denom(),
+                                ))),
                                 BracketType::Curly,
                             ),
                         ],
@@ -311,5 +311,16 @@ impl IR {
                 todo!()
             }
         }
+    }
+    pub fn parse_float(float: Vec<char>) -> Equation {
+        let period_pos = float.iter().position(|c| c == &'.').unwrap();
+        let (int, dec) = float.split_at(period_pos);
+        let int: String = int.into_iter().collect();
+        let mut dec: String = dec.into_iter().collect();
+        dec.remove(0);
+        let denominator = 10i64.pow(dec.len() as u32);
+        let nominator: i64 =
+            int.parse::<i64>().unwrap() * denominator + dec.parse::<i64>().unwrap();
+        return Equation::Variable(Variable::Rational(Rational64::new(nominator, denominator)));
     }
 }

@@ -57,7 +57,7 @@ impl IR {
                             .parameters
                             .remove(0)
                             .0
-                            .ir_to_latex(implicit_multiplication),
+                            .ir_to_numpy(implicit_multiplication),
                     );
                     result.push(')');
                     return result;
@@ -71,7 +71,6 @@ impl IR {
                     implicit_multiplication,
                 ));
                 return_data.push(')');
-
             }
             ['\\', 's', 'i', 'n'] => {
                 return_data.extend("np.sin(".chars().collect::<Vec<char>>());
@@ -104,7 +103,7 @@ impl IR {
                     let mut string = self.name.into_iter().collect::<Vec<_>>();
                     for parameter in self.parameters {
                         string.push(parameter.1.opening_bracket());
-                        string.append(&mut Self::ir_to_latex(parameter.0, implicit_multiplication));
+                        string.append(&mut Self::ir_to_numpy(parameter.0, implicit_multiplication));
                         string.push(parameter.1.closing_bracket())
                     }
                     return string;
