@@ -13,7 +13,9 @@ pub struct IR {
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
         let sanitized_latex = cleanup_latex(latex);
-        return Self::latex_to_ir(sanitized_latex, implicit_multiplication).ir_to_equation();
+        return Self::latex_to_ir(sanitized_latex, implicit_multiplication)
+            .unwrap()
+            .ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
         return Self::equation_to_ir(equation)
@@ -68,20 +70,6 @@ impl BracketType {
             '⟨' => BracketType::Angle,
             _ => BracketType::None,
         };
-    }
-}
-struct TopLevelOperators {
-    powers: Vec<usize>,
-    multiplications_and_divisions: Vec<usize>,
-    additions_and_subtractions: Vec<usize>,
-    equals: Vec<usize>,
-}
-impl TopLevelOperators {
-    pub fn any(&self) -> bool {
-        return self.powers.len() > 0
-            || self.multiplications_and_divisions.len() > 0
-            || self.additions_and_subtractions.len() > 0
-            || self.equals.len() > 0;
     }
 }
 pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
