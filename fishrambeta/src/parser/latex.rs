@@ -113,10 +113,40 @@ impl IR {
         todo!()
     }
     fn make_implicit_multiplications_explicit(
-        latex: Vec<char>,
+        mut latex: Vec<char>,
         implicit_multiplication: bool,
     ) -> Vec<char> {
-        todo!()
+        if implicit_multiplication {
+            //Add multiplication signs where two letters are next to eachother, but don't do it in commands
+            let mut new_latex: Vec<char> = vec![];
+            let mut multiplication_insertion_suspended = false;
+            for char in latex {
+                if char == '\\' {
+                    multiplication_insertion_suspended = true
+                } else if multiplication_insertion_suspended && !char.is_alphabetic() {
+                    multiplication_insertion_suspended = false
+                } else if let Some(prev) = new_latex.last() {
+                    if prev.is_alphabetic() && char.is_alphabetic() {
+                        new_latex.push('*');
+                    }
+                }
+                new_latex.push(char);
+            }
+            latex = new_latex;
+        }
+        //Add multiplications between closing and opening brackets
+        let mut new_latex = vec![];
+        for char in latex {
+            if BracketType::is_opening_bracket(char)
+                && let Some(&prev) = new_latex.last()
+            {
+                if BracketType::is_closing_bracket(prev) {
+                    new_latex.push('*')
+                }
+            }
+            new_latex.push(char);
+        }
+        return new_latex;
     }
 }
 struct TopLevelOperators {
