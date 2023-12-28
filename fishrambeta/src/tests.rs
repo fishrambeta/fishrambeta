@@ -1,4 +1,5 @@
-use crate::math::Variable;
+use crate::math::Variable::Vector;
+use crate::math::{Constant, Equation, Variable};
 use crate::parser::IR;
 use std::collections::BTreeMap;
 
@@ -81,7 +82,22 @@ fn test_latex_parsing() {
     let expressions = [
         "\\vec{r}=2^{ae}*3334*\\frac{d}{dx}(aa)",
         "\\tan(\\alpha)=\\int_0^{\\2pi}(a\\sin(\\theta))d\\theta",
+        "-ret\\sin(a)cos(b)=+\\arctan(\\frac{\\theta}{\\alpha})",
     ];
+    // let equations = [Equation::Equals(Box::new((
+    //     Equation::Variable(Vector(String::from('r'))),
+    //     Equation::Multiplication(vec![Equation::Power(Box::new((
+    //         Equation::Variable(Variable::Integer(2)),
+    //         Equation::Multiplication(vec![
+    //             Equation::Variable(Variable::Letter(String::from('a'))),
+    //             Equation::Variable(Variable::Constant(Constant::E)),
+    //         ]),
+    //     ))),
+    //     Equation::Multiplication(vec!(
+    //         Equation::Variable(Variable::Integer(3334)),
+    //         Equation::Division(Box::new((Equation)))
+    //     ))]),
+    // )))];
     for expression in expressions {
         assert_eq!(
             IR::latex_to_ir(
