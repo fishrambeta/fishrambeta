@@ -140,9 +140,10 @@ impl IR {
             if BracketType::is_opening_bracket(char)
                 && let Some(&prev) = new_latex.last()
             {
-                if BracketType::is_closing_bracket(prev) {
-                    new_latex.push('*')
-                }
+                // if BracketType::is_closing_bracket(prev) {
+                //     new_latex.push('*')
+                // }
+                //Some commands have multiple params
             }
             new_latex.push(char);
         }
