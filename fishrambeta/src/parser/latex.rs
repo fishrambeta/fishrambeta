@@ -35,7 +35,57 @@ impl IR {
             }
             todo!()
         } else {
-            todo!()
+            if latex[0] == '\\' {
+                latex.remove(0);
+                let mut command = vec![];
+                while latex.len() > 0 && !BracketType::is_opening_bracket(latex[0]) {
+                    command.push(latex.remove(0))
+                }
+                let mut parameters = vec![];
+                while latex.len() > 0 {
+                    let mut depth = 1;
+                    let mut next_param = vec![];
+                    let bracket_type = BracketType::get_opening_bracket_type(latex.remove(0));
+                    loop {
+                        let next = latex.remove(0);
+                        if BracketType::is_opening_bracket(next) {
+                            depth += 1;
+                            next_param.push(next)
+                        } else if BracketType::is_closing_bracket(next) {
+                            depth -= 1;
+                            if depth != 0 {
+                                next_param.push(next)
+                            } else {
+                                parameters.push((
+                                    Self::latex_to_ir(next_param, implicit_multiplication).unwrap(),
+                                    bracket_type,
+                                ));
+                                next_param = vec![];
+                                break;
+                            }
+                        } else {
+                            next_param.push(next);
+                        }
+                    }
+                }
+                return Ok(Self {
+                    name: command,
+                    parameters,
+                });
+            } else {
+                if latex.iter().all(|char| char.is_alphabetic()) {
+                    return Ok(Self {
+                        name: latex,
+                        parameters: vec![],
+                    });
+                } else if latex.iter().all(|char| char.is_numeric() || *char == '.') {
+                    return Ok(Self {
+                        name: latex,
+                        parameters: vec![],
+                    });
+                }
+                todo!();
+            }
         }
     }
     pub fn ir_to_latex(mut self, implicit_multiplication: bool) -> Vec<char> {
@@ -85,31 +135,6 @@ impl IR {
     }
     //Checks whether the ^ char is a power or just superscript
     fn check_if_caret_is_power(latex: &Vec<char>, i: usize) -> bool {
-        let mut command_buffer = vec![];
-        let mut is_building_command_buffer = BracketType::is_closing_bracket(latex[i - 1]);
-        let one_if_no_closing_bracket_first = if is_building_command_buffer { 0 } else { 1 };
-        let mut depth = 0;
-        for i in (0..(i - one_if_no_closing_bracket_first)).rev() {
-            if is_building_command_buffer && latex[i] != '\\' {
-                command_buffer.push(latex[i]);
-            } else if is_building_command_buffer && latex[i] == '\\' {
-                break;
-            } else if BracketType::is_closing_bracket(latex[i]) {
-                depth += 1;
-            } else if BracketType::is_opening_bracket(latex[i]) {
-                if depth == 0 {
-                    if latex[i - 1] != '_' {
-                        is_building_command_buffer = true;
-                    } else {
-                        depth -= 1;
-                    }
-                } else {
-                    depth -= 1;
-                }
-            } else if depth == -1 {
-                is_building_command_buffer = true;
-            }
-        }
         todo!()
     }
     fn make_implicit_multiplications_explicit(
@@ -125,9 +150,15 @@ impl IR {
                     multiplication_insertion_suspended = true
                 } else if multiplication_insertion_suspended && !char.is_alphabetic() {
                     multiplication_insertion_suspended = false
-                } else if let Some(prev) = new_latex.last() {
+                } else if let Some(prev) = new_latex.last()
+                    && !multiplication_insertion_suspended
+                {
                     if prev.is_alphabetic() && char.is_alphabetic() {
                         new_latex.push('*');
+                    } else if (prev.is_alphabetic() && char.is_numeric())
+                        || prev.is_numeric() && char.is_alphabetic()
+                    {
+                        new_latex.push('*')
                     }
                 }
                 new_latex.push(char);
@@ -136,18 +167,55 @@ impl IR {
         }
         //Add multiplications between closing and opening brackets
         let mut new_latex = vec![];
+        let mut building_command = false;
+        let mut command = vec![];
+        let mut depth = 0;
+        let mut parameter_count = 0;
         for char in latex {
-            if BracketType::is_opening_bracket(char)
+            //Some commands have multiple params
+            if BracketType::is_opening_bracket(char) {
+                depth += 1;
+            } else if BracketType::is_closing_bracket(char) {
+                depth -= 1;
+            }
+            if depth == 0 {
+                if char == '\\' {
+                    building_command = true;
+                } else if building_command && !char.is_alphabetic() {
+                    building_command = false;
+                    parameter_count = Self::get_parameter_count(&command);
+                } else if building_command {
+                    command.push(char);
+                } else {
+                    command = vec![]
+                }
+            }
+            if depth <= 1
+                && BracketType::is_opening_bracket(char)
                 && let Some(&prev) = new_latex.last()
             {
-                // if BracketType::is_closing_bracket(prev) {
-                //     new_latex.push('*')
-                // }
-                //Some commands have multiple params
+                if BracketType::is_closing_bracket(prev) {
+                    if parameter_count == 0 {
+                        new_latex.push('*')
+                    } else {
+                        parameter_count -= 1
+                    }
+                }
             }
             new_latex.push(char);
         }
         return new_latex;
+    }
+    fn get_parameter_count(command: &Vec<char>) -> u32 {
+        let command = command.iter().collect::<String>();
+        return match command.as_str() {
+            "tan" | "cos" | "sin" => 0,
+            "vec" => 1,
+            "frac" => 2,
+            _ => {
+                todo!("{} has no specified parameter count", command)
+            }
+        };
     }
 }
 struct TopLevelOperators {
