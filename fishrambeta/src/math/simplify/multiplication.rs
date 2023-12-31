@@ -1,6 +1,6 @@
 use super::{Equation, EquationBTreeMap, Variable};
 use num_rational::Rational64;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, task::Wake};
 
 fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
     let mut new_mult = vec![];
@@ -13,6 +13,16 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
         };
     }
     return new_mult;
+}
+
+fn distribute_terms(multiplication: Vec<Equation>, addition: Vec<Equation>) -> Equation {
+    let mut new_addition = Vec::new();
+    for addition_term in addition {
+        let mut new_multiplication = multiplication.clone();
+        new_multiplication.push(addition_term);
+        new_addition.push(Equation::Multiplication(new_multiplication));
+    }
+    return Equation::Addition(new_addition);
 }
 
 pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
@@ -57,6 +67,10 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                     Equation::Multiplication(multiplication),
                     division.1,
                 )));
+            }
+            Equation::Addition(addition) => {
+                multiplication.remove(index);
+                return distribute_terms(multiplication, addition);
             }
             term => (term, Equation::Variable(Variable::Integer(1))),
         };
