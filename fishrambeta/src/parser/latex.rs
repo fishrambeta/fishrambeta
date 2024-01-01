@@ -134,8 +134,43 @@ impl IR {
         return operators;
     }
     //Checks whether the ^ char is a power or just superscript
-    fn check_if_caret_is_power(latex: &Vec<char>, i: usize) -> bool {
-        todo!()
+    fn check_if_caret_is_power(latex: &Vec<char>, pos: usize) -> bool {
+        let mut parameter_count = 0;
+        let mut command = vec![];
+        let mut depth = if BracketType::is_closing_bracket(latex[pos - 1]) {
+            1
+        } else {
+            0
+        };
+        for i in (0..(pos - depth)).rev() {
+            if depth == 0 && !BracketType::is_closing_bracket(latex[i]) {
+                if i == 0 && latex[i] != '\\' {
+                    command = vec![];
+                    break;
+                }
+                if !latex[i].is_alphabetic() {
+                    if latex[i] != '\\' {
+                        command = vec![];
+                    }
+                    break;
+                } else if latex[i].is_alphabetic() {
+                    command.push(latex[i])
+                }
+            } else if depth == 0 && BracketType::is_opening_bracket(latex[i + 1]) {
+                parameter_count += 1;
+            }
+            if BracketType::is_closing_bracket(latex[i]) {
+                depth += 1;
+            } else if BracketType::is_opening_bracket(latex[i]) {
+                depth -= 1;
+            }
+        }
+        return if command.len() == 0 {
+            true
+        } else {
+            command.reverse();
+            Self::get_parameter_count(&command) == parameter_count
+        };
     }
     fn make_implicit_multiplications_explicit(
         mut latex: Vec<char>,
