@@ -102,9 +102,13 @@ impl IR {
                 } else {
                     let mut string = self.name.into_iter().collect::<Vec<_>>();
                     for parameter in self.parameters {
-                        string.push(parameter.1.opening_bracket());
+                        if let Some(bracket) = parameter.1.opening_bracket() {
+                            string.push(bracket)
+                        };
                         string.append(&mut Self::ir_to_numpy(parameter.0, implicit_multiplication));
-                        string.push(parameter.1.closing_bracket())
+                        if let Some(bracket) = parameter.1.closing_bracket() {
+                            string.push(bracket)
+                        }
                     }
                     return string;
                 }

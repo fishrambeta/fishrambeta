@@ -38,22 +38,22 @@ pub enum BracketType {
     Angle,
 }
 impl BracketType {
-    pub fn opening_bracket(&self) -> char {
+    pub fn opening_bracket(&self) -> Option<char> {
         return match self {
-            Self::None => ' ',
-            Self::Angle => '⟨',
-            Self::Curly => '{',
-            Self::Square => '[',
-            Self::Round => '(',
+            Self::None => None,
+            Self::Angle => Some('⟨'),
+            Self::Curly => Some('{'),
+            Self::Square => Some('['),
+            Self::Round => Some('('),
         };
     }
-    pub fn closing_bracket(&self) -> char {
+    pub fn closing_bracket(&self) -> Option<char> {
         return match self {
-            BracketType::None => ' ',
-            BracketType::Curly => '}',
-            BracketType::Square => ']',
-            BracketType::Round => ')',
-            BracketType::Angle => '⟩',
+            BracketType::None => None,
+            BracketType::Curly => Some('}'),
+            BracketType::Square => Some(']'),
+            BracketType::Round => Some(')'),
+            BracketType::Angle => Some('⟩'),
         };
     }
     pub fn is_opening_bracket(char: char) -> bool {

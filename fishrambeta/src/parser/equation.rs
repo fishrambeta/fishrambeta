@@ -37,7 +37,7 @@ impl IR {
                         .collect::<Vec<_>>(),
                 );
             }
-            ['/'] => {
+            ['/'] | ['\\', 'f', 'r', 'a', 'c'] => {
                 return if self.parameters.len() != 2 {
                     let actual_division = Equation::Division(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
@@ -87,7 +87,7 @@ impl IR {
                     self.parameters.remove(0).0.ir_to_equation(),
                 )))
             }
-            ['s', 'q', 'r', 't'] => {
+            ['\\', 's', 'q', 'r', 't'] => {
                 return if self.parameters.len() == 1 {
                     Equation::Power(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
@@ -106,20 +106,24 @@ impl IR {
                     Equation::Multiplication(params)
                 }
             }
-            ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] | ['l', 'n'] | ['l', 'o', 'g'] => {
+            ['\\', 's', 'i', 'n']
+            | ['\\', 'c', 'o', 's']
+            | ['\\', 't', 'a', 'n']
+            | ['\\', 'l', 'n']
+            | ['\\', 'l', 'o', 'g'] => {
                 return if self.parameters.len() == 1 {
                     let param = self.parameters.remove(0).0.ir_to_equation();
                     match name[..] {
-                        ['s', 'i', 'n'] => return Equation::Sin(Box::new(param)),
-                        ['c', 'o', 's'] => return Equation::Cos(Box::new(param)),
-                        ['l', 'n'] => return Equation::Ln(Box::new(param)),
-                        ['l', 'o', 'g'] => {
+                        ['\\', 's', 'i', 'n'] => return Equation::Sin(Box::new(param)),
+                        ['\\', 'c', 'o', 's'] => return Equation::Cos(Box::new(param)),
+                        ['\\', 'l', 'n'] => return Equation::Ln(Box::new(param)),
+                        ['\\', 'l', 'o', 'g'] => {
                             return Equation::Division(Box::new((
                                 Equation::Ln(Box::new(param)),
                                 Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
                             )))
                         }
-                        ['t', 'a', 'n'] => {
+                        ['\\', 't', 'a', 'n'] => {
                             return Equation::Division(Box::new((
                                 Equation::Sin(Box::new(param.clone())),
                                 Equation::Cos(Box::new(param)),
@@ -132,14 +136,14 @@ impl IR {
                 } else {
                     let param = self.parameters.remove(0).0.ir_to_equation();
                     let gonio = match name[..] {
-                        ['s', 'i', 'n'] => Equation::Sin(Box::new(param)),
-                        ['c', 'o', 's'] => Equation::Cos(Box::new(param)),
-                        ['t', 'a', 'n'] => Equation::Division(Box::new((
+                        ['\\', 's', 'i', 'n'] => Equation::Sin(Box::new(param)),
+                        ['\\', 'c', 'o', 's'] => Equation::Cos(Box::new(param)),
+                        ['\\', 't', 'a', 'n'] => Equation::Division(Box::new((
                             Equation::Sin(Box::new(param.clone())),
                             Equation::Cos(Box::new(param)),
                         ))),
-                        ['l', 'n'] => Equation::Ln(Box::new(param)),
-                        ['l', 'o', 'g'] => Equation::Division(Box::new((
+                        ['\\', 'l', 'n'] => Equation::Ln(Box::new(param)),
+                        ['\\', 'l', 'o', 'g'] => Equation::Division(Box::new((
                             param,
                             Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
                         ))),

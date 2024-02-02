@@ -11,13 +11,14 @@ impl IR {
         latex = Self::make_implicit_multiplications_explicit(latex, implicit_multiplication);
         let top_level_operators = Self::get_top_level_operators_in_latex(&latex);
         if top_level_operators.any() {
-            if top_level_operators.equals.len() > 0 {
+            return if top_level_operators.equals.len() > 0 {
                 let mut parts = vec![];
                 for &eq_position in top_level_operators.equals.iter().rev() {
                     let part = latex[eq_position + 1..].to_vec();
                     latex.truncate(eq_position);
                     parts.push(part);
                 }
+                parts.push(latex);
                 parts.reverse(); //This can be removed, but makes testing easier
                 let parsed_parts = parts
                     .into_iter()
@@ -28,16 +29,131 @@ impl IR {
                         )
                     })
                     .collect::<Vec<_>>();
-                return Ok(IR {
+                Ok(IR {
                     name: vec!['='],
                     parameters: parsed_parts,
-                });
-            }
-            todo!()
+                })
+            } else if top_level_operators.additions_and_subtractions.len() > 0 {
+                let mut parts = vec![];
+                for &operator_position in
+                    top_level_operators.additions_and_subtractions.iter().rev()
+                {
+                    let operator = latex[operator_position];
+                    let part = latex[(operator_position + 1)..].to_vec();
+                    latex.truncate(operator_position);
+                    parts.push((part, operator));
+                }
+                parts.push((latex, '+'));
+                parts.reverse(); //This can be removed, but makes testing easier
+                let parsed_parts = parts
+                    .into_iter()
+                    .map(|part| {
+                        if part.1 == '+' {
+                            (
+                                Self::latex_to_ir(part.0, implicit_multiplication).unwrap(),
+                                BracketType::None,
+                            )
+                        } else {
+                            (
+                                IR {
+                                    name: vec!['i', 'n', 'v'],
+                                    parameters: vec![(
+                                        Self::latex_to_ir(part.0, implicit_multiplication).unwrap(),
+                                        BracketType::None,
+                                    )],
+                                },
+                                BracketType::None,
+                            )
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                Ok(IR {
+                    name: vec!['+'],
+                    parameters: parsed_parts,
+                })
+            } else if top_level_operators.multiplications_and_divisions.len() > 0 {
+                let mut parts = vec![];
+                for &operator_position in top_level_operators
+                    .multiplications_and_divisions
+                    .iter()
+                    .rev()
+                {
+                    let operator = latex[operator_position];
+                    let part = latex[(operator_position + 1)..].to_vec();
+                    latex.truncate(operator_position);
+                    parts.push((part, operator));
+                }
+                parts.push((latex, '*'));
+                parts.reverse(); //This can be removed, but makes testing easier
+                let parsed_parts = parts
+                    .into_iter()
+                    .map(|part| {
+                        if part.1 == '*' {
+                            (
+                                Self::latex_to_ir(part.0, implicit_multiplication).unwrap(),
+                                BracketType::Curly,
+                            )
+                        } else {
+                            (
+                                IR {
+                                    name: vec!['^'],
+                                    parameters: vec![
+                                        (
+                                            Self::latex_to_ir(part.0, implicit_multiplication)
+                                                .unwrap(),
+                                            BracketType::Curly,
+                                        ),
+                                        (
+                                            IR {
+                                                name: vec!['i', 'n', 'v'],
+                                                parameters: vec![(
+                                                    IR {
+                                                        name: vec!['1'],
+                                                        parameters: vec![],
+                                                    },
+                                                    BracketType::None,
+                                                )],
+                                            },
+                                            BracketType::None,
+                                        ),
+                                    ],
+                                },
+                                BracketType::None,
+                            )
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                Ok(IR {
+                    name: vec!['*'],
+                    parameters: parsed_parts,
+                })
+            } else {
+                let mut parts = vec![];
+                for eq_position in top_level_operators.powers {
+                    let part = latex[eq_position + 1..].to_vec();
+                    latex.truncate(eq_position);
+                    parts.push(part);
+                }
+                parts.push(latex);
+                parts.reverse(); //This can be removed, but makes testing easier
+                let parsed_parts = parts
+                    .into_iter()
+                    .map(|part| {
+                        (
+                            Self::latex_to_ir(part, implicit_multiplication).unwrap(),
+                            BracketType::Curly,
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                Ok(IR {
+                    name: vec!['^'],
+                    parameters: parsed_parts,
+                })
+            };
         } else {
             if latex[0] == '\\' {
                 latex.remove(0);
-                let mut command = vec![];
+                let mut command = vec!['\\'];
                 while latex.len() > 0 && !BracketType::is_opening_bracket(latex[0]) {
                     command.push(latex.remove(0))
                 }
@@ -83,13 +199,121 @@ impl IR {
                         name: latex,
                         parameters: vec![],
                     });
+                } else if BracketType::is_opening_bracket(latex[0])
+                    && BracketType::is_closing_bracket(latex[latex.len() - 1])
+                {
+                    latex.remove(latex.len() - 1);
+                    latex.remove(0);
+                    return Self::latex_to_ir(latex, implicit_multiplication);
+                } else if latex[0] == '-' {
+                    latex.remove(0);
+                    return Ok(Self {
+                        name: vec!['i', 'n', 'v'],
+                        parameters: vec![(
+                            Self::latex_to_ir(latex, implicit_multiplication).unwrap(),
+                            BracketType::Curly,
+                        )],
+                    });
                 }
                 todo!();
             }
         }
     }
     pub fn ir_to_latex(mut self, implicit_multiplication: bool) -> Vec<char> {
-        todo!()
+        let mut latex = vec![];
+        match self.name[..] {
+            ['\\', 'f', 'r', 'a', 'c']
+            | ['\\', 'c', 'o', 's']
+            | ['\\', 's', 'i', 'n']
+            | ['\\', 't', 'a', 'n']
+            | ['\\', 'v', 'e', 'c']
+            | ['\\', 'l', 'n'] => {
+                latex.append(&mut self.name);
+                for param in self.parameters {
+                    if let Some(opening_bracket) = param.1.opening_bracket() {
+                        latex.push(opening_bracket)
+                    };
+                    latex.append(&mut param.0.ir_to_latex(implicit_multiplication));
+                    if let Some(closing_bracket) = param.1.closing_bracket() {
+                        latex.push(closing_bracket)
+                    };
+                }
+            }
+            ['\\', 'i', 'n', 'v'] => {
+                while self.parameters.len() > 1 {
+                    let next = self.parameters.remove(0);
+                    if let Some(opening_bracket) = next.1.opening_bracket() {
+                        latex.push(opening_bracket)
+                    };
+                    latex.append(&mut next.0.ir_to_latex(implicit_multiplication));
+                    if let Some(closing_bracket) = next.1.closing_bracket() {
+                        latex.push(closing_bracket)
+                    };
+                    latex.push('-');
+                }
+                if let Some(opening_bracket) = self.parameters[0].1.opening_bracket() {
+                    latex.push(opening_bracket)
+                };
+                let closing_bracket = self.parameters[0].1.closing_bracket();
+                latex.append(
+                    &mut self
+                        .parameters
+                        .remove(0)
+                        .0
+                        .ir_to_latex(implicit_multiplication),
+                );
+                if closing_bracket.is_some() {
+                    latex.push(closing_bracket.unwrap())
+                };
+            }
+            ['+'] | ['-'] | ['*'] | ['='] | ['^'] => {
+                while self.parameters.len() > 1 {
+                    let next = self.parameters.remove(0);
+                    if let Some(opening_bracket) = next.1.opening_bracket() {
+                        latex.push(opening_bracket)
+                    };
+                    latex.append(&mut next.0.ir_to_latex(implicit_multiplication));
+                    if let Some(closing_bracket) = next.1.closing_bracket() {
+                        latex.push(closing_bracket)
+                    };
+                    latex.append(&mut self.name)
+                }
+                if let Some(bracket) = self.parameters[0].1.opening_bracket() {
+                    latex.push(bracket)
+                };
+                let closing_bracket = self.parameters[0].1.closing_bracket();
+                latex.append(
+                    &mut self
+                        .parameters
+                        .remove(0)
+                        .0
+                        .ir_to_latex(implicit_multiplication),
+                );
+                if closing_bracket.is_some() {
+                    latex.push(closing_bracket.unwrap())
+                };
+            }
+            _ => {
+                if self.name[0] == '\\' {
+                    todo!(
+                        "Unsupported ir_to_latex IR: {}",
+                        self.name.into_iter().collect::<String>()
+                    )
+                } else {
+                    latex.append(&mut self.name);
+                    for param in self.parameters {
+                        if let Some(bracket) = param.1.opening_bracket() {
+                            latex.push(bracket)
+                        };
+                        latex.append(&mut param.0.ir_to_latex(implicit_multiplication));
+                        if let Some(bracket) = param.1.closing_bracket() {
+                            latex.push(bracket)
+                        };
+                    }
+                }
+            }
+        }
+        return latex;
     }
     fn calculate_depth_difference(latex: &Vec<char>) -> isize {
         let mut depth = 0;
