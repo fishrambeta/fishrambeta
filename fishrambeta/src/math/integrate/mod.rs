@@ -2,6 +2,7 @@ use super::{Equation, Variable};
 use num_rational::Rational64;
 
 mod bogointegrate;
+mod rational;
 
 impl Equation {
     pub fn integrate(&self, integrate_to: &Variable) -> Equation {
@@ -24,11 +25,20 @@ impl Equation {
             }
         }
 
-        let integrated_term = match equation_to_integrate.standard_integrals(integrate_to) {
-            Some(x) => x,
-            None => equation_to_integrate.bogointegrate(integrate_to),
-        };
-        integrated_equation.push(integrated_term);
+        loop {
+            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
+                integrated_equation.push(integrated_term);
+                println!("Hi");
+                break;
+            }
+
+            if equation_to_integrate.is_rational_function(integrate_to) {
+                todo!("Implement algorithm for rational functions")
+            }
+
+            integrated_equation.push(equation_to_integrate.bogointegrate(integrate_to));
+            break;
+        }
 
         return Equation::Multiplication(integrated_equation);
     }
@@ -103,6 +113,51 @@ impl Equation {
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
             Equation::Variable(v) => return v != integrate_to,
             Equation::Abs(a) => return a.term_is_constant(integrate_to),
+        }
+    }
+
+    fn is_polynomial(&self, integrate_to: &Variable) -> bool {
+        match self {
+            Equation::Addition(a) => return a.iter().all(|x| x.is_polynomial(integrate_to)),
+            Equation::Power(p) => {
+                return (p.0 == Equation::Variable(integrate_to.clone()))
+                    && (matches!(p.1.get_integer_or_none(), Some(x)))
+            }
+            Equation::Negative(n) => return n.is_polynomial(integrate_to),
+            Equation::Variable(v) => return true,
+            Equation::Multiplication(m) => return m.iter().all(|x| x.is_polynomial(integrate_to)),
+            _ => return self.term_is_constant(integrate_to),
+        }
+    }
+
+    fn is_rational_function(&self, integrate_to: &Variable) -> bool {
+        return self.term_is_rational_function(integrate_to, false);
+    }
+
+    fn term_is_rational_function(&self, integrate_to: &Variable, is_in_division: bool) -> bool {
+        if self.is_polynomial(integrate_to) {
+            return true;
+        }
+        if is_in_division {
+            return self.is_polynomial(integrate_to);
+        }
+
+        match self {
+            Equation::Addition(a) => {
+                return a
+                    .iter()
+                    .all(|x| x.term_is_rational_function(integrate_to, is_in_division))
+            }
+            Equation::Multiplication(m) => {
+                return m
+                    .iter()
+                    .all(|x| x.term_is_rational_function(integrate_to, is_in_division))
+            }
+            Equation::Division(d) => {
+                return d.0.term_is_rational_function(integrate_to, true)
+                    && d.1.term_is_rational_function(integrate_to, true)
+            }
+            misc => return misc.term_is_constant(integrate_to),
         }
     }
 }
