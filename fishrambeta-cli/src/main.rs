@@ -77,23 +77,23 @@ fn process_operation(
     equation: Equation,
     operation: Operation,
     value_dict: &BTreeMap<Variable, f64>,
-    propagate_variables: &String,
+    propagate_variables: &str,
 ) -> Result {
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
             equation = equation.simplify_until_complete_with_print();
             println!("{}", equation.to_numpy());
-            return Result::Equation(equation);
+            Result::Equation(equation)
         }
-        Operation::Calculate => return Result::Value(equation.calculate(&value_dict)),
+        Operation::Calculate => Result::Value(equation.calculate(value_dict)),
         Operation::Differentiate => {
             let mut equation = equation
                 .clone()
                 .differentiate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
             equation = equation.simplify_until_complete_with_print();
-            return Result::Equation(equation);
+            Result::Equation(equation)
         }
         Operation::Integrate => {
             println!("Start integrate");
@@ -102,10 +102,10 @@ fn process_operation(
                 .integrate(&Variable::Letter("x".to_string()));
             println!("Unsimplified: {}", equation);
             equation = equation.simplify_until_complete_with_print();
-            return Result::Equation(equation);
+            Result::Equation(equation)
         }
         Operation::Error => {
-            let variables = propagate_variables.split(",").collect::<Vec<_>>();
+            let variables = propagate_variables.split(',').collect::<Vec<_>>();
             let mut terms: Vec<Equation> = Vec::new();
             for variable in variables {
                 let mut derivative =
@@ -114,7 +114,7 @@ fn process_operation(
                 let term = Equation::Power(Box::new((
                     Equation::Multiplication(vec![
                         derivative,
-                        Equation::Variable(Variable::Letter(format!("s_{}", variable.to_string()))),
+                        Equation::Variable(Variable::Letter(format!("s_{}", variable))),
                     ]),
                     Equation::Variable(Variable::Integer(2)),
                 )));

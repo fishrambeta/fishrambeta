@@ -1,6 +1,6 @@
 use super::{Equation, EquationBTreeMap, Variable};
 use num_rational::Rational64;
-use std::{collections::BTreeMap, task::Wake};
+
 
 fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
     let mut new_mult = vec![];
@@ -12,7 +12,7 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
             other => new_mult.push(other),
         };
     }
-    return new_mult;
+    new_mult
 }
 
 fn distribute_terms(multiplication: Vec<Equation>, addition: Vec<Equation>) -> Equation {
@@ -22,7 +22,7 @@ fn distribute_terms(multiplication: Vec<Equation>, addition: Vec<Equation>) -> E
         new_multiplication.push(addition_term);
         new_addition.push(Equation::Multiplication(new_multiplication));
     }
-    return Equation::Addition(new_addition);
+    Equation::Addition(new_addition)
 }
 
 pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
@@ -82,7 +82,7 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
     if total_is_negative {
         total_rational_factor *= -1;
     }
-    if total_rational_factor != 1.into() || terms.0.len() == 0 {
+    if total_rational_factor != 1.into() || terms.0.is_empty() {
         simplified_multiplication
             .push(Equation::Variable(Variable::Rational(total_rational_factor)).simplify());
     }
@@ -97,5 +97,5 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
         return simplified_multiplication.remove(0);
     }
 
-    return Equation::Multiplication(simplified_multiplication);
+    Equation::Multiplication(simplified_multiplication)
 }
