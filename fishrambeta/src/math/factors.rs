@@ -15,22 +15,22 @@ impl Equation {
 
         match self {
             Equation::Power(power) => {
-                return power.0 == *factor;
+                power.0 == *factor
             }
             Equation::Multiplication(multiplication) => {
-                return multiplication.iter().any(|x| x.clone().has_factor(factor))
+                multiplication.iter().any(|x| x.clone().has_factor(factor))
             }
             Equation::Addition(addition) => {
-                return addition.iter().all(|x| x.clone().has_factor(factor))
+                addition.iter().all(|x| x.clone().has_factor(factor))
             }
-            Equation::Negative(negative) => return negative.has_factor(factor),
-            _ => return false,
+            Equation::Negative(negative) => negative.has_factor(factor),
+            _ => false,
         }
     }
 
     pub fn gcd(self: &Equation) -> i64 {
         match self {
-            Equation::Variable(Variable::Integer(n)) => return if *n != 0 { *n } else { 1 },
+            Equation::Variable(Variable::Integer(n)) => if *n != 0 { *n } else { 1 },
             Equation::Addition(addition) => {
                 let mut gcd = 1;
                 let mut first_done = false;
@@ -42,13 +42,13 @@ impl Equation {
                         gcd = gcd.gcd(&x);
                     }
                 }
-                return gcd;
+                gcd
             }
             Equation::Multiplication(multiplication) => {
                 return multiplication.iter().map(|x| x.gcd()).product()
             }
-            Equation::Division(division) => return division.0.gcd().gcd(&division.1.gcd()),
-            _ => return 1,
+            Equation::Division(division) => division.0.gcd().gcd(&division.1.gcd()),
+            _ => 1,
         }
     }
 
@@ -64,7 +64,7 @@ impl Equation {
             Equation::Power(power) => factors.push(power.0.clone()),
             _ => {}
         }
-        return factors;
+        factors
     }
 
     pub fn get_factors(self: &Equation) -> Vec<Equation> {
@@ -77,7 +77,7 @@ impl Equation {
         if gcd != 1 {
             factors.push(Equation::Variable(Variable::Integer(gcd)))
         }
-        return factors;
+        factors
     }
 
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
@@ -92,7 +92,7 @@ impl Equation {
         if shared_gcd != 1 {
             shared_factors.push(Equation::Variable(Variable::Integer(shared_gcd)));
         }
-        return shared_factors;
+        shared_factors
     }
 
     pub fn remove_factor(self: Equation, factor: &Equation) -> Equation {
@@ -119,7 +119,7 @@ impl Equation {
                         }
                     })
                     .collect();
-                return if new.len() != 0 {
+                return if !new.is_empty() {
                     Equation::Multiplication(new)
                 } else {
                     Equation::Variable(Variable::Integer(1))
@@ -148,6 +148,6 @@ impl Equation {
             return Equation::Variable(Variable::Integer(n / n_factor));
         }
 
-        return self;
+        self
     }
 }

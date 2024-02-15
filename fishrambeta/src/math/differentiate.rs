@@ -4,20 +4,20 @@ impl Equation {
     pub fn differentiate(self: &Equation, differentiate_to: &Variable) -> Equation {
         match self {
             Equation::Variable(variable) => {
-                return if variable == differentiate_to {
+                if variable == differentiate_to {
                     Equation::Variable(Variable::Integer(1))
                 } else {
                     Equation::Variable(Variable::Integer(0))
                 }
             }
             Equation::Negative(negative) => {
-                return Equation::Negative(Box::new(negative.differentiate(differentiate_to)))
+                Equation::Negative(Box::new(negative.differentiate(differentiate_to)))
             }
             Equation::Addition(addition) => {
                 return Equation::Addition(
                     addition
                         .iter()
-                        .map(|x| x.differentiate(&differentiate_to))
+                        .map(|x| x.differentiate(differentiate_to))
                         .collect::<Vec<_>>(),
                 )
             }
@@ -54,39 +54,39 @@ impl Equation {
                     division.1.clone(),
                     Equation::Variable(Variable::Integer(2)),
                 )));
-                return Equation::Division(Box::new((numerator, denominator)));
+                Equation::Division(Box::new((numerator, denominator)))
             }
-            Equation::Power(power) => return differentiate_power(power, differentiate_to),
+            Equation::Power(power) => differentiate_power(power, differentiate_to),
             Equation::Ln(ln) => {
                 if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0)) { //TODO:
                     //this can probably be done better
                     return Equation::Variable(Variable::Integer(0));
                 }
-                return Equation::Division(Box::new((
+                Equation::Division(Box::new((
                     ln.differentiate(differentiate_to),
                     (**ln).clone(),
-                )));
+                )))
             }
             Equation::Sin(sin) => {
-                return Equation::Multiplication(vec![
+                Equation::Multiplication(vec![
                     sin.differentiate(differentiate_to),
                     Equation::Cos(sin.clone()),
                 ])
             }
             Equation::Cos(sin) => {
-                return Equation::Negative(Box::new(Equation::Multiplication(vec![
+                Equation::Negative(Box::new(Equation::Multiplication(vec![
                     sin.differentiate(differentiate_to),
                     Equation::Sin(sin.clone()),
                 ])))
             }
             Equation::Equals(equals) => {
-                return Equation::Equals(Box::new((
+                Equation::Equals(Box::new((
                     equals.0.differentiate(differentiate_to),
                     equals.1.differentiate(differentiate_to),
                 )))
             }
             Equation::Abs(abs) => {
-                return Equation::Division(Box::new((
+                Equation::Division(Box::new((
                     Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
                     Equation::Abs(abs.clone())
                 )))
@@ -95,7 +95,7 @@ impl Equation {
     }
 }
 
-fn differentiate_power(power: &Box<(Equation, Equation)>, differentiate_to: &Variable) -> Equation {
+fn differentiate_power(power: &(Equation, Equation), differentiate_to: &Variable) -> Equation {
     let first_term = Equation::Power(Box::new((
         power.0.clone(),
         Equation::Addition(vec![
@@ -113,5 +113,5 @@ fn differentiate_power(power: &Box<(Equation, Equation)>, differentiate_to: &Var
         power.1.differentiate(differentiate_to),
     ]);
     let second_term = Equation::Addition(vec![g_f_accent, f_log_g_accent]);
-    return Equation::Multiplication(vec![first_term, second_term]);
+    Equation::Multiplication(vec![first_term, second_term])
 }

@@ -1,9 +1,9 @@
 use super::{Equation, Variable};
 use num::Signed;
-use num_rational::Ratio;
-use num_rational::Rational64;
 
-pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
+
+
+pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
     let base = power.0.simplify();
     let exponent = power.1.simplify();
 
@@ -80,5 +80,5 @@ pub(super) fn simplify_power(power: Box<(Equation, Equation)>) -> Equation {
         )));
     }
 
-    return Equation::Power(Box::new((base, exponent)));
+    Equation::Power(Box::new((base, exponent)))
 }

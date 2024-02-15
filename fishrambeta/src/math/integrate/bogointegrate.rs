@@ -21,7 +21,7 @@ impl Iterator for AllPrimitives {
         if self.index % 10000 == 0 {
             println!("{}: Guessing equation: {}", self.index, equation);
         }
-        return Some(equation);
+        Some(equation)
     }
 }
 
@@ -31,7 +31,7 @@ fn primitives_iter(integrate_to: &Variable) -> AllPrimitives {
         index: 0,
         rng: rand::thread_rng(),
     };
-    return all_primitives.into_iter();
+    all_primitives.into_iter()
 }
 
 fn random_equation(
@@ -41,53 +41,53 @@ fn random_equation(
 ) -> Equation {
     match rng.gen_range(1..200 + 2_i64.pow(complexity)) {
         0..=10 => {
-            return Equation::Addition(vec![
+            Equation::Addition(vec![
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             ])
         }
         11..=20 => {
-            return Equation::Multiplication(vec![
+            Equation::Multiplication(vec![
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             ])
         }
         21..=30 => {
-            return Equation::Division(Box::new((
+            Equation::Division(Box::new((
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             )))
         }
         31..=40 => {
-            return Equation::Sin(Box::new(random_equation(
+            Equation::Sin(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 2,
             )))
         }
         41..=50 => {
-            return Equation::Cos(Box::new(random_equation(
+            Equation::Cos(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
         51..=60 => {
-            return Equation::Ln(Box::new(random_equation(
+            Equation::Ln(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
         61..=70 => {
-            return Equation::Negative(Box::new(random_equation(
+            Equation::Negative(Box::new(random_equation(
                 relevant_variables,
                 rng,
                 complexity + 1,
             )))
         }
         71..=80 => {
-            return Equation::Power(Box::new((
+            Equation::Power(Box::new((
                 random_equation(relevant_variables, rng, complexity + 2),
                 random_equation(relevant_variables, rng, complexity + 2),
             )))
@@ -98,9 +98,9 @@ fn random_equation(
                     relevant_variables.choose(rng).unwrap().clone(),
                 ))
             }
-            2 => return Equation::Variable(Variable::Integer(rng.gen_range(1..10))),
+            2 => Equation::Variable(Variable::Integer(rng.gen_range(1..10))),
             3 => {
-                return Equation::Variable(Variable::Rational(Rational64::from((
+                Equation::Variable(Variable::Rational(Rational64::from((
                     rng.gen_range(-10..10),
                     rng.gen_range(1..10),
                 ))))
@@ -113,18 +113,18 @@ fn random_equation(
 impl Equation {
     pub(super) fn bogointegrate(&self, integrate_to: &Variable) -> Equation {
         let simplified = self.clone().simplify_until_complete();
-        return primitives_iter(integrate_to)
+        primitives_iter(integrate_to)
             .par_bridge()
             .find_any(|x: &Equation| x.clone().is_primitive(&simplified, integrate_to))
-            .unwrap();
+            .unwrap()
     }
 
-    fn is_primitive(self, simplified: &Equation, integrate_to: &Variable) -> bool {
+    fn is_primitive(&self, simplified: &Equation, integrate_to: &Variable) -> bool {
         let is_primitive =
             self.differentiate(integrate_to).simplify_until_complete() == *simplified;
         if is_primitive {
             println!("{} is a primitive of {}", self, simplified);
         }
-        return is_primitive;
+        is_primitive
     }
 }

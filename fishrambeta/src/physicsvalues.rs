@@ -23,5 +23,5 @@ pub fn physics_values() -> BTreeMap<Variable, f64> {
     values.insert(Variable::Constant(Constant::PI), std::f64::consts::PI);
     values.insert(Variable::Constant(Constant::E), std::f64::consts::E);
     //values.insert(Variable::Letter("".to_string()), );
-    return values;
+    values
 }

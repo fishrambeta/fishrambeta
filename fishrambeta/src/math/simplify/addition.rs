@@ -12,7 +12,7 @@ fn flatten_addition(addition: Vec<Equation>) -> Vec<Equation> {
             other => new_addition.push(other),
         };
     }
-    return new_addition;
+    new_addition
 }
 
 pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
@@ -56,6 +56,8 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 if multiplication.len() - number_of_numbers == 0 {
                     // The multiplication is a
                     // constant factor, so we add that factor to the addition
+                    
+                    // I'm sure this is some kind of mistake but I don't understand the code well enough to say what it is
                     (
                         Equation::Variable(Variable::Rational(count)),
                         Equation::Variable(Variable::Integer(1)),
@@ -64,11 +66,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 let term: Vec<Equation> = multiplication
                     .into_iter()
                     .filter(|x| {
-                        if let None = x.get_number_or_none() {
-                            true
-                        } else {
-                            false
-                        }
+                        x.get_number_or_none().is_some()
                     })
                     .collect();
                 (Equation::Multiplication(term).simplify(), count)
@@ -117,12 +115,12 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         cos_count -= number_of_ones;
         if number_of_ones != 0.into() {
             simplified_addition
-                .push(Equation::Variable(Variable::Rational(number_of_ones.into())).simplify());
+                .push(Equation::Variable(Variable::Rational(number_of_ones)).simplify());
         }
         if sin_count != 0.into() {
             simplified_addition.push(
                 Equation::Multiplication(vec![
-                    Equation::Variable(Variable::Rational(sin_count.into())).simplify(),
+                    Equation::Variable(Variable::Rational(sin_count)).simplify(),
                     Equation::Power(Box::new((
                         Equation::Sin(Box::new(sin.clone())),
                         Equation::Variable(Variable::Integer(2)),
@@ -134,7 +132,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         if cos_count != 0.into() {
             simplified_addition.push(
                 Equation::Multiplication(vec![
-                    Equation::Variable(Variable::Rational(cos_count.into())),
+                    Equation::Variable(Variable::Rational(cos_count)),
                     Equation::Power(Box::new((
                         Equation::Cos(Box::new(sin)),
                         Equation::Variable(Variable::Integer(2)).simplify(),
@@ -147,7 +145,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     for (cos, cos_count) in cos_squares.into_iter() {
         simplified_addition.push(
             Equation::Multiplication(vec![
-                Equation::Variable(Variable::Rational(cos_count.into())).simplify(),
+                Equation::Variable(Variable::Rational(cos_count)).simplify(),
                 Equation::Power(Box::new((
                     Equation::Cos(Box::new(cos)),
                     Equation::Variable(Variable::Integer(2)),
@@ -157,9 +155,9 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         );
     }
 
-    if simplified_addition.len() == 0 {
+    if simplified_addition.is_empty() {
         return Equation::Variable(Variable::Integer(0));
     }
 
-    return Equation::Addition(simplified_addition);
+    Equation::Addition(simplified_addition)
 }

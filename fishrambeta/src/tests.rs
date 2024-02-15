@@ -40,16 +40,16 @@ fn valuedicts() -> [BTreeMap<Variable, f64>; 30] {
         }
         array[i] = valuedict;
     }
-    return array;
+    array
 }
 
 fn simplified_is_equal(equation: &str, valuedicts: &[BTreeMap<Variable, f64>]) -> bool {
     let parsed = parser::IR::latex_to_equation(equation.chars().collect(), false);
     let simplified = parsed.clone().simplify_until_complete();
 
-    return valuedicts
+    valuedicts
         .iter()
-        .all(|values| approx_equal(parsed.calculate(values), simplified.calculate(values)));
+        .all(|values| approx_equal(parsed.calculate(values), simplified.calculate(values)))
 }
 
 fn derivative_is_equal(
@@ -62,14 +62,14 @@ fn derivative_is_equal(
     let derivative = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
-    return valuedicts
+    valuedicts
         .iter()
-        .all(|values| approx_equal(derivative.calculate(values), correct.calculate(values)));
+        .all(|values| approx_equal(derivative.calculate(values), correct.calculate(values)))
 }
 
 fn approx_equal(a: f64, b: f64) -> bool {
     let p = a / 10000.;
-    return (a - b).abs() < p.abs();
+    (a - b).abs() < p.abs()
 }
 
 #[rustfmt::skip]

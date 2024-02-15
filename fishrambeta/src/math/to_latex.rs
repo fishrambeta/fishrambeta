@@ -3,11 +3,11 @@ use crate::parser::IR;
 use std::fmt;
 
 impl Equation {
-    pub fn to_latex(self: &Self) -> String {
-        return IR::equation_to_latex(self.clone(), false);
+    pub fn to_latex(&self) -> String {
+        IR::equation_to_latex(self.clone(), false)
     }
-    pub fn to_numpy(self: &Self) -> String {
-        return IR::equation_to_numpy(self.clone(), false);
+    pub fn to_numpy(&self) -> String {
+        IR::equation_to_numpy(self.clone(), false)
     }
 }
 

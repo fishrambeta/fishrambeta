@@ -1,11 +1,11 @@
 use crate::math::{Constant, Equation, Variable};
 use num::checked_pow;
 use num::Signed;
-use num_rational::Ratio;
+
 use num_rational::Rational64;
 
 impl Equation {
-    pub fn calculate_exact(self: &Self) -> Option<Rational64> {
+    pub fn calculate_exact(&self) -> Option<Rational64> {
         match self {
             Equation::Variable(variable) => {
                 match variable {
@@ -13,7 +13,7 @@ impl Equation {
                     Variable::Rational(rational) => return Some(*rational),
                     _ => {}
                 }
-                return None;
+                None
             }
             Equation::Addition(addition) => {
                 return addition.iter().map(|x| x.calculate_exact()).sum()
@@ -30,55 +30,44 @@ impl Equation {
                 if denominator.unwrap() == 0.into() {
                     return None;
                 }
-                return Some(numerator.unwrap() / denominator.unwrap());
+                Some(numerator.unwrap() / denominator.unwrap())
             }
             Equation::Power(power) => {
-                let base = power.0.calculate_exact();
-                let exponent = power.1.calculate_exact();
-                if base.is_none() {
-                    return None;
-                }
+                let base = power.0.calculate_exact()?;
+                let exponent = power.1.calculate_exact()?;
 
-                let base_num = base.unwrap();
-                if base_num == 1.into() {
+                if base == 1.into() {
                     return Some(1.into());
                 }
-
-                if exponent.is_none() {
+                if !exponent.is_integer() {
                     return None;
                 }
-
-                if !exponent.unwrap().is_integer() {
-                    return None;
-                }
-                let exponent_num: usize = match exponent.unwrap().to_integer().try_into() {
+                let exponent_num: usize = match exponent.to_integer().try_into() {
                     Ok(x) => x,
                     Err(_) => return None,
                 };
-                let numerator = match checked_pow(*base_num.numer(), exponent_num) {
+                let numerator = match checked_pow(*base.numer(), exponent_num) {
                     Some(x) => x,
                     None => return None,
                 };
-                let denominator = match checked_pow(*base_num.denom(), exponent_num) {
+                let denominator = match checked_pow(*base.denom(), exponent_num) {
                     Some(x) => x,
                     None => return None,
                 };
-                return Some(Rational64::new(numerator, denominator));
+                Some(Rational64::new(numerator, denominator))
             }
             Equation::Abs(abs) => {
-                let abs = abs.calculate_exact();
-                if abs.is_none() {
-                    return None;
-                }
-                return Some(abs.unwrap().abs());
+                let abs = abs.calculate_exact()?;
+                
+                Some(abs.abs())
             }
             Equation::Ln(ln) => {
                 if **ln == Equation::Variable(Variable::Constant(Constant::E)) {
                     return Some(1.into());
                 }
-                return None;
+                None
             }
-            _ => return None,
+            _ => None,
         }
     }
 }
