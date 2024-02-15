@@ -40,7 +40,7 @@ impl Equation {
             break;
         }
 
-        return Equation::Multiplication(integrated_equation);
+        Equation::Multiplication(integrated_equation)
     }
 
     fn standard_integrals(&self, integrate_to: &Variable) -> Option<Equation> {
@@ -96,23 +96,23 @@ impl Equation {
 
     fn term_is_constant(&self, integrate_to: &Variable) -> bool {
         match self {
-            Equation::Addition(a) => return a.iter().all(|x| x.term_is_constant(integrate_to)),
+            Equation::Addition(a) => a.iter().all(|x| x.term_is_constant(integrate_to)),
             Equation::Multiplication(m) => {
-                return m.iter().all(|x| x.term_is_constant(integrate_to))
+                m.iter().all(|x| x.term_is_constant(integrate_to))
             }
-            Equation::Negative(n) => return n.term_is_constant(integrate_to),
+            Equation::Negative(n) => n.term_is_constant(integrate_to),
             Equation::Division(d) => {
-                return d.0.term_is_constant(integrate_to) && d.1.term_is_constant(integrate_to)
+                d.0.term_is_constant(integrate_to) && d.1.term_is_constant(integrate_to)
             }
             Equation::Power(p) => {
-                return p.0.term_is_constant(integrate_to) && p.1.term_is_constant(integrate_to)
+                p.0.term_is_constant(integrate_to) && p.1.term_is_constant(integrate_to)
             }
-            Equation::Sin(t) => return t.term_is_constant(integrate_to),
-            Equation::Cos(t) => return t.term_is_constant(integrate_to),
-            Equation::Ln(t) => return t.term_is_constant(integrate_to),
+            Equation::Sin(t) => t.term_is_constant(integrate_to),
+            Equation::Cos(t) => t.term_is_constant(integrate_to),
+            Equation::Ln(t) => t.term_is_constant(integrate_to),
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
-            Equation::Variable(v) => return v != integrate_to,
-            Equation::Abs(a) => return a.term_is_constant(integrate_to),
+            Equation::Variable(v) => v != integrate_to,
+            Equation::Abs(a) => a.term_is_constant(integrate_to),
         }
     }
 

@@ -1,8 +1,8 @@
 use super::{Equation, Variable};
-use num_integer::Integer;
+
 use num_rational::Rational64;
 
-pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation {
+pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
     let mut numerator = division.0.simplify();
     let mut denominator = division.1.simplify();
 
@@ -100,7 +100,7 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
     }
 
     for factor in denominator.shared_factors(&numerator) {
-        if (&numerator).has_factor(&factor) && (&denominator).has_factor(&factor) {
+        if numerator.has_factor(&factor) && denominator.has_factor(&factor) {
             numerator = numerator.remove_factor(&factor);
             denominator = denominator.remove_factor(&factor);
         }
@@ -109,11 +109,11 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
     numerator = numerator.simplify();
     denominator = denominator.simplify();
 
-    return if numerator == Equation::Variable(Variable::Integer(0)) {
+    if numerator == Equation::Variable(Variable::Integer(0)) {
         Equation::Variable(Variable::Integer(0))
     } else if denominator == Equation::Variable(Variable::Integer(1)) {
         numerator
     } else {
         Equation::Division(Box::new((numerator, denominator)))
-    };
+    }
 }

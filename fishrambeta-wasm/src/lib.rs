@@ -9,8 +9,8 @@ pub fn simplify(equation: &str) -> String {
         true,
     );
     let simplified = parsed.simplify_until_complete();
-    let parsed_back = fishrambeta::parser::IR::equation_to_latex(simplified, true);
-    return parsed_back;
+    
+    fishrambeta::parser::IR::equation_to_latex(simplified, true)
 }
 
 #[wasm_bindgen]
@@ -22,8 +22,8 @@ pub fn differentiate(equation: &str) -> String {
     let differentiated = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
-    let parsed_back = fishrambeta::parser::IR::equation_to_latex(differentiated, true);
-    return parsed_back;
+    
+    fishrambeta::parser::IR::equation_to_latex(differentiated, true)
 }
 
 #[wasm_bindgen]
@@ -35,8 +35,8 @@ pub fn integrate(equation: &str) -> String {
     let differentiated = parsed
         .integrate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
-    let parsed_back = fishrambeta::parser::IR::equation_to_latex(differentiated, true);
-    return parsed_back;
+    
+    fishrambeta::parser::IR::equation_to_latex(differentiated, true)
 }
 
 #[wasm_bindgen]
@@ -51,8 +51,8 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
     let equationstring = equation.to_string().chars().collect::<Vec<_>>();
     let parsed: fishrambeta::math::Equation =
         fishrambeta::parser::IR::latex_to_equation(equationstring, true);
-    let result = parsed.calculate(&values);
-    return result;
+    
+    parsed.calculate(&values)
 }
 
 fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, f64> {
@@ -60,5 +60,5 @@ fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, 
     for (key, value) in keys.iter().zip(values.iter()) {
         values_hashmap.insert(Variable::Letter(key.to_string()), *value);
     }
-    return values_hashmap;
+    values_hashmap
 }

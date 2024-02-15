@@ -1,5 +1,5 @@
-use crate::math::{Equation, Variable};
-use num_rational::Rational64;
+
+
 
 /*
 impl PartialEq for Equation {
