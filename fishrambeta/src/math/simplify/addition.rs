@@ -56,7 +56,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 if multiplication.len() - number_of_numbers == 0 {
                     // The multiplication is a
                     // constant factor, so we add that factor to the addition
-                    
+
                     // I'm sure this is some kind of mistake but I don't understand the code well enough to say what it is
                     (
                         Equation::Variable(Variable::Rational(count)),
@@ -66,7 +66,11 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 let term: Vec<Equation> = multiplication
                     .into_iter()
                     .filter(|x| {
-                        x.get_number_or_none().is_some()
+                        if let None = x.get_number_or_none() {
+                            true
+                        } else {
+                            false
+                        }
                     })
                     .collect();
                 (Equation::Multiplication(term).simplify(), count)
@@ -92,7 +96,8 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
 
     let mut simplified_addition: Vec<Equation> = Vec::new();
     if total_rational_term != 0.into() {
-        simplified_addition.push(Equation::Variable(Variable::Rational(total_rational_term)).simplify());
+        simplified_addition
+            .push(Equation::Variable(Variable::Rational(total_rational_term)).simplify());
     }
     for (equation, count) in terms.into_iter() {
         if count == 1.into() {
