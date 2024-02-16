@@ -59,6 +59,9 @@ fn main() {
     );
 
     println!("Input equation: {}", equation);
+
+    equation.clone().integrate_rational(Variable::Letter("x".to_string()));
+
     use std::time::Instant;
     let now = Instant::now();
     let value_dict = fishrambeta::physicsvalues::physics_values();
