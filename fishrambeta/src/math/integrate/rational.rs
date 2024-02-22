@@ -2,9 +2,43 @@ use super::{Equation, Variable};
 use std::iter;
 
 /// Takes two polynomails a and b, and computes the division a/b and remainder a%b. Which it
-/// returns in (a/b, a%b)
-pub fn polynomial_division(a: Equation, b: Equation) -> (Equation, Equation) {
-    todo!()
+/// returns in (a/b, a%b). This algorithm was (re)invented by Ruben Bartelet.
+pub fn polynomial_division(a: Equation, b: Equation, base: Variable) -> (Equation, Equation) {
+    let mut polya = Polynomial::from_equation(a, base.clone());
+    let polyb = Polynomial::from_equation(b, base.clone());
+    let mut remainder = Polynomial::zero(base.clone(), polya.order() - polyb.order());
+    while polya.order() >= polyb.order() {
+        let n = polya.order() as usize;
+        let m = polyb.order() as usize;
+        let exponent = n - m;
+
+        let first_coefficient =
+            Equation::Division(Box::new((polya.terms.remove(n), polyb.terms[m].clone())));
+        remainder.terms[exponent] = first_coefficient.clone();
+
+        let mut new_polya = vec![];
+        for i in 0..n - m {
+            new_polya.push(polya.terms[i].clone());
+        }
+        for i in n - m..n {
+            new_polya.push(Equation::Addition(vec![
+                polya.terms[i].clone(),
+                Equation::Negative(Box::new(Equation::Multiplication(vec![
+                    first_coefficient.clone(),
+                    polyb.terms[i+m-n].clone(),
+                ]))),
+            ]))
+        }
+        polya = Polynomial {
+            terms: new_polya,
+            base: polya.base,
+        };
+    }
+
+    return (
+        Equation::Division(Box::new((polya.to_equation(), polyb.to_equation()))),
+        remainder.to_equation(),
+    );
 }
 
 impl Equation {
@@ -13,6 +47,11 @@ impl Equation {
         println!("{:?}", polynomial);
         println!("{}", polynomial.to_equation().simplify());
         todo!()
+    }
+
+    //temp testing function
+    pub fn div_rational(self, other: Equation) -> (Equation, Equation) {
+        return polynomial_division(self, other, Variable::Letter("x".to_string()));
     }
 }
 
@@ -24,9 +63,11 @@ struct Polynomial {
 
 impl Polynomial {
     /// Returns a polynomial with a value of 0
-    fn zero(base: Variable) -> Polynomial {
+    fn zero(base: Variable, order: i64) -> Polynomial {
         Polynomial {
-            terms: vec![Equation::Variable(Variable::Integer(0))],
+            terms: (0..=order)
+                .map(|_| Equation::Variable(Variable::Integer(0)))
+                .collect(),
             base,
         }
     }
@@ -37,6 +78,18 @@ impl Polynomial {
             terms: vec![Equation::Variable(Variable::Integer(1))],
             base,
         }
+    }
+
+    /// Returns a polynomial with a value of the passed constant
+    fn constant(constant: Equation, base: Variable) -> Polynomial {
+        Polynomial {
+            terms: vec![constant],
+            base,
+        }
+    }
+
+    fn order(&self) -> i64 {
+        (self.terms.len() - 1) as i64
     }
 
     fn single_term_polynomial(term: Equation, exponent: usize, base: Variable) -> Polynomial {
@@ -69,7 +122,7 @@ impl Polynomial {
                 }
             }
             Equation::Addition(a) => {
-                let mut total = Polynomial::zero(base.clone());
+                let mut total = Polynomial::zero(base.clone(), 0);
                 for polynomial_term in a
                     .into_iter()
                     .map(|x| Polynomial::from_equation(x, base.clone()))
@@ -103,8 +156,20 @@ impl Polynomial {
                     unreachable!()
                 }
             }
+            Equation::Division(d) => {
+                if d.1.term_is_constant(&base) {
+                    return Polynomial::constant(
+                        Equation::Division(Box::new((
+                            Equation::Variable(Variable::Integer(1)),
+                            d.1,
+                        ))),
+                        base.clone(),
+                    ) * Polynomial::from_equation(d.0, base);
+                }
+                unreachable!()
+            }
 
-            _ => unreachable!(),
+            a => unreachable!("{}", a),
         }
     }
 
@@ -132,8 +197,6 @@ impl std::ops::Add for Polynomial {
     type Output = Self;
 
     fn add(self, other: Polynomial) -> Self::Output {
-        //TODO this code must be wrong somehow
-        println!("Called addition!!!!");
         if self.base != other.base {
             panic!("Bases must be the same to add polynomials")
         }
@@ -152,10 +215,6 @@ impl std::ops::Add for Polynomial {
         ) {
             new_polynomial_terms.push(Equation::Addition(vec![a, b]));
         }
-        println!(
-            "New polynomial temrs length: {}",
-            new_polynomial_terms.len()
-        );
         Polynomial {
             terms: new_polynomial_terms,
             base: self.base,
@@ -167,8 +226,6 @@ impl std::ops::Mul for Polynomial {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
-        println!("Called multiplication!!!!");
-
         if self.base != other.base {
             panic!("Bases must be the same to multiply polynomials")
         }
