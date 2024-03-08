@@ -80,7 +80,7 @@ const RANDOM_VALUES: [f64; 100] = [217.77919232197257, -35.022747163580675, -283
 #[test]
 fn test_latex_parsing() {
     let expressions = [
-        "\\vec{r}={{2}^{{a}*{e}}*{3334}*\\frac{d}{dx}(aa)}",
+        "\\vec{r}={{2}^{{a}*{e}}*{3334}\\frac{d}{dx}({a}*{a})}",
         "\\tan(\\alpha)=\\int_0^{\\2pi}(a\\sin(\\theta))d\\theta",
         "-ret\\sin(a)cos(b)=+\\arctan(\\frac{\\theta}{\\alpha})",
     ];

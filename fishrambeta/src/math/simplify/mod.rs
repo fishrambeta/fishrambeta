@@ -85,6 +85,9 @@ impl Equation {
             Equation::Equals(equation) => {
                 return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }
+            Equation::Derivative(_) => {
+                panic!("Derivative cannot be simplified")
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ impl IR {
             } else if top_level_operators.additions_and_subtractions.len() > 0 {
                 let mut parts = vec![];
                 for &operator_position in
-                    top_level_operators.additions_and_subtractions.iter().rev()
+                top_level_operators.additions_and_subtractions.iter().rev()
                 {
                     let operator = latex[operator_position];
                     let part = latex[(operator_position + 1)..].to_vec();
@@ -406,6 +406,10 @@ impl IR {
             let mut multiplication_insertion_suspended = false;
             for char in latex {
                 if char == '\\' {
+                    if let Some(prev) = new_latex.last()
+                        && !multiplication_insertion_suspended {
+                        if *prev != '*' { new_latex.push('*') }
+                    }
                     multiplication_insertion_suspended = true
                 } else if multiplication_insertion_suspended && !char.is_alphabetic() {
                     multiplication_insertion_suspended = false
@@ -477,12 +481,14 @@ impl IR {
         };
     }
 }
+
 struct TopLevelOperators {
     powers: Vec<usize>,
     multiplications_and_divisions: Vec<usize>,
     additions_and_subtractions: Vec<usize>,
     equals: Vec<usize>,
 }
+
 impl TopLevelOperators {
     pub fn any(&self) -> bool {
         return self.powers.len() > 0
@@ -491,6 +497,7 @@ impl TopLevelOperators {
             || self.equals.len() > 0;
     }
 }
+
 #[derive(Debug)]
 pub enum ParseError {
     InvalidLatex,

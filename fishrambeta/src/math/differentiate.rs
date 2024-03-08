@@ -58,7 +58,9 @@ impl Equation {
             }
             Equation::Power(power) => return differentiate_power(power, differentiate_to),
             Equation::Ln(ln) => {
-                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0)) { //TODO:
+                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0))
+                {
+                    //TODO:
                     //this can probably be done better
                     return Equation::Variable(Variable::Integer(0));
                 }
@@ -87,9 +89,15 @@ impl Equation {
             }
             Equation::Abs(abs) => {
                 return Equation::Division(Box::new((
-                    Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
-                    Equation::Abs(abs.clone())
+                    Equation::Multiplication(vec![
+                        *abs.clone(),
+                        abs.differentiate(differentiate_to),
+                    ]),
+                    Equation::Abs(abs.clone()),
                 )))
+            }
+            Equation::Derivative(_) => {
+                panic!("Cannot differentiate derivative")
             }
         }
     }

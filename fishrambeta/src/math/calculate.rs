@@ -35,6 +35,9 @@ impl Equation {
             Equation::Cos(cos) => return cos.calculate(values).cos(),
             Equation::Abs(abs) => return abs.calculate(values).abs(),
             Equation::Equals(_) => panic!("Cannot calculate equals"),
+            Equation::Derivative(_) => {
+                panic!("Cannot calulate derivative")
+            }
         }
     }
 }
