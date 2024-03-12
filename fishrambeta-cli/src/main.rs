@@ -57,14 +57,11 @@ fn main() {
         args.equation.chars().collect::<Vec<_>>(),
         args.implicit_multiplication,
     );
-    let equation2 = parser::IR::latex_to_equation("x^2".chars().collect::<Vec<_>>(), false);
+    let equation2 = parser::IR::latex_to_equation("x^4 + 8*x^3 + 12*x^2 + 17*x + 6".chars().collect::<Vec<_>>(), false);
+    //let equation2 = parser::IR::latex_to_equation("x^4".chars().collect::<Vec<_>>(), false);
 
     println!("Input equation: {}", equation);
-    let (mut rational, mut remainder) = equation.clone().div_rational(equation2);
-    rational = rational.simplify_until_complete();
-    remainder = remainder.simplify_until_complete();
-    println!("Division: {} + {}", rational, remainder);
-    println!("=====================");
+    equation.clone().rational_throwaway(equation2, Variable::Letter("x".to_string()));
 
     use std::time::Instant;
     let now = Instant::now();

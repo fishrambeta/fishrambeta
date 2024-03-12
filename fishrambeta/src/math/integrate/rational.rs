@@ -1,46 +1,6 @@
 use super::{Equation, Variable};
 use std::iter;
 
-/// Takes two polynomails a and b, and computes the division a/b and remainder a%b. Which it
-/// returns in (a/b, a%b). This algorithm was (re)invented by Ruben Bartelet.
-pub fn polynomial_division(a: Equation, b: Equation, base: Variable) -> (Equation, Equation) {
-    let mut polya = Polynomial::from_equation(a, base.clone());
-    let polyb = Polynomial::from_equation(b, base.clone());
-    let mut remainder = Polynomial::zero(base.clone(), polya.order() - polyb.order());
-    while polya.order() >= polyb.order() {
-        let n = polya.order() as usize;
-        let m = polyb.order() as usize;
-        let exponent = n - m;
-
-        let first_coefficient =
-            Equation::Division(Box::new((polya.terms.remove(n), polyb.terms[m].clone())));
-        remainder.terms[exponent] = first_coefficient.clone();
-
-        let mut new_polya = vec![];
-        for i in 0..n - m {
-            new_polya.push(polya.terms[i].clone());
-        }
-        for i in n - m..n {
-            new_polya.push(Equation::Addition(vec![
-                polya.terms[i].clone(),
-                Equation::Negative(Box::new(Equation::Multiplication(vec![
-                    first_coefficient.clone(),
-                    polyb.terms[i+m-n].clone(),
-                ]))),
-            ]))
-        }
-        polya = Polynomial {
-            terms: new_polya,
-            base: polya.base,
-        };
-    }
-
-    return (
-        Equation::Division(Box::new((polya.to_equation(), polyb.to_equation()))),
-        remainder.to_equation(),
-    );
-}
-
 impl Equation {
     pub fn integrate_rational(self, integrate_to: Variable) -> Equation {
         let polynomial = Polynomial::from_equation(self, integrate_to);
@@ -49,9 +9,23 @@ impl Equation {
         todo!()
     }
 
-    //temp testing function
-    pub fn div_rational(self, other: Equation) -> (Equation, Equation) {
-        return polynomial_division(self, other, Variable::Letter("x".to_string()));
+    pub fn div_rational(self, other: Equation, base: Variable) -> (Equation, Equation) {
+        let polya = Polynomial::from_equation(self, base.clone()).simplify();
+        let polyb = Polynomial::from_equation(other, base).simplify();
+        let ((p, q), remainder) = polya.div_rational(polyb);
+        (
+            Equation::Division(Box::new((p.to_equation(), q.to_equation()))),
+            remainder.to_equation(),
+        )
+    }
+
+    pub fn rational_throwaway(self, other: Equation, base: Variable) {
+        //let (a, b) = self.div_rational(other, base);
+        //println!("Division: {}\nPolynomial: {}", a.simplify(), b.simplify());
+
+        let test = Polynomial::from_equation(self, base.clone())
+            .gcd(Polynomial::from_equation(other, base));
+        println!("======={}======", test.to_equation().to_latex());
     }
 }
 
@@ -62,6 +36,20 @@ struct Polynomial {
 }
 
 impl Polynomial {
+    fn simplify(self) -> Polynomial {
+        let terms: Vec<Equation> = self.terms.into_iter().map(|x| x.simplify()).collect();
+        let mut terms_new: Vec<Equation> = terms
+            .into_iter()
+            .rev()
+            .skip_while(|x| *x == Equation::Variable(Variable::Integer(0)))
+            .collect();
+        terms_new.reverse();
+        Polynomial {
+            terms: terms_new,
+            base: self.base,
+        }
+    }
+
     /// Returns a polynomial with a value of 0
     fn zero(base: Variable, order: i64) -> Polynomial {
         Polynomial {
@@ -89,6 +77,9 @@ impl Polynomial {
     }
 
     fn order(&self) -> i64 {
+        if self.terms.len() == 0 {
+            return 0;
+        }
         (self.terms.len() - 1) as i64
     }
 
@@ -99,6 +90,68 @@ impl Polynomial {
         }
         terms.push(term);
         Polynomial { terms, base }
+    }
+
+    /// Takes two polynomails a and b, and computes the division a/b and remainder a%b. Which it
+    /// returns ((a%b, b), a//b). This algorithm was (re)invented by Ruben Bartelet.
+    fn div_rational(self, other: Polynomial) -> ((Polynomial, Polynomial), Polynomial) {
+        let base = self.base.clone();
+        if base != other.base {
+            panic!("Polynomials must have the same base to divide")
+        }
+        let mut polya = self.simplify();
+        let polyb = other.simplify();
+
+        let mut remainder = Polynomial::zero(base.clone(), polya.order() - polyb.order());
+        while polya.order() >= polyb.order() {
+            println!("Polya order: {}, Polyb order: {}", polya.order(), polyb.order());
+            let n = polya.order() as usize;
+            let m = polyb.order() as usize;
+            let exponent = n - m;
+
+            let first_coefficient =
+                Equation::Division(Box::new((polya.terms.remove(n), polyb.terms[m].clone())));
+            remainder.terms[exponent] = first_coefficient.clone();
+
+            let mut new_polya = vec![];
+            for i in 0..n - m {
+                new_polya.push(polya.terms[i].clone());
+            }
+            for i in n - m..n {
+                new_polya.push(Equation::Addition(vec![
+                    polya.terms[i].clone(),
+                    Equation::Negative(Box::new(Equation::Multiplication(vec![
+                        first_coefficient.clone(),
+                        polyb.terms[i + m - n].clone(),
+                    ]))),
+                ]))
+            }
+            polya = Polynomial {
+                terms: new_polya,
+                base: polya.base,
+            };
+        }
+
+        ((polya, polyb), remainder)
+    }
+
+    fn gcd(self, other: Polynomial) -> Polynomial {
+        let (mut a, mut b) = if self.order() > other.order() {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        while b.order() != 0 {
+            let (_, r) = a.div_rational(b.clone());
+            (a, b) = (b, r);
+            println!(
+                "Leftside: {}, Remainder: {}, order: {}",
+                a.clone().to_equation().simplify(),
+                b.clone().to_equation().simplify(),
+                b.order()
+            );
+        }
+        todo!()
     }
 
     fn from_equation(x: Equation, base: Variable) -> Polynomial {
@@ -167,6 +220,12 @@ impl Polynomial {
                     ) * Polynomial::from_equation(d.0, base);
                 }
                 unreachable!()
+            }
+            Equation::Negative(n) => {
+                return Polynomial::constant(
+                    Equation::Variable(Variable::Integer(-1)),
+                    base.clone(),
+                ) * Polynomial::from_equation(*n, base);
             }
 
             a => unreachable!("{}", a),
