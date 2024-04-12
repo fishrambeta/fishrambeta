@@ -13,7 +13,7 @@ pub struct IR {
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
         let sanitized_latex = cleanup_latex(latex);
-        return Self::latex_to_ir(sanitized_latex, implicit_multiplication)
+        return Self::latex_to_ir(sanitized_latex, implicit_multiplication, true)
             .unwrap()
             .ir_to_equation();
     }
