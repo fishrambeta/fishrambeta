@@ -37,7 +37,7 @@ impl IR {
                         .collect::<Vec<_>>(),
                 );
             }
-            ['/'] => {
+            ['/'] | ['\\', 'f', 'r', 'a', 'c'] => {
                 return if self.parameters.len() != 2 {
                     let actual_division = Equation::Division(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
@@ -87,7 +87,7 @@ impl IR {
                     self.parameters.remove(0).0.ir_to_equation(),
                 )))
             }
-            ['s', 'q', 'r', 't'] => {
+            ['\\', 's', 'q', 'r', 't'] => {
                 return if self.parameters.len() == 1 {
                     Equation::Power(Box::new((
                         self.parameters.remove(0).0.ir_to_equation(),
@@ -106,20 +106,24 @@ impl IR {
                     Equation::Multiplication(params)
                 }
             }
-            ['s', 'i', 'n'] | ['c', 'o', 's'] | ['t', 'a', 'n'] | ['l', 'n'] | ['l', 'o', 'g'] => {
+            ['\\', 's', 'i', 'n']
+            | ['\\', 'c', 'o', 's']
+            | ['\\', 't', 'a', 'n']
+            | ['\\', 'l', 'n']
+            | ['\\', 'l', 'o', 'g'] => {
                 return if self.parameters.len() == 1 {
                     let param = self.parameters.remove(0).0.ir_to_equation();
                     match name[..] {
-                        ['s', 'i', 'n'] => return Equation::Sin(Box::new(param)),
-                        ['c', 'o', 's'] => return Equation::Cos(Box::new(param)),
-                        ['l', 'n'] => return Equation::Ln(Box::new(param)),
-                        ['l', 'o', 'g'] => {
+                        ['\\', 's', 'i', 'n'] => return Equation::Sin(Box::new(param)),
+                        ['\\', 'c', 'o', 's'] => return Equation::Cos(Box::new(param)),
+                        ['\\', 'l', 'n'] => return Equation::Ln(Box::new(param)),
+                        ['\\', 'l', 'o', 'g'] => {
                             return Equation::Division(Box::new((
                                 Equation::Ln(Box::new(param)),
                                 Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
                             )))
                         }
-                        ['t', 'a', 'n'] => {
+                        ['\\', 't', 'a', 'n'] => {
                             return Equation::Division(Box::new((
                                 Equation::Sin(Box::new(param.clone())),
                                 Equation::Cos(Box::new(param)),
@@ -132,14 +136,14 @@ impl IR {
                 } else {
                     let param = self.parameters.remove(0).0.ir_to_equation();
                     let gonio = match name[..] {
-                        ['s', 'i', 'n'] => Equation::Sin(Box::new(param)),
-                        ['c', 'o', 's'] => Equation::Cos(Box::new(param)),
-                        ['t', 'a', 'n'] => Equation::Division(Box::new((
+                        ['\\', 's', 'i', 'n'] => Equation::Sin(Box::new(param)),
+                        ['\\', 'c', 'o', 's'] => Equation::Cos(Box::new(param)),
+                        ['\\', 't', 'a', 'n'] => Equation::Division(Box::new((
                             Equation::Sin(Box::new(param.clone())),
                             Equation::Cos(Box::new(param)),
                         ))),
-                        ['l', 'n'] => Equation::Ln(Box::new(param)),
-                        ['l', 'o', 'g'] => Equation::Division(Box::new((
+                        ['\\', 'l', 'n'] => Equation::Ln(Box::new(param)),
+                        ['\\', 'l', 'o', 'g'] => Equation::Division(Box::new((
                             param,
                             Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
                         ))),
@@ -158,7 +162,7 @@ impl IR {
                     Equation::Multiplication(params)
                 }
             }
-            ['\\', 'i', 'n', 'v'] => {
+            ['i', 'n', 'v'] => {
                 Equation::Negative(Box::new(self.parameters.remove(0).0.ir_to_equation()))
             }
             _ => {
@@ -179,7 +183,7 @@ impl IR {
                         match expression.as_str() {
                             "e" => Equation::Variable(Variable::Constant(Constant::E)),
                             "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
-                            variable => Equation::Variable(Variable::Letter(expression))
+                            _ => Equation::Variable(Variable::Letter(expression)),
                         }
                     };
                 } else {
@@ -195,42 +199,54 @@ impl IR {
                     Variable::Letter(letter) => IR {
                         name: letter.chars().collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Integer(integer) => IR {
                         name: integer.to_string().chars().collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Vector(vector) => IR {
                         name: format!("\\vec{{{}}}", vector)
                             .chars()
                             .collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Rational(ratio) => IR {
                         name: vec!['\\', 'f', 'r', 'a', 'c'],
                         parameters: vec![
                             (
-                                Self::equation_to_ir(
-                                    Equation::Variable(Variable::Integer(*ratio.numer()))
-                                ),
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    *ratio.numer(),
+                                ))),
                                 BracketType::Curly,
                             ),
                             (
-                                Self::equation_to_ir(
-                                    Equation::Variable(Variable::Integer(*ratio.denom()))
-                                ),
+                                Self::equation_to_ir(Equation::Variable(Variable::Integer(
+                                    *ratio.denom(),
+                                ))),
                                 BracketType::Curly,
                             ),
                         ],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Constant(constant) => match constant {
                         Constant::PI => IR {
                             name: vec!['\\', 'p', 'i'],
                             parameters: vec![],
+                            superscript: None,
+                            subscript: None,
                         },
                         Constant::E => IR {
                             name: vec!['e'],
                             parameters: vec![],
+                            superscript: None,
+                            subscript: None,
                         },
                     },
                 }
@@ -242,6 +258,8 @@ impl IR {
                         .into_iter()
                         .map(|subeq| (Self::equation_to_ir(subeq), BracketType::Round))
                         .collect(),
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Power(data) => {
@@ -252,6 +270,8 @@ impl IR {
                         (Self::equation_to_ir(lower), BracketType::Round),
                         (Self::equation_to_ir(upper), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Addition(eqs) => {
@@ -261,6 +281,8 @@ impl IR {
                         .into_iter()
                         .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
                         .collect(),
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Division(div) => {
@@ -271,30 +293,40 @@ impl IR {
                         (Self::equation_to_ir(lhs), BracketType::Curly),
                         (Self::equation_to_ir(rhs), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 };
             }
             Equation::Cos(cos) => {
                 return IR {
                     name: vec!['\\', 'c', 'o', 's'],
                     parameters: vec![(Self::equation_to_ir(*cos), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Sin(sin) => {
                 return IR {
                     name: vec!['\\', 's', 'i', 'n'],
                     parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Negative(core) => {
                 return IR {
                     name: vec!['\\', 'i', 'n', 'v'],
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Ln(core) => {
                 return IR {
                     name: vec!['\\', 'l', 'n'],
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Equals(core) => {
@@ -305,11 +337,24 @@ impl IR {
                         (Self::equation_to_ir(lhs), BracketType::Curly),
                         (Self::equation_to_ir(rhs), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 };
             }
             _ => {
                 todo!()
             }
         }
+    }
+    pub fn parse_float(float: Vec<char>) -> Equation {
+        let period_pos = float.iter().position(|c| c == &'.').unwrap();
+        let (int, dec) = float.split_at(period_pos);
+        let int: String = int.into_iter().collect();
+        let mut dec: String = dec.into_iter().collect();
+        dec.remove(0);
+        let denominator = 10i64.pow(dec.len() as u32);
+        let nominator: i64 =
+            int.parse::<i64>().unwrap() * denominator + dec.parse::<i64>().unwrap();
+        return Equation::Variable(Variable::Rational(Rational64::new(nominator, denominator)));
     }
 }

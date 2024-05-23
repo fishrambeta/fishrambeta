@@ -24,6 +24,7 @@ pub enum Equation {
     Sin(Box<Equation>),
     Cos(Box<Equation>),
     Abs(Box<Equation>),
+    Derivative((Box<(Equation, Equation)>, bool)),
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]

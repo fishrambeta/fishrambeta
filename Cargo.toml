@@ -5,5 +5,7 @@ resolver = "2"
 members = [
     "fishrambeta-cli",
     "fishrambeta",
-    "fishrambeta-wasm"
+    "fishrambeta-wasm",
+    "fishrambeta-plot"
 ]
+default-members = ["fishrambeta-cli"]
