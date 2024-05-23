@@ -29,7 +29,34 @@ impl IR {
         Self::equation_to_ir(equation)
             .ir_to_numpy(implicit_multiplication)
             .into_iter()
-            .collect::<String>();
+            .collect::<String>()
+    }
+}
+pub enum BracketType {
+    None,
+    Curly,
+    Square,
+    Round,
+    Angle,
+}
+impl BracketType {
+    pub fn opening_bracket(&self) -> Option<char> {
+        return match self {
+            Self::None => None,
+            Self::Angle => Some('⟨'),
+            Self::Curly => Some('{'),
+            Self::Square => Some('['),
+            Self::Round => Some('('),
+        };
+    }
+    pub fn closing_bracket(&self) -> Option<char> {
+        return match self {
+            BracketType::None => None,
+            BracketType::Curly => Some('}'),
+            BracketType::Square => Some(']'),
+            BracketType::Round => Some(')'),
+            BracketType::Angle => Some('⟩'),
+        };
     }
     pub fn is_opening_bracket(char: char) -> bool {
         char == '{' || char == '[' || char == '(' || char == '⟨'
