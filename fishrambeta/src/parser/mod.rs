@@ -9,11 +9,13 @@ mod numpy;
 pub struct IR {
     name: Vec<char>,
     parameters: Vec<(IR, BracketType)>,
+    subscript: Option<(Vec<char>, BracketType)>,
+    superscript: Option<(Vec<char>, BracketType)>,
 }
 impl IR {
     pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
         let sanitized_latex = cleanup_latex(latex);
-        return Self::latex_to_ir(sanitized_latex, implicit_multiplication, true)
+        return Self::latex_to_ir(sanitized_latex, implicit_multiplication, true, true)
             .unwrap()
             .ir_to_equation();
     }

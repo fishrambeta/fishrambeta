@@ -199,16 +199,22 @@ impl IR {
                     Variable::Letter(letter) => IR {
                         name: letter.chars().collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Integer(integer) => IR {
                         name: integer.to_string().chars().collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Vector(vector) => IR {
                         name: format!("\\vec{{{}}}", vector)
                             .chars()
                             .collect::<Vec<char>>(),
                         parameters: vec![],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Rational(ratio) => IR {
                         name: vec!['\\', 'f', 'r', 'a', 'c'],
@@ -226,15 +232,21 @@ impl IR {
                                 BracketType::Curly,
                             ),
                         ],
+                        superscript: None,
+                        subscript: None,
                     },
                     Variable::Constant(constant) => match constant {
                         Constant::PI => IR {
                             name: vec!['\\', 'p', 'i'],
                             parameters: vec![],
+                            superscript: None,
+                            subscript: None,
                         },
                         Constant::E => IR {
                             name: vec!['e'],
                             parameters: vec![],
+                            superscript: None,
+                            subscript: None,
                         },
                     },
                 }
@@ -246,6 +258,8 @@ impl IR {
                         .into_iter()
                         .map(|subeq| (Self::equation_to_ir(subeq), BracketType::Round))
                         .collect(),
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Power(data) => {
@@ -256,6 +270,8 @@ impl IR {
                         (Self::equation_to_ir(lower), BracketType::Round),
                         (Self::equation_to_ir(upper), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Addition(eqs) => {
@@ -265,6 +281,8 @@ impl IR {
                         .into_iter()
                         .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
                         .collect(),
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Division(div) => {
@@ -275,30 +293,40 @@ impl IR {
                         (Self::equation_to_ir(lhs), BracketType::Curly),
                         (Self::equation_to_ir(rhs), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 };
             }
             Equation::Cos(cos) => {
                 return IR {
                     name: vec!['\\', 'c', 'o', 's'],
                     parameters: vec![(Self::equation_to_ir(*cos), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Sin(sin) => {
                 return IR {
                     name: vec!['\\', 's', 'i', 'n'],
                     parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Negative(core) => {
                 return IR {
                     name: vec!['\\', 'i', 'n', 'v'],
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Ln(core) => {
                 return IR {
                     name: vec!['\\', 'l', 'n'],
                     parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+                    superscript: None,
+                    subscript: None,
                 }
             }
             Equation::Equals(core) => {
@@ -309,6 +337,8 @@ impl IR {
                         (Self::equation_to_ir(lhs), BracketType::Curly),
                         (Self::equation_to_ir(rhs), BracketType::Curly),
                     ],
+                    superscript: None,
+                    subscript: None,
                 };
             }
             _ => {
