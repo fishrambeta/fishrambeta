@@ -52,7 +52,7 @@ impl Equation {
     }
     fn get_integer_or_none(&self) -> Option<i64> {
         match self {
-            Equation::Variable(Variable::Integer(n)) => Some((*n)),
+            Equation::Variable(Variable::Integer(n)) => Some(*n),
             _ => None,
         }
     }
@@ -68,7 +68,7 @@ impl Variable {
     }
     fn get_integer_or_none(&self) -> Option<i64> {
         match self {
-            Variable::Integer(n) => Some((*n)),
+            Variable::Integer(n) => Some(*n),
             _ => None,
         }
     }

@@ -2,7 +2,7 @@ use crate::math::{Equation, Variable};
 use std::collections::BTreeMap;
 
 impl Equation {
-    pub fn calculate(self: &Self, values: &BTreeMap<Variable, f64>) -> f64 {
+    pub fn calculate(&self, values: &BTreeMap<Variable, f64>) -> f64 {
         match self {
             Equation::Variable(variable) => {
                 match variable {
@@ -12,28 +12,28 @@ impl Equation {
                     }
                     _ => {}
                 }
-                return values[&variable];
+                values[&variable]
             }
-            Equation::Negative(negative) => return -negative.calculate(values),
+            Equation::Negative(negative) => -negative.calculate(values),
             Equation::Addition(addition) => {
-                return addition.iter().map(|x| x.calculate(&values)).sum()
+                return addition.iter().map(|x| x.calculate(values)).sum()
             }
             Equation::Multiplication(multiplication) => {
                 return multiplication
                     .iter()
-                    .map(|x| x.calculate(&values))
+                    .map(|x| x.calculate(values))
                     .product()
             }
             Equation::Division(division) => {
-                return division.0.calculate(&values) / division.1.calculate(&values)
+                division.0.calculate(values) / division.1.calculate(values)
             }
             Equation::Power(power) => {
-                return power.0.calculate(&values).powf(power.1.calculate(&values))
+                power.0.calculate(values).powf(power.1.calculate(values))
             }
-            Equation::Ln(ln) => return ln.calculate(values).ln(),
-            Equation::Sin(sin) => return sin.calculate(values).sin(),
-            Equation::Cos(cos) => return cos.calculate(values).cos(),
-            Equation::Abs(abs) => return abs.calculate(values).abs(),
+            Equation::Ln(ln) => ln.calculate(values).ln(),
+            Equation::Sin(sin) => sin.calculate(values).sin(),
+            Equation::Cos(cos) => cos.calculate(values).cos(),
+            Equation::Abs(abs) => abs.calculate(values).abs(),
             Equation::Equals(_) => panic!("Cannot calculate equals"),
             Equation::Derivative(_) => {
                 panic!("Cannot calulate derivative")

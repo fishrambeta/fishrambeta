@@ -20,58 +20,31 @@ impl IR {
             .ir_to_equation();
     }
     pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
-        return Self::equation_to_ir(equation)
+        Self::equation_to_ir(equation)
             .ir_to_latex(implicit_multiplication)
             .into_iter()
-            .collect::<String>();
+            .collect::<String>()
     }
     pub fn equation_to_numpy(equation: Equation, implicit_multiplication: bool) -> String {
-        return Self::equation_to_ir(equation)
+        Self::equation_to_ir(equation)
             .ir_to_numpy(implicit_multiplication)
             .into_iter()
             .collect::<String>();
     }
-}
-pub enum BracketType {
-    None,
-    Curly,
-    Square,
-    Round,
-    Angle,
-}
-impl BracketType {
-    pub fn opening_bracket(&self) -> Option<char> {
-        return match self {
-            Self::None => None,
-            Self::Angle => Some('⟨'),
-            Self::Curly => Some('{'),
-            Self::Square => Some('['),
-            Self::Round => Some('('),
-        };
-    }
-    pub fn closing_bracket(&self) -> Option<char> {
-        return match self {
-            BracketType::None => None,
-            BracketType::Curly => Some('}'),
-            BracketType::Square => Some(']'),
-            BracketType::Round => Some(')'),
-            BracketType::Angle => Some('⟩'),
-        };
-    }
     pub fn is_opening_bracket(char: char) -> bool {
-        return char == '{' || char == '[' || char == '(' || char == '⟨';
+        char == '{' || char == '[' || char == '(' || char == '⟨'
     }
     pub fn is_closing_bracket(char: char) -> bool {
-        return char == '}' || char == ']' || char == ')' || char == '⟩';
+        char == '}' || char == ']' || char == ')' || char == '⟩'
     }
     pub fn get_opening_bracket_type(char: char) -> Self {
-        return match char {
+        match char {
             '(' => BracketType::Round,
             '[' => BracketType::Square,
             '{' => BracketType::Curly,
             '⟨' => BracketType::Angle,
             _ => BracketType::None,
-        };
+        }
     }
 }
 pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {

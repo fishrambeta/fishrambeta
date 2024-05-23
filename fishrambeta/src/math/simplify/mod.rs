@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 use std::collections::BTreeMap;
 
 use crate::math::{Equation, Variable};
@@ -21,7 +19,7 @@ impl Equation {
             }
             previous = equation.to_latex();
         }
-        return equation;
+        equation
     }
 
     pub fn simplify_until_complete_with_print(self) -> Self {
@@ -35,7 +33,7 @@ impl Equation {
             }
             previous = equation.to_latex();
         }
-        return equation;
+        equation
     }
 
     pub(super) fn simplify(self) -> Self {
@@ -50,40 +48,40 @@ impl Equation {
         match self {
             Equation::Variable(variable) => match variable {
                 Variable::Rational(r) => {
-                    return if r.is_integer() {
+                    if r.is_integer() {
                         Equation::Variable(Variable::Integer(r.to_integer()))
                     } else {
                         Equation::Variable(Variable::Rational(r))
                     }
                 }
-                variable => return Equation::Variable(variable),
+                variable => Equation::Variable(variable),
             },
             Equation::Negative(negative) => match *negative {
-                Equation::Negative(negative) => return (*negative).simplify(),
+                Equation::Negative(negative) => (*negative).simplify(),
                 Equation::Variable(Variable::Integer(0)) => {
-                    return Equation::Variable(Variable::Integer(0))
+                    Equation::Variable(Variable::Integer(0))
                 }
                 Equation::Variable(Variable::Integer(integer)) => {
-                    return Equation::Variable(Variable::Integer(-integer))
+                    Equation::Variable(Variable::Integer(-integer))
                 }
                 Equation::Variable(Variable::Rational(rational)) => {
-                    return Equation::Variable(Variable::Rational(-rational))
+                    Equation::Variable(Variable::Rational(-rational))
                 }
 
-                negative => return Equation::Negative(Box::new(negative.simplify())),
+                negative => Equation::Negative(Box::new(negative.simplify())),
             },
-            Equation::Addition(addition) => return addition::simplify_addition(addition),
+            Equation::Addition(addition) => addition::simplify_addition(addition),
             Equation::Multiplication(multiplication) => {
                 multiplication::simplify_multiplication(multiplication)
             }
-            Equation::Division(division) => return division::simplify_division(division),
-            Equation::Power(power) => return power::simplify_power(power),
-            Equation::Ln(ln) => return Equation::Ln(Box::new(ln.simplify())),
-            Equation::Sin(sin) => return Equation::Sin(Box::new(sin.simplify())),
-            Equation::Cos(cos) => return Equation::Cos(Box::new(cos.simplify())),
-            Equation::Abs(abs) => return Equation::Abs(Box::new(abs.simplify())),
+            Equation::Division(division) => division::simplify_division(*division),
+            Equation::Power(power) => power::simplify_power(*power),
+            Equation::Ln(ln) => Equation::Ln(Box::new(ln.simplify())),
+            Equation::Sin(sin) => Equation::Sin(Box::new(sin.simplify())),
+            Equation::Cos(cos) => Equation::Cos(Box::new(cos.simplify())),
+            Equation::Abs(abs) => Equation::Abs(Box::new(abs.simplify())),
             Equation::Equals(equation) => {
-                return Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
+                Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
             }
             Equation::Derivative(_) => {
                 panic!("Derivative cannot be simplified")
@@ -96,13 +94,9 @@ pub struct EquationBTreeMap(BTreeMap<Equation, Vec<Equation>>);
 
 impl EquationBTreeMap {
     pub fn new() -> EquationBTreeMap {
-        return EquationBTreeMap(BTreeMap::new());
+        EquationBTreeMap(BTreeMap::new())
     }
     pub fn insert_or_push(&mut self, term: Equation, equation: Equation) {
-        if self.0.contains_key(&term) {
-            self.0.get_mut(&term).unwrap().push(equation);
-        } else {
-            self.0.insert(term, vec![equation]);
-        }
+        self.0.entry(term).or_default().push(equation);
     }
 }

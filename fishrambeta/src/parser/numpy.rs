@@ -7,7 +7,7 @@ impl IR {
         match name[..] {
             ['+'] | ['-'] | ['*'] => {
                 return_data.push('(');
-                while self.parameters.len() > 0 {
+                while !self.parameters.is_empty() {
                     return_data.append(&mut IR::ir_to_numpy(
                         self.parameters.remove(0).0,
                         implicit_multiplication,
@@ -97,7 +97,7 @@ impl IR {
                 return_data.push(')');
             }
             _ => {
-                if self.parameters.len() == 0 {
+                if self.parameters.is_empty() {
                     return self.name;
                 } else {
                     let mut string = self.name.into_iter().collect::<Vec<_>>();
@@ -114,6 +114,6 @@ impl IR {
                 }
             }
         }
-        return return_data;
+        return_data
     }
 }
