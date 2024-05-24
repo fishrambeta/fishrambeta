@@ -84,6 +84,7 @@ fn test_latex_parsing() {
         "\\vec{r}={{2}^{{a}{e}}{3334}\\frac{d}{dx}({a}{a})}",
         "\\tan(\\alpha)=\\int_0^{2*\\pi}(a\\sin(\\theta)\\sqrt{g})d{\\theta}",
         "-{r}et\\sin(a)cos(b)=\\arctan(\\frac{\\theta}{\\alpha})",
+        "\\frac{1}{(x+4)^2}",
     ];
     // let equations = [Equation::Equals(Box::new((
     //     Equation::Variable(Vector(String::from('r'))),
