@@ -9,7 +9,8 @@ fn simplify() {
 
     assert!(simplified_is_equal("x^2", &valuedicts));
     assert!(simplified_is_equal("\\frac{x}{x}", &valuedicts));
-    assert!(simplified_is_equal("\\frac{\\frac{-x}{x}}{x}", &valuedicts))
+    assert!(simplified_is_equal("\\frac{\\frac{-x}{x}}{x}", &valuedicts));
+    assert!(simplified_is_equal("\\frac{1}{\\left(x+4\\right)^2}", &valuedicts));
 }
 
 #[test]
