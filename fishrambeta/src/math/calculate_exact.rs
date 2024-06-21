@@ -58,7 +58,7 @@ impl Equation {
             }
             Equation::Abs(abs) => {
                 let abs = abs.calculate_exact()?;
-                
+
                 Some(abs.abs())
             }
             Equation::Ln(ln) => {

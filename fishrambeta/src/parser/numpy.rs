@@ -71,7 +71,6 @@ impl IR {
                     implicit_multiplication,
                 ));
                 return_data.push(')');
-
             }
             ['\\', 's', 'i', 'n'] => {
                 return_data.extend("np.sin(".chars().collect::<Vec<char>>());

@@ -482,7 +482,10 @@ impl IR {
                     let mut string = self.name.into_iter().collect::<Vec<_>>();
                     for parameter in self.parameters {
                         string.push(parameter.1.opening_bracket());
-                        string.append(&mut Self::ir_to_latex(parameter.0, _implicit_multiplication));
+                        string.append(&mut Self::ir_to_latex(
+                            parameter.0,
+                            _implicit_multiplication,
+                        ));
                         string.push(parameter.1.closing_bracket())
                     }
                     return string;
@@ -494,37 +497,31 @@ impl IR {
     pub fn ir_to_equation(mut self) -> Equation {
         let name = self.name.clone();
         match name[..] {
-            ['+'] => {
-                Equation::Addition(
-                    self.parameters
-                        .into_iter()
-                        .map(|param| param.0.ir_to_equation())
-                        .collect::<Vec<_>>(),
-                )
-            }
-            ['-'] => {
-                Equation::Addition(
-                    self.parameters
-                        .into_iter()
-                        .enumerate()
-                        .map(|(index, param)| {
-                            if index == 0 {
-                                param.0.ir_to_equation()
-                            } else {
-                                Equation::Negative(Box::new(param.0.ir_to_equation()))
-                            }
-                        })
-                        .collect::<Vec<_>>(),
-                )
-            }
-            ['*'] => {
-                Equation::Multiplication(
-                    self.parameters
-                        .into_iter()
-                        .map(|param| param.0.ir_to_equation())
-                        .collect::<Vec<_>>(),
-                )
-            }
+            ['+'] => Equation::Addition(
+                self.parameters
+                    .into_iter()
+                    .map(|param| param.0.ir_to_equation())
+                    .collect::<Vec<_>>(),
+            ),
+            ['-'] => Equation::Addition(
+                self.parameters
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, param)| {
+                        if index == 0 {
+                            param.0.ir_to_equation()
+                        } else {
+                            Equation::Negative(Box::new(param.0.ir_to_equation()))
+                        }
+                    })
+                    .collect::<Vec<_>>(),
+            ),
+            ['*'] => Equation::Multiplication(
+                self.parameters
+                    .into_iter()
+                    .map(|param| param.0.ir_to_equation())
+                    .collect::<Vec<_>>(),
+            ),
             ['/'] => {
                 if self.parameters.len() != 2 {
                     let actual_division = Equation::Division(Box::new((
@@ -569,12 +566,10 @@ impl IR {
                     )))
                 }
             }
-            ['='] => {
-                Equation::Equals(Box::new((
-                    self.parameters.remove(0).0.ir_to_equation(),
-                    self.parameters.remove(0).0.ir_to_equation(),
-                )))
-            }
+            ['='] => Equation::Equals(Box::new((
+                self.parameters.remove(0).0.ir_to_equation(),
+                self.parameters.remove(0).0.ir_to_equation(),
+            ))),
             ['s', 'q', 'r', 't'] => {
                 if self.parameters.len() == 1 {
                     Equation::Power(Box::new((
@@ -601,18 +596,14 @@ impl IR {
                         ['s', 'i', 'n'] => Equation::Sin(Box::new(param)),
                         ['c', 'o', 's'] => Equation::Cos(Box::new(param)),
                         ['l', 'n'] => Equation::Ln(Box::new(param)),
-                        ['l', 'o', 'g'] => {
-                            Equation::Division(Box::new((
-                                Equation::Ln(Box::new(param)),
-                                Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
-                            )))
-                        }
-                        ['t', 'a', 'n'] => {
-                            Equation::Division(Box::new((
-                                Equation::Sin(Box::new(param.clone())),
-                                Equation::Cos(Box::new(param)),
-                            )))
-                        }
+                        ['l', 'o', 'g'] => Equation::Division(Box::new((
+                            Equation::Ln(Box::new(param)),
+                            Equation::Ln(Box::new(Equation::Variable(Variable::Integer(10)))),
+                        ))),
+                        ['t', 'a', 'n'] => Equation::Division(Box::new((
+                            Equation::Sin(Box::new(param.clone())),
+                            Equation::Cos(Box::new(param)),
+                        ))),
                         _ => {
                             panic!()
                         }
@@ -723,15 +714,13 @@ impl IR {
                     },
                 }
             }
-            Equation::Multiplication(eq) => {
-                IR {
-                    name: vec!['*'],
-                    parameters: eq
-                        .into_iter()
-                        .map(|subeq| (Self::equation_to_ir(subeq), BracketType::Round))
-                        .collect(),
-                }
-            }
+            Equation::Multiplication(eq) => IR {
+                name: vec!['*'],
+                parameters: eq
+                    .into_iter()
+                    .map(|subeq| (Self::equation_to_ir(subeq), BracketType::Round))
+                    .collect(),
+            },
             Equation::Power(data) => {
                 let (lower, upper) = *data;
                 IR {
@@ -742,15 +731,13 @@ impl IR {
                     ],
                 }
             }
-            Equation::Addition(eqs) => {
-                IR {
-                    name: vec!['+'],
-                    parameters: eqs
-                        .into_iter()
-                        .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
-                        .collect(),
-                }
-            }
+            Equation::Addition(eqs) => IR {
+                name: vec!['+'],
+                parameters: eqs
+                    .into_iter()
+                    .map(|eq| (Self::equation_to_ir(eq), BracketType::Round))
+                    .collect(),
+            },
             Equation::Division(div) => {
                 let (lhs, rhs) = *div;
                 IR {
@@ -761,30 +748,22 @@ impl IR {
                     ],
                 }
             }
-            Equation::Cos(cos) => {
-                IR {
-                    name: vec!['\\', 'c', 'o', 's'],
-                    parameters: vec![(Self::equation_to_ir(*cos), BracketType::Round)],
-                }
-            }
-            Equation::Sin(sin) => {
-                IR {
-                    name: vec!['\\', 's', 'i', 'n'],
-                    parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
-                }
-            }
-            Equation::Negative(core) => {
-                IR {
-                    name: vec!['\\', 'i', 'n', 'v'],
-                    parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
-                }
-            }
-            Equation::Ln(core) => {
-                IR {
-                    name: vec!['\\', 'l', 'n'],
-                    parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
-                }
-            }
+            Equation::Cos(cos) => IR {
+                name: vec!['\\', 'c', 'o', 's'],
+                parameters: vec![(Self::equation_to_ir(*cos), BracketType::Round)],
+            },
+            Equation::Sin(sin) => IR {
+                name: vec!['\\', 's', 'i', 'n'],
+                parameters: vec![(Self::equation_to_ir(*sin), BracketType::Round)],
+            },
+            Equation::Negative(core) => IR {
+                name: vec!['\\', 'i', 'n', 'v'],
+                parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+            },
+            Equation::Ln(core) => IR {
+                name: vec!['\\', 'l', 'n'],
+                parameters: vec![(Self::equation_to_ir(*core), BracketType::Round)],
+            },
             Equation::Equals(core) => {
                 let (lhs, rhs) = *core;
                 IR {
@@ -1157,14 +1136,13 @@ pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
 mod test {
     #[test]
     fn test_check_if_caret_is_power() {
-        assert!(
-            !super::IR::check_if_caret_is_power(&"\\int^10{a}{b}".chars().collect::<Vec<char>>(), 4)
-        );
-        assert!(
-            super::IR::check_if_caret_is_power(
-                &"\\frac{a}{b}^10".chars().collect::<Vec<char>>(),
-                11
-            )
-        );
+        assert!(!super::IR::check_if_caret_is_power(
+            &"\\int^10{a}{b}".chars().collect::<Vec<char>>(),
+            4
+        ));
+        assert!(super::IR::check_if_caret_is_power(
+            &"\\frac{a}{b}^10".chars().collect::<Vec<char>>(),
+            11
+        ));
     }
 }

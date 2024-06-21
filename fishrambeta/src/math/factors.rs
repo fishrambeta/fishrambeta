@@ -14,15 +14,11 @@ impl Equation {
         }
 
         match self {
-            Equation::Power(power) => {
-                power.0 == *factor
-            }
+            Equation::Power(power) => power.0 == *factor,
             Equation::Multiplication(multiplication) => {
                 multiplication.iter().any(|x| x.clone().has_factor(factor))
             }
-            Equation::Addition(addition) => {
-                addition.iter().all(|x| x.clone().has_factor(factor))
-            }
+            Equation::Addition(addition) => addition.iter().all(|x| x.clone().has_factor(factor)),
             Equation::Negative(negative) => negative.has_factor(factor),
             _ => false,
         }
@@ -30,7 +26,13 @@ impl Equation {
 
     pub fn gcd(self: &Equation) -> i64 {
         match self {
-            Equation::Variable(Variable::Integer(n)) => if *n != 0 { *n } else { 1 },
+            Equation::Variable(Variable::Integer(n)) => {
+                if *n != 0 {
+                    *n
+                } else {
+                    1
+                }
+            }
             Equation::Addition(addition) => {
                 let mut gcd = 1;
                 let mut first_done = false;

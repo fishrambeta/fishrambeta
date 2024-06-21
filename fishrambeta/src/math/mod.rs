@@ -7,6 +7,7 @@ mod differentiate;
 mod factors;
 mod integrate;
 mod multiply_by;
+mod polynomial;
 mod simplify;
 mod to_latex;
 

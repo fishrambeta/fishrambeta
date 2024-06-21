@@ -9,7 +9,7 @@ pub fn simplify(equation: &str) -> String {
         true,
     );
     let simplified = parsed.simplify_until_complete();
-    
+
     fishrambeta::parser::IR::equation_to_latex(simplified, true)
 }
 
@@ -22,7 +22,7 @@ pub fn differentiate(equation: &str) -> String {
     let differentiated = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
-    
+
     fishrambeta::parser::IR::equation_to_latex(differentiated, true)
 }
 
@@ -35,7 +35,7 @@ pub fn integrate(equation: &str) -> String {
     let differentiated = parsed
         .integrate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
-    
+
     fishrambeta::parser::IR::equation_to_latex(differentiated, true)
 }
 
@@ -51,7 +51,7 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
     let equationstring = equation.to_string().chars().collect::<Vec<_>>();
     let parsed: fishrambeta::math::Equation =
         fishrambeta::parser::IR::latex_to_equation(equationstring, true);
-    
+
     parsed.calculate(&values)
 }
 

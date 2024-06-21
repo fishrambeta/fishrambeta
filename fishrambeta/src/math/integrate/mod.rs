@@ -1,8 +1,8 @@
+use super::polynomial::Polynomial;
 use super::{Equation, Variable};
 use num_rational::Rational64;
 
 mod bogointegrate;
-mod rational;
 
 impl Equation {
     pub fn integrate(&self, integrate_to: &Variable) -> Equation {
@@ -38,7 +38,6 @@ impl Equation {
     }
 
     fn standard_integrals(&self, integrate_to: &Variable) -> Option<Equation> {
-        println!("Attempting standard integral for: {}", self);
         return match self {
             Equation::Addition(addition) => Some(Equation::Addition(
                 addition.iter().map(|x| x.integrate(integrate_to)).collect(),
@@ -86,6 +85,18 @@ impl Equation {
             ),
             _ => None,
         };
+    }
+
+    pub fn integrate_rational(self, integrate_to: &Variable) -> Equation {
+        if let Equation::Division(d) = self {
+            let a = Polynomial::from_equation(d.0, integrate_to.clone());
+            let b = Polynomial::from_equation(d.1, integrate_to.clone());
+            let gcd = a.gcd(b);
+            //let (quotient, remainder) = a.div_rational(&b);
+        } else {
+            todo!()
+        }
+        todo!()
     }
 
     pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {

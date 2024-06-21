@@ -1,3 +1,4 @@
+use crate::math::polynomial::Polynomial;
 use crate::math::Equation;
 use crate::parser::IR;
 use std::fmt;
@@ -12,6 +13,12 @@ impl Equation {
 }
 
 impl fmt::Display for Equation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_latex())
+    }
+}
+
+impl fmt::Display for Polynomial {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_latex())
     }

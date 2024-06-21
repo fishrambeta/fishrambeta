@@ -58,7 +58,9 @@ impl Equation {
             }
             Equation::Power(power) => differentiate_power(power, differentiate_to),
             Equation::Ln(ln) => {
-                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0)) { //TODO:
+                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0))
+                {
+                    //TODO:
                     //this can probably be done better
                     return Equation::Variable(Variable::Integer(0));
                 }
@@ -67,30 +69,22 @@ impl Equation {
                     (**ln).clone(),
                 )))
             }
-            Equation::Sin(sin) => {
-                Equation::Multiplication(vec![
-                    sin.differentiate(differentiate_to),
-                    Equation::Cos(sin.clone()),
-                ])
-            }
-            Equation::Cos(sin) => {
-                Equation::Negative(Box::new(Equation::Multiplication(vec![
-                    sin.differentiate(differentiate_to),
-                    Equation::Sin(sin.clone()),
-                ])))
-            }
-            Equation::Equals(equals) => {
-                Equation::Equals(Box::new((
-                    equals.0.differentiate(differentiate_to),
-                    equals.1.differentiate(differentiate_to),
-                )))
-            }
-            Equation::Abs(abs) => {
-                Equation::Division(Box::new((
-                    Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
-                    Equation::Abs(abs.clone())
-                )))
-            }
+            Equation::Sin(sin) => Equation::Multiplication(vec![
+                sin.differentiate(differentiate_to),
+                Equation::Cos(sin.clone()),
+            ]),
+            Equation::Cos(sin) => Equation::Negative(Box::new(Equation::Multiplication(vec![
+                sin.differentiate(differentiate_to),
+                Equation::Sin(sin.clone()),
+            ]))),
+            Equation::Equals(equals) => Equation::Equals(Box::new((
+                equals.0.differentiate(differentiate_to),
+                equals.1.differentiate(differentiate_to),
+            ))),
+            Equation::Abs(abs) => Equation::Division(Box::new((
+                Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
+                Equation::Abs(abs.clone()),
+            ))),
         }
     }
 }

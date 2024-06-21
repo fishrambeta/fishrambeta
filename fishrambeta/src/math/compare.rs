@@ -1,6 +1,3 @@
-
-
-
 /*
 impl PartialEq for Equation {
     fn eq(&self, other: &Self) -> bool {
