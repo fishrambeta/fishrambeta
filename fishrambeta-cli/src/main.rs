@@ -59,6 +59,7 @@ fn main() {
     );
 
     println!("Input equation: {}", equation);
+
     use std::time::Instant;
     let now = Instant::now();
     let value_dict = fishrambeta::physicsvalues::physics_values();
