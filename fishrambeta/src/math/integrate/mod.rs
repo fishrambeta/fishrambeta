@@ -11,14 +11,8 @@ impl Equation {
         let mut integrated_equation = Vec::new();
 
         for fixed_term in fixed_terms.into_iter() {
-            println!(
-                "{} has factor? {} is constant? {}",
-                fixed_term,
-                equation_to_integrate.has_factor(&fixed_term),
-                fixed_term.term_is_constant(integrate_to)
-            );
             if equation_to_integrate.has_factor(&fixed_term)
-                && fixed_term.term_is_constant(integrate_to)
+                && fixed_term.term_is_constant(&integrate_to)
             {
                 equation_to_integrate = equation_to_integrate.remove_factor(&fixed_term).simplify();
                 integrated_equation.push(fixed_term);
@@ -26,18 +20,17 @@ impl Equation {
         }
 
         loop {
-            //if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
-            //    integrated_equation.push(integrated_term);
-            //    println!("Hi");
-            //    break;
-            //}
-
-            if equation_to_integrate.is_rational_function(integrate_to) {
-                equation_to_integrate.integrate_rational(integrate_to.clone());
+            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
+                integrated_equation.push(integrated_term);
                 break;
             }
 
-            integrated_equation.push(equation_to_integrate.bogointegrate(integrate_to));
+            if equation_to_integrate.is_rational_function(&integrate_to) {
+                equation_to_integrate.integrate_rational(&integrate_to);
+                break;
+            }
+
+            integrated_equation.push(equation_to_integrate.bogointegrate(&integrate_to));
             break;
         }
 

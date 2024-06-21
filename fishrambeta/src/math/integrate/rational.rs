@@ -2,30 +2,19 @@ use super::{Equation, Variable};
 use std::iter;
 
 impl Equation {
-    pub fn integrate_rational(self, integrate_to: Variable) -> Equation {
-        let polynomial = Polynomial::from_equation(self, integrate_to);
-        println!("{:?}", polynomial);
-        println!("{}", polynomial.to_equation().simplify());
+    pub fn integrate_rational(self, integrate_to: &Variable) -> Equation {
+        if let Equation::Division(d) = self {
+            let a = Polynomial::from_equation(d.0, integrate_to.clone());
+            let b = Polynomial::from_equation(d.1, integrate_to.clone());
+            let ((new_a, new_b), remainder) = a.div_rational(b);
+
+            println!("Hello");
+            let integrated_remainder = remainder.to_equation().simplify().integrate(&integrate_to).simplify();
+            println!("Integrated remainder: {}", integrated_remainder);
+        } else {
+            todo!()
+        }
         todo!()
-    }
-
-    pub fn div_rational(self, other: Equation, base: Variable) -> (Equation, Equation) {
-        let polya = Polynomial::from_equation(self, base.clone()).simplify();
-        let polyb = Polynomial::from_equation(other, base).simplify();
-        let ((p, q), remainder) = polya.div_rational(polyb);
-        (
-            Equation::Division(Box::new((p.to_equation(), q.to_equation()))),
-            remainder.to_equation(),
-        )
-    }
-
-    pub fn rational_throwaway(self, other: Equation, base: Variable) {
-        //let (a, b) = self.div_rational(other, base);
-        //println!("Division: {}\nPolynomial: {}", a.simplify(), b.simplify());
-
-        let test = Polynomial::from_equation(self, base.clone())
-            .gcd(Polynomial::from_equation(other, base));
-        println!("======={}======", test.to_equation().to_latex());
     }
 }
 
@@ -104,15 +93,15 @@ impl Polynomial {
 
         let mut remainder = Polynomial::zero(base.clone(), polya.order() - polyb.order());
         while polya.order() >= polyb.order() {
-            println!("Polya order: {}, Polyb order: {}", polya.order(), polyb.order());
             let n = polya.order() as usize;
             let m = polyb.order() as usize;
             let exponent = n - m;
 
             let first_coefficient =
                 Equation::Division(Box::new((polya.terms.remove(n), polyb.terms[m].clone())));
-            remainder.terms[exponent] = first_coefficient.clone();
+            remainder.terms[exponent] = first_coefficient.clone().simplify();
 
+            // Polya gives wrong stuff often
             let mut new_polya = vec![];
             for i in 0..n - m {
                 new_polya.push(polya.terms[i].clone());
@@ -130,28 +119,9 @@ impl Polynomial {
                 terms: new_polya,
                 base: polya.base,
             };
-        }
 
+        }
         ((polya, polyb), remainder)
-    }
-
-    fn gcd(self, other: Polynomial) -> Polynomial {
-        let (mut a, mut b) = if self.order() > other.order() {
-            (self, other)
-        } else {
-            (other, self)
-        };
-        while b.order() != 0 {
-            let (_, r) = a.div_rational(b.clone());
-            (a, b) = (b, r);
-            println!(
-                "Leftside: {}, Remainder: {}, order: {}",
-                a.clone().to_equation().simplify(),
-                b.clone().to_equation().simplify(),
-                b.order()
-            );
-        }
-        todo!()
     }
 
     fn from_equation(x: Equation, base: Variable) -> Polynomial {
