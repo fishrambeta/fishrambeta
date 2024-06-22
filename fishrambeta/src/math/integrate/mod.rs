@@ -6,7 +6,7 @@ mod bogointegrate;
 
 impl Equation {
     pub fn integrate(&self, integrate_to: &Variable) -> Equation {
-        let mut equation_to_integrate: Equation = (*self).clone().simplify();
+        let mut equation_to_integrate: Equation = (*self).clone(); //TODO simplify again
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
 
@@ -14,16 +14,17 @@ impl Equation {
             if equation_to_integrate.has_factor(&fixed_term)
                 && fixed_term.term_is_constant(&integrate_to)
             {
-                equation_to_integrate = equation_to_integrate.remove_factor(&fixed_term).simplify();
-                integrated_equation.push(fixed_term);
+                //equation_to_integrate = equation_to_integrate.remove_factor(&fixed_term).simplify();
+                //integrated_equation.push(fixed_term);
             }
         }
 
         loop {
-            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
-                integrated_equation.push(integrated_term);
-                break;
-            }
+            println!("Equation to integrate: {}", equation_to_integrate);
+            //if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
+            //    integrated_equation.push(integrated_term);
+            //    break;
+            //}
 
             if equation_to_integrate.is_rational_function(&integrate_to) {
                 equation_to_integrate.integrate_rational(&integrate_to);
@@ -91,8 +92,11 @@ impl Equation {
         if let Equation::Division(d) = self {
             let a = Polynomial::from_equation(d.0, integrate_to.clone());
             let b = Polynomial::from_equation(d.1, integrate_to.clone());
+            let (quotient, remainder) = a.clone().div(&b);
+            println!("Quotient: {}", quotient.simplify().simplify());
+            println!("Remainder: {}", remainder.simplify().simplify());
             let gcd = a.gcd(b);
-            //let (quotient, remainder) = a.div_rational(&b);
+            println!("GCD: {}", gcd.simplify().simplify());
         } else {
             todo!()
         }

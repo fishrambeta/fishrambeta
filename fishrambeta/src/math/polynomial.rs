@@ -10,18 +10,19 @@ pub struct Polynomial {
 impl Polynomial {
     pub fn to_latex(&self) -> String {
         let base = Equation::Variable(self.base.clone()).to_latex();
+        let degree = self.terms.len();
         return self
             .terms
             .clone()
             .into_iter()
             .rev()
             .enumerate()
-            .map(|(i, term)| format!("({})\\cdot {}^{}", term, base, i))
+            .map(|(i, term)| format!("({})\\cdot {}^{}", term, base, degree - 1 - i))
             .intersperse(" + ".to_string())
             .collect();
     }
 
-    fn simplify(self) -> Polynomial {
+    pub fn simplify(self) -> Polynomial {
         let terms: Vec<Equation> = self.terms.into_iter().map(|x| x.simplify()).collect();
         let mut terms_new: Vec<Equation> = terms
             .into_iter()
@@ -36,9 +37,9 @@ impl Polynomial {
     }
 
     /// Returns a polynomial with a value of 0
-    fn zero(base: Variable, order: i64) -> Polynomial {
+    fn zero(base: Variable, degree: i64) -> Polynomial {
         Polynomial {
-            terms: (0..=order)
+            terms: (0..=degree)
                 .map(|_| Equation::Variable(Variable::Integer(0)))
                 .collect(),
             base,
@@ -61,11 +62,18 @@ impl Polynomial {
         }
     }
 
-    fn order(&self) -> i64 {
+    pub fn degree(&self) -> i64 {
         if self.terms.len() == 0 {
             return 0;
         }
         (self.terms.len() - 1) as i64
+    }
+
+    pub fn iszero(&self) -> bool {
+        return self
+            .terms
+            .iter()
+            .all(|x| x.clone().simplify() == Equation::Variable(Variable::Integer(0)));
     }
 
     fn single_term_polynomial(term: Equation, exponent: usize, base: Variable) -> Polynomial {
@@ -77,65 +85,61 @@ impl Polynomial {
         Polynomial { terms, base }
     }
 
-    /// Takes two polynomails a and b, and computes the division a/b and remainder a%b. Which it
-    /// returns (a//b, a%b). This algorithm was (re)invented by Ruben Bartelet.
-    fn div_rational(self, other: &Polynomial) -> (Polynomial, Polynomial) {
+    /// Algorithm from wikipedia: Polynomial long division
+    pub fn div(self, other: &Polynomial) -> (Polynomial, Polynomial) {
         let base = self.base.clone();
         if base != other.base {
             panic!("Polynomials must have the same base to divide")
         }
-        let mut remainder = self.simplify();
+
         let divisor = other;
+        let mut remainder = self.simplify();
+        let mut quotient = Polynomial::zero(base.clone(), remainder.degree() - divisor.degree());
 
-        let mut quotient = Polynomial::zero(base.clone(), remainder.order() - divisor.order());
-        while remainder.order() >= divisor.order() {
-            let n = remainder.order() as usize;
-            let m = divisor.order() as usize;
-            let exponent = n - m;
-
-            let first_coefficient = Equation::Division(Box::new((
-                remainder.terms.remove(n),
-                divisor.terms[m].clone(),
-            )));
-            quotient.terms[exponent] = first_coefficient.clone().simplify();
-
-            let mut new_remainder = vec![];
-            for i in 0..n - m {
-                new_remainder.push(remainder.terms[i].clone());
-            }
-            for i in n - m..n {
-                new_remainder.push(Equation::Addition(vec![
-                    remainder.terms[i].clone(),
-                    Equation::Negative(Box::new(Equation::Multiplication(vec![
-                        first_coefficient.clone(),
-                        divisor.terms[i + m - n].clone(),
-                    ]))),
-                ]))
-            }
-            remainder = Polynomial {
-                terms: new_remainder,
-                base: remainder.base,
-            };
+        while remainder.degree() >= divisor.degree() && !remainder.iszero() {
+            let remainder_degree = remainder.degree();
+            let t = Polynomial::single_term_polynomial(
+                Equation::Division(Box::new((
+                    remainder.terms[remainder.degree() as usize].clone(),
+                    divisor.terms[divisor.degree() as usize].clone(),
+                ))),
+                (remainder.degree() - divisor.degree()) as usize,
+                base.clone(),
+            );
+            quotient = quotient + t.clone();
+            remainder = remainder - t * divisor.clone();
+            remainder.terms.truncate((remainder_degree) as usize);
         }
+
         (quotient, remainder)
     }
 
-    pub fn gcd(self, other: Polynomial) {
-        let a = self;
-        let b = other;
+    pub fn gcd(self, other: Polynomial) -> Polynomial {
+        let a = self.simplify();
+        let b = other.simplify();
 
         println!(
             "Gcd step a: {}",
-            a.clone().to_equation().simplify_until_complete()
+            a
         );
         println!(
             "Gcd step b: {}",
-            b.clone().to_equation().simplify_until_complete()
+            b
         );
-        let (q, r) = a.div_rational(&b);
+        if b.iszero() {
+            println!("Is zero");
+            return a;
+        }
+
+        let (q, r) = a.div(&b);
+        let r = r.simplify().simplify();
         println!(
             "Gcd step r: {}",
-            r.clone().to_equation().simplify_until_complete()
+            r
+        );
+        println!(
+            "Gcd step q: {}\n",
+            q.simplify().simplify()
         );
         return b.gcd(r);
     }
@@ -262,6 +266,34 @@ impl std::ops::Add for Polynomial {
         }
         Polynomial {
             terms: new_polynomial_terms,
+            base: self.base,
+        }
+    }
+}
+
+impl std::ops::Sub for Polynomial {
+    type Output = Self;
+
+    fn sub(self, other: Polynomial) -> Self::Output {
+        if self.base != other.base {
+            panic!("Bases must be the same to add polynomials")
+        }
+
+        return self + -other;
+    }
+}
+
+impl std::ops::Neg for Polynomial {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let new_terms: Vec<Equation> = self
+            .terms
+            .into_iter()
+            .map(|x| Equation::Negative(Box::new(x)))
+            .collect();
+        Polynomial {
+            terms: new_terms,
             base: self.base,
         }
     }
