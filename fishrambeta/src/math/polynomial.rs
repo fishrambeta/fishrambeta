@@ -85,6 +85,25 @@ impl Polynomial {
         Polynomial { terms, base }
     }
 
+    /// Returns a monic version of the polynomial (one where the first coefficient is one), and the
+    /// original first coefficient
+    fn to_monic(mut self) -> (Polynomial, Equation) {
+        let leading_coefficient = self.terms.remove(self.terms.len() - 1);
+        let mut new_terms: Vec<_> = self
+            .terms
+            .into_iter()
+            .map(|x| Equation::Division(Box::new((x, leading_coefficient.clone()))))
+            .collect();
+        new_terms.push(Equation::Variable(Variable::Integer(1)));
+        return (
+            Polynomial {
+                terms: new_terms,
+                base: self.base,
+            },
+            leading_coefficient,
+        );
+    }
+
     /// Algorithm from wikipedia: Polynomial long division
     pub fn div(self, other: &Polynomial) -> (Polynomial, Polynomial) {
         let base = self.base.clone();
@@ -122,7 +141,8 @@ impl Polynomial {
         println!("Gcd step b: {}", b);
         if b.iszero() {
             println!("Is zero");
-            return a;
+            let (gcd, _) = a.to_monic();
+            return gcd;
         }
 
         let (q, r) = a.div(&b);
