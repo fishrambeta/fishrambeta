@@ -118,14 +118,8 @@ impl Polynomial {
         let a = self.simplify();
         let b = other.simplify();
 
-        println!(
-            "Gcd step a: {}",
-            a
-        );
-        println!(
-            "Gcd step b: {}",
-            b
-        );
+        println!("Gcd step a: {}", a);
+        println!("Gcd step b: {}", b);
         if b.iszero() {
             println!("Is zero");
             return a;
@@ -133,14 +127,8 @@ impl Polynomial {
 
         let (q, r) = a.div(&b);
         let r = r.simplify().simplify();
-        println!(
-            "Gcd step r: {}",
-            r
-        );
-        println!(
-            "Gcd step q: {}\n",
-            q.simplify().simplify()
-        );
+        println!("Gcd step r: {}", r);
+        println!("Gcd step q: {}\n", q.simplify().simplify());
         return b.gcd(r);
     }
 
