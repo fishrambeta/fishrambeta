@@ -106,6 +106,9 @@ impl Equation {
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
             Equation::Variable(v) => v != integrate_to,
             Equation::Abs(a) => a.term_is_constant(integrate_to),
+            Equation::Derivative(_) => {
+                panic!("Derivative cannot be integrated")
+            }
         }
     }
 

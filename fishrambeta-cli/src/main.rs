@@ -1,7 +1,6 @@
 use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
-use fishrambeta::parser;
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -53,11 +52,7 @@ impl fmt::Display for Result {
 
 fn main() {
     let args = Args::parse();
-    let equation = parser::IR::latex_to_equation(
-        args.equation.chars().collect::<Vec<_>>(),
-        args.implicit_multiplication,
-    );
-
+    let equation = Equation::from_latex(&args.equation);
     println!("Input equation: {}", equation);
 
     use std::time::Instant;

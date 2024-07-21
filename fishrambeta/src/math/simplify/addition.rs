@@ -66,11 +66,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 let term: Vec<Equation> = multiplication
                     .into_iter()
                     .filter(|x| {
-                        if let None = x.get_number_or_none() {
-                            true
-                        } else {
-                            false
-                        }
+                        x.get_number_or_none().is_none()
                     })
                     .collect();
                 (Equation::Multiplication(term).simplify(), count)

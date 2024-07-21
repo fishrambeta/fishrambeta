@@ -1,42 +1,37 @@
-use fishrambeta::{self, math::Variable, physicsvalues};
+use fishrambeta::{
+    self,
+    math::{Equation, Variable},
+    physicsvalues,
+};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn simplify(equation: &str) -> String {
-    let parsed = fishrambeta::parser::IR::latex_to_equation(
-        equation.to_string().chars().collect::<Vec<_>>(),
-        true,
-    );
+    let parsed = Equation::from_latex(equation);
     let simplified = parsed.simplify_until_complete();
 
-    fishrambeta::parser::IR::equation_to_latex(simplified, true)
+    simplified.to_latex()
 }
 
 #[wasm_bindgen]
 pub fn differentiate(equation: &str) -> String {
-    let parsed = fishrambeta::parser::IR::latex_to_equation(
-        equation.to_string().chars().collect::<Vec<_>>(),
-        true,
-    );
+    let parsed = Equation::from_latex(equation);
     let differentiated = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
 
-    fishrambeta::parser::IR::equation_to_latex(differentiated, true)
+    differentiated.to_latex()
 }
 
 #[wasm_bindgen]
 pub fn integrate(equation: &str) -> String {
-    let parsed = fishrambeta::parser::IR::latex_to_equation(
-        equation.to_string().chars().collect::<Vec<_>>(),
-        true,
-    );
-    let differentiated = parsed
+    let parsed = Equation::from_latex(equation);
+    let integrated = parsed
         .integrate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
 
-    fishrambeta::parser::IR::equation_to_latex(differentiated, true)
+    integrated.to_latex()
 }
 
 #[wasm_bindgen]
@@ -48,9 +43,7 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
         user_values_values,
     );
     values.extend(user_values_hashmap);
-    let equationstring = equation.to_string().chars().collect::<Vec<_>>();
-    let parsed: fishrambeta::math::Equation =
-        fishrambeta::parser::IR::latex_to_equation(equationstring, true);
+    let parsed: Equation = Equation::from_latex(equation);
 
     parsed.calculate(&values)
 }

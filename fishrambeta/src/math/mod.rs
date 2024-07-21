@@ -9,7 +9,6 @@ mod integrate;
 mod multiply_by;
 mod polynomial;
 mod simplify;
-mod to_latex;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
@@ -25,6 +24,7 @@ pub enum Equation {
     Sin(Box<Equation>),
     Cos(Box<Equation>),
     Abs(Box<Equation>),
+    Derivative((Box<(Equation, Equation)>, bool)),
 }
 ///Represents a single number
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
@@ -53,22 +53,6 @@ impl Equation {
     fn get_integer_or_none(&self) -> Option<i64> {
         match self {
             Equation::Variable(Variable::Integer(n)) => Some(*n),
-            _ => None,
-        }
-    }
-}
-
-impl Variable {
-    fn get_number_or_none(&self) -> Option<Rational64> {
-        match self {
-            Variable::Integer(n) => Some((*n).into()),
-            Variable::Rational(r) => Some(*r),
-            _ => None,
-        }
-    }
-    fn get_integer_or_none(&self) -> Option<i64> {
-        match self {
-            Variable::Integer(n) => Some(*n),
             _ => None,
         }
     }

@@ -8,7 +8,6 @@ mod multiplication;
 mod power;
 
 impl Equation {
-    ///
     pub fn simplify_until_complete(self) -> Self {
         let mut equation = self.clone();
         let mut previous = equation.to_latex();
@@ -82,6 +81,9 @@ impl Equation {
             Equation::Abs(abs) => Equation::Abs(Box::new(abs.simplify())),
             Equation::Equals(equation) => {
                 Equation::Equals(Box::new((equation.0.simplify(), equation.1.simplify())))
+            }
+            Equation::Derivative(_) => {
+                panic!("Derivative cannot be simplified")
             }
         }
     }
