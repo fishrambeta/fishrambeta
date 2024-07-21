@@ -1,87 +1,268 @@
-use num_rational::Rational64;
-
 use crate::math::{Constant, Equation, Variable};
+use std::fmt;
 
-mod equation;
-mod latex;
-mod numpy;
+impl Equation {
+    pub fn from_latex(latex: &str) -> Equation {
+        //Cleanup steps
+        let cleaned_latex = latex
+            .replace("\\left(", "(")
+            .replace("\\right)", ")")
+            .replace("\\cdot", "*");
 
-pub struct IR {
-    name: Vec<char>,
-    parameters: Vec<(IR, BracketType)>,
-    subscript: Option<(Vec<char>, BracketType)>,
-    superscript: Option<(Vec<char>, BracketType)>,
-}
-impl IR {
-    pub fn latex_to_equation(latex: Vec<char>, implicit_multiplication: bool) -> Equation {
-        let sanitized_latex = cleanup_latex(latex);
-        return Self::latex_to_ir(sanitized_latex, implicit_multiplication, true, true)
-            .unwrap()
-            .ir_to_equation();
+        return Equation::from_latex_internal(&cleaned_latex);
     }
-    pub fn equation_to_latex(equation: Equation, implicit_multiplication: bool) -> String {
-        Self::equation_to_ir(equation)
-            .ir_to_latex(implicit_multiplication)
-            .into_iter()
-            .collect::<String>()
-    }
-    pub fn equation_to_numpy(equation: Equation, implicit_multiplication: bool) -> String {
-        Self::equation_to_ir(equation)
-            .ir_to_numpy(implicit_multiplication)
-            .into_iter()
-            .collect::<String>()
-    }
-}
-pub enum BracketType {
-    None,
-    Curly,
-    Square,
-    Round,
-    Angle,
-}
-impl BracketType {
-    pub fn opening_bracket(&self) -> Option<char> {
-        return match self {
-            Self::None => None,
-            Self::Angle => Some('⟨'),
-            Self::Curly => Some('{'),
-            Self::Square => Some('['),
-            Self::Round => Some('('),
-        };
-    }
-    pub fn closing_bracket(&self) -> Option<char> {
-        return match self {
-            BracketType::None => None,
-            BracketType::Curly => Some('}'),
-            BracketType::Square => Some(']'),
-            BracketType::Round => Some(')'),
-            BracketType::Angle => Some('⟩'),
-        };
-    }
-    pub fn is_opening_bracket(char: char) -> bool {
-        char == '{' || char == '[' || char == '(' || char == '⟨'
-    }
-    pub fn is_closing_bracket(char: char) -> bool {
-        char == '}' || char == ']' || char == ')' || char == '⟩'
-    }
-    pub fn get_opening_bracket_type(char: char) -> Self {
-        match char {
-            '(' => BracketType::Round,
-            '[' => BracketType::Square,
-            '{' => BracketType::Curly,
-            '⟨' => BracketType::Angle,
-            _ => BracketType::None,
+
+    fn from_latex_internal(latex: &str) -> Equation {
+        println!("Parsing from latex: {}", latex);
+
+        if latex.starts_with("-") {
+            return Equation::from_latex_internal(&latex[1..]);
+        }
+
+        if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
+            return Equation::Addition(vec![
+                Equation::from_latex_internal(a),
+                Equation::from_latex_internal(b),
+            ]);
+        }
+
+        if let Some((a, b)) = split_latex_at_operator(latex, &'-') {
+            return Equation::Addition(vec![
+                Equation::from_latex_internal(a),
+                Equation::Negative(Box::new(Equation::from_latex_internal(b))),
+            ]);
+        }
+
+        if let Some((a, b)) = split_latex_at_operator(latex, &'*') {
+            return Equation::Multiplication(vec![
+                Equation::from_latex_internal(a),
+                Equation::from_latex_internal(b),
+            ]);
+        }
+
+        if let Some((a, b)) = split_latex_at_operator(latex, &'/') {
+            return Equation::Division(Box::new((
+                Equation::from_latex_internal(a),
+                Equation::from_latex_internal(b),
+            )));
+        }
+
+        if let Ok(num) = latex.parse::<i64>() {
+            return Equation::Variable(Variable::Integer(num));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\frac") {
+            assert_eq!(parameters.len(), 2);
+            return Equation::Division(Box::new((
+                Equation::from_latex_internal(parameters[0]),
+                Equation::from_latex_internal(parameters[1]),
+            )));
+        }
+
+        if is_in_redundant_brackets(latex) {
+            return Equation::from_latex_internal(&latex[1..latex.len() - 1]);
+        }
+
+        if let Some((a, b)) = split_latex_at_operator(latex, &'^') {
+            return Equation::Power(Box::new((
+                Equation::from_latex_internal(a),
+                Equation::from_latex_internal(b),
+            )));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\sin") {
+            assert_eq!(parameters.len(), 1);
+            return Equation::Sin(Box::new(Equation::from_latex_internal(parameters[0])));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\cos") {
+            assert_eq!(parameters.len(), 1);
+            return Equation::Cos(Box::new(Equation::from_latex_internal(parameters[0])));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\tan") {
+            assert_eq!(parameters.len(), 1);
+            return Equation::Division(Box::new((
+                Equation::Sin(Box::new(Equation::from_latex_internal(parameters[0]))),
+                Equation::Cos(Box::new(Equation::from_latex_internal(parameters[0]))),
+            )));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\ln") {
+            assert_eq!(parameters.len(), 1);
+            return Equation::Ln(Box::new(Equation::from_latex_internal(parameters[0])));
+        }
+
+        match latex {
+            "\\pi" => return Equation::Variable(Variable::Constant(Constant::PI)),
+            "e" => return Equation::Variable(Variable::Constant(Constant::E)),
+            letter => {
+                if letter.len() != 1 {
+                    todo!()
+                }
+                return Equation::Variable(Variable::Letter(letter.to_string()));
+            }
         }
     }
+
+    pub fn to_latex(&self) -> String {
+        return match self {
+            Equation::Variable(v) => match v {
+                Variable::Integer(i) => return i.to_string(),
+                Variable::Rational(r) => {
+                    return format!("\\frac{{{}}}{{{}}}", r.numer(), r.denom())
+                }
+                Variable::Constant(c) => match c {
+                    Constant::PI => "\\pi".to_string(),
+                    Constant::E => "e".to_string(),
+                },
+                Variable::Letter(l) => return l.to_string(),
+                Variable::Vector(_) => todo!(),
+            },
+            Equation::Negative(n) => format!("-({})", n.to_latex()),
+            Equation::Addition(a) => a
+                .iter()
+                .map(|t| format!("({})", t.to_latex()))
+                .collect::<Vec<_>>()
+                .join("+"),
+            Equation::Multiplication(m) => m
+                .iter()
+                .map(|t| format!("({})", t.to_latex()))
+                .collect::<Vec<_>>()
+                .join("*"),
+            Equation::Division(d) => format!("\\frac{{{}}}{{{}}}", d.0, d.1),
+            Equation::Power(p) => format!("({})^{{{}}}", p.0, p.1),
+            Equation::Ln(l) => format!("\\ln({})", l),
+            Equation::Equals(e) => format!("{}={}", e.0, e.1),
+            Equation::Sin(s) => format!("\\sin({})", s),
+            Equation::Cos(c) => format!("\\cos({})", c),
+            Equation::Abs(a) => format!("|{}|", a),
+            Equation::Derivative(_) => todo!(),
+        };
+    }
+
+    pub fn to_numpy(&self) -> String {
+        return match self {
+            Equation::Variable(v) => match v {
+                Variable::Integer(i) => return i.to_string(),
+                Variable::Rational(r) => return format!("({})/({})", r.numer(), r.denom()),
+                Variable::Constant(c) => match c {
+                    Constant::PI => "np.pi".to_string(),
+                    Constant::E => "np.e".to_string(),
+                },
+                Variable::Letter(l) => return l.to_string(),
+                Variable::Vector(_) => todo!(),
+            },
+            Equation::Negative(n) => format!("-({})", n.to_latex()),
+            Equation::Addition(a) => a
+                .iter()
+                .map(|t| format!("({})", t.to_latex()))
+                .collect::<Vec<_>>()
+                .join("+"),
+            Equation::Multiplication(m) => m
+                .iter()
+                .map(|t| format!("({})", t.to_latex()))
+                .collect::<Vec<_>>()
+                .join("*"),
+            Equation::Division(d) => format!("({})/({})", d.0, d.1),
+            Equation::Power(p) => format!("np.power(({}),{{{}}})", p.0, p.1),
+            Equation::Ln(l) => format!("np.log({})", l),
+            Equation::Equals(e) => format!("{}={}", e.0, e.1),
+            Equation::Sin(s) => format!("np.sin({})", s),
+            Equation::Cos(c) => format!("np.cos({})", c),
+            Equation::Abs(a) => format!("np.abs({})", a),
+            Equation::Derivative(_) => todo!(),
+        };
+    }
 }
-pub fn cleanup_latex(latex: Vec<char>) -> Vec<char> {
-    return latex
-        .into_iter()
-        .collect::<String>()
-        .replace("\\cdot", "*")
-        .replace(" ", "")
-        .replace("\\left", "")
-        .replace("\\right", "")
-        .chars()
-        .collect::<Vec<char>>();
+
+fn is_in_redundant_brackets(latex: &str) -> bool {
+    if !is_opening_bracket(latex.chars().next().expect("Latex string cannot be empty"))
+        || !is_closing_bracket(latex.chars().last().expect("Latex string cannot be empty"))
+    {
+        return false;
+    }
+    let mut current_depth = 0;
+    let length = latex.len();
+    for (i, c) in latex.chars().enumerate() {
+        if is_opening_bracket(c) {
+            current_depth += 1
+        }
+        if is_closing_bracket(c) {
+            current_depth -= 1
+        }
+
+        if current_depth == 0 {
+            return i + 1 == length;
+        }
+    }
+    todo!()
+}
+
+fn parse_latex_with_command<'a>(latex: &'a str, command: &'a str) -> Option<Vec<&'a str>> {
+    if !latex.starts_with(command) {
+        return None;
+    }
+    let stripped_latex = &latex[command.len()..];
+
+    let mut current_depth = 0;
+    let mut parameter_indices: Vec<usize> = vec![];
+    for (i, c) in stripped_latex.chars().enumerate() {
+        if current_depth == 0 {
+            parameter_indices.push(i);
+        }
+
+        if is_opening_bracket(c) {
+            current_depth += 1
+        }
+        if is_closing_bracket(c) {
+            current_depth -= 1
+        }
+    }
+
+    let mut parameters: Vec<&str> = vec![];
+    for i in 0..parameter_indices.len() - 1 {
+        parameters.push(&stripped_latex[parameter_indices[i] + 1..parameter_indices[i + 1] - 1]);
+    }
+    parameters.push(
+        &stripped_latex
+            [parameter_indices[parameter_indices.len() - 1] + 1..stripped_latex.len() - 1],
+    );
+    Some(parameters)
+}
+
+impl fmt::Display for Equation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_latex())
+    }
+}
+
+fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'a str, &'a str)> {
+    let mut current_depth = 0;
+    let mut right_start = latex.len();
+    for (i, c) in latex.chars().rev().enumerate() {
+        if is_opening_bracket(c) {
+            current_depth += 1
+        }
+        if is_closing_bracket(c) {
+            current_depth -= 1
+        }
+
+        if c == *operator && current_depth == 0 {
+            right_start = right_start - i - 1;
+            break;
+        }
+    }
+    if right_start != latex.len() {
+        return Some((&latex[..right_start], &latex[right_start + 1..]));
+    } else {
+        return None;
+    }
+}
+
+fn is_opening_bracket(c: char) -> bool {
+    return ['(', '{'].contains(&c);
+}
+fn is_closing_bracket(c: char) -> bool {
+    return [')', '}'].contains(&c);
 }

@@ -8,7 +8,6 @@ mod factors;
 mod integrate;
 mod multiply_by;
 mod simplify;
-mod to_latex;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
