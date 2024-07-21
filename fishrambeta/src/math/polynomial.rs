@@ -170,7 +170,7 @@ impl Polynomial {
 
     /// Compute the square free factorization of a polynomial, algorithm 8.2 from algorithms for
     /// computer algebra
-    pub fn square_free_factorization(self) -> Vec<(Polynomial, usize)> {
+    pub fn square_free_factorization(self) -> Vec<Polynomial> {
         let mut factors: Vec<_> = vec![];
         let mut i = 1;
         let a = self.clone().simplify();
@@ -181,12 +181,12 @@ impl Polynomial {
         while (!c.is_one()) {
             let y = c.clone().gcd(w.clone()).simplify();
             let (z, _) = w.clone().div(y.clone());
-            factors.push((z.simplify(), i));
+            factors.push(z.simplify());
             w = y.clone();
             (c, _) = c.div(y);
             i += 1;
         }
-        factors.push((w, i));
+        factors.push(w);
         return factors;
     }
 

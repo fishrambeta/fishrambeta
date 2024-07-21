@@ -26,9 +26,18 @@ impl Equation {
 
             // Now that we have gcd(r,q)=1 and q monic, we can continue by doing doing square-free
             // factorization on q.
-            let factorization = q.square_free_factorization();
+            hermite_algorithm(p, q);
             todo!()
         }
         todo!("Cannot create rational function from arbitrary stuff yet");
     }
+}
+
+/// Apply hermite's algorithm to reduce the polynomial integral. Requires q to be monic and
+/// square-free.
+fn hermite_algorithm(p: Polynomial, q: Polynomial) {
+    let mut factorization = q.square_free_factorization();
+    let k = factorization.len();
+    let f = factorization.remove(k - 1);
+    let g = factorization;
 }
