@@ -101,8 +101,8 @@ impl Equation {
             Equation::Cos(t) => t.term_is_constant(integrate_to),
             Equation::Ln(t) => t.term_is_constant(integrate_to),
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
-            Equation::Variable(v) => return v != integrate_to,
-            Equation::Abs(a) => return a.term_is_constant(integrate_to),
+            Equation::Variable(v) => v != integrate_to,
+            Equation::Abs(a) => a.term_is_constant(integrate_to),
             Equation::Derivative(_) => {
                 panic!("Derivative cannot be integrated")
             }

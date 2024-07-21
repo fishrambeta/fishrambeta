@@ -88,7 +88,7 @@ impl Equation {
                 )))
             }
             Equation::Abs(abs) => {
-                return Equation::Division(Box::new((
+                Equation::Division(Box::new((
                     Equation::Multiplication(vec![
                         *abs.clone(),
                         abs.differentiate(differentiate_to),

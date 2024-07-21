@@ -9,12 +9,12 @@ impl Equation {
             .replace("\\right)", ")")
             .replace("\\cdot", "*");
 
-        return Equation::from_latex_internal(&cleaned_latex);
+        Equation::from_latex_internal(&cleaned_latex)
     }
 
     fn from_latex_internal(latex: &str) -> Equation {
-        if latex.starts_with("-") {
-            return Equation::from_latex_internal(&latex[1..]);
+        if let Some(stripped) = latex.strip_prefix("-") {
+            return Equation::from_latex_internal(stripped);
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
@@ -92,13 +92,13 @@ impl Equation {
         }
 
         match latex {
-            "\\pi" => return Equation::Variable(Variable::Constant(Constant::PI)),
-            "e" => return Equation::Variable(Variable::Constant(Constant::E)),
+            "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
+            "e" => Equation::Variable(Variable::Constant(Constant::E)),
             letter => {
                 if letter.len() != 1 {
                     todo!()
                 }
-                return Equation::Variable(Variable::Letter(letter.to_string()));
+                Equation::Variable(Variable::Letter(letter.to_string()))
             }
         }
     }
@@ -252,15 +252,15 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
         }
     }
     if right_start != latex.len() {
-        return Some((&latex[..right_start], &latex[right_start + 1..]));
+        Some((&latex[..right_start], &latex[right_start + 1..]))
     } else {
-        return None;
+        None
     }
 }
 
 fn is_opening_bracket(c: char) -> bool {
-    return ['(', '{'].contains(&c);
+    ['(', '{'].contains(&c)
 }
 fn is_closing_bracket(c: char) -> bool {
-    return [')', '}'].contains(&c);
+    [')', '}'].contains(&c)
 }

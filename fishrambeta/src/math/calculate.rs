@@ -12,7 +12,7 @@ impl Equation {
                     }
                     _ => {}
                 }
-                values[&variable]
+                values[variable]
             }
             Equation::Negative(negative) => -negative.calculate(values),
             Equation::Addition(addition) => {

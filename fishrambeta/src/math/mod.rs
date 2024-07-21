@@ -56,19 +56,3 @@ impl Equation {
         }
     }
 }
-
-impl Variable {
-    fn get_number_or_none(&self) -> Option<Rational64> {
-        match self {
-            Variable::Integer(n) => Some((*n).into()),
-            Variable::Rational(r) => Some(*r),
-            _ => None,
-        }
-    }
-    fn get_integer_or_none(&self) -> Option<i64> {
-        match self {
-            Variable::Integer(n) => Some(*n),
-            _ => None,
-        }
-    }
-}

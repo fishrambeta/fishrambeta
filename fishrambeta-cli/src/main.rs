@@ -1,7 +1,6 @@
 use clap::Parser;
 use clap::ValueEnum;
 use fishrambeta::math::{Equation, Variable};
-use fishrambeta::parser;
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 use std::fmt;

@@ -40,58 +40,42 @@ fn random_equation(
     complexity: u32,
 ) -> Equation {
     match rng.gen_range(1..200 + 2_i64.pow(complexity)) {
-        0..=10 => {
-            Equation::Addition(vec![
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            ])
-        }
-        11..=20 => {
-            Equation::Multiplication(vec![
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            ])
-        }
-        21..=30 => {
-            Equation::Division(Box::new((
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            )))
-        }
-        31..=40 => {
-            Equation::Sin(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 2,
-            )))
-        }
-        41..=50 => {
-            Equation::Cos(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        51..=60 => {
-            Equation::Ln(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        61..=70 => {
-            Equation::Negative(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        71..=80 => {
-            Equation::Power(Box::new((
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            )))
-        }
+        0..=10 => Equation::Addition(vec![
+            random_equation(relevant_variables, rng, complexity + 2),
+            random_equation(relevant_variables, rng, complexity + 2),
+        ]),
+        11..=20 => Equation::Multiplication(vec![
+            random_equation(relevant_variables, rng, complexity + 2),
+            random_equation(relevant_variables, rng, complexity + 2),
+        ]),
+        21..=30 => Equation::Division(Box::new((
+            random_equation(relevant_variables, rng, complexity + 2),
+            random_equation(relevant_variables, rng, complexity + 2),
+        ))),
+        31..=40 => Equation::Sin(Box::new(random_equation(
+            relevant_variables,
+            rng,
+            complexity + 2,
+        ))),
+        41..=50 => Equation::Cos(Box::new(random_equation(
+            relevant_variables,
+            rng,
+            complexity + 1,
+        ))),
+        51..=60 => Equation::Ln(Box::new(random_equation(
+            relevant_variables,
+            rng,
+            complexity + 1,
+        ))),
+        61..=70 => Equation::Negative(Box::new(random_equation(
+            relevant_variables,
+            rng,
+            complexity + 1,
+        ))),
+        71..=80 => Equation::Power(Box::new((
+            random_equation(relevant_variables, rng, complexity + 2),
+            random_equation(relevant_variables, rng, complexity + 2),
+        ))),
         _ => match rng.gen_range(1..3) {
             1 => {
                 return Equation::Variable(Variable::Letter(
@@ -99,12 +83,10 @@ fn random_equation(
                 ))
             }
             2 => Equation::Variable(Variable::Integer(rng.gen_range(1..10))),
-            3 => {
-                Equation::Variable(Variable::Rational(Rational64::from((
-                    rng.gen_range(-10..10),
-                    rng.gen_range(1..10),
-                ))))
-            }
+            3 => Equation::Variable(Variable::Rational(Rational64::from((
+                rng.gen_range(-10..10),
+                rng.gen_range(1..10),
+            )))),
             _ => unreachable!(),
         },
     }
