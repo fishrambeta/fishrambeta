@@ -1,122 +1,64 @@
+use crate::math::Constant;
+
 use super::{Equation, Variable};
-use num_rational::Rational64;
-use rand::rngs::ThreadRng;
-use rand::{seq::SliceRandom, Rng};
 use rayon::prelude::*;
 
-struct AllPrimitives {
-    integrate_to: Variable,
-    index: u64,
-    rng: ThreadRng,
-}
+fn all_equations(integrate_to: &Variable, depth: u32) -> Vec<Equation> {
+    let mut equations: Vec<_> = all_variable_equations(integrate_to, depth);
 
-unsafe impl Send for AllPrimitives {}
-
-impl Iterator for AllPrimitives {
-    type Item = Equation;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.index += 1;
-        let equation = random_equation(&vec!["x".to_string()], &mut self.rng, 0);
-        if self.index % 10000 == 0 {
-            println!("{}: Guessing equation: {}", self.index, equation);
-        }
-        return Some(equation);
+    if depth == 0 {
+        return equations;
     }
-}
 
-fn primitives_iter(integrate_to: &Variable) -> AllPrimitives {
-    let all_primitives = AllPrimitives {
-        integrate_to: integrate_to.clone(),
-        index: 0,
-        rng: rand::thread_rng(),
-    };
-    return all_primitives.into_iter();
-}
-
-fn random_equation(
-    relevant_variables: &Vec<String>,
-    rng: &mut ThreadRng,
-    complexity: u32,
-) -> Equation {
-    match rng.gen_range(1..200 + 2_i64.pow(complexity)) {
-        0..=10 => {
-            return Equation::Addition(vec![
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            ])
+    for x in all_equations(integrate_to, depth - 1) {
+        for y in all_equations(integrate_to, depth - 1) {
+            equations.push(Equation::Addition(vec![x.clone(), y.clone()]));
+            equations.push(Equation::Multiplication(vec![x.clone(), y.clone()]));
+            equations.push(Equation::Division(Box::new((x.clone(), y.clone()))));
+            equations.push(Equation::Power(Box::new((x.clone(), y.clone()))));
         }
-        11..=20 => {
-            return Equation::Multiplication(vec![
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            ])
-        }
-        21..=30 => {
-            return Equation::Division(Box::new((
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            )))
-        }
-        31..=40 => {
-            return Equation::Sin(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 2,
-            )))
-        }
-        41..=50 => {
-            return Equation::Cos(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        51..=60 => {
-            return Equation::Ln(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        61..=70 => {
-            return Equation::Negative(Box::new(random_equation(
-                relevant_variables,
-                rng,
-                complexity + 1,
-            )))
-        }
-        71..=80 => {
-            return Equation::Power(Box::new((
-                random_equation(relevant_variables, rng, complexity + 2),
-                random_equation(relevant_variables, rng, complexity + 2),
-            )))
-        }
-        _ => match rng.gen_range(1..3) {
-            1 => {
-                return Equation::Variable(Variable::Letter(
-                    relevant_variables.choose(rng).unwrap().clone(),
-                ))
-            }
-            2 => return Equation::Variable(Variable::Integer(rng.gen_range(1..10))),
-            3 => {
-                return Equation::Variable(Variable::Rational(Rational64::from((
-                    rng.gen_range(-10..10),
-                    rng.gen_range(1..10),
-                ))))
-            }
-            _ => unreachable!(),
-        },
+        equations.push(Equation::Ln(Box::new(x.clone())));
+        equations.push(Equation::Sin(Box::new(x.clone())));
+        equations.push(Equation::Cos(Box::new(x.clone())));
     }
+
+    equations
+}
+
+fn all_variable_equations(integrate_to: &Variable, depth: u32) -> Vec<Equation> {
+    let mut variables = vec![
+        Equation::Variable(integrate_to.clone()),
+        Equation::Variable(Variable::Constant(Constant::E)),
+        Equation::Variable(Variable::Constant(Constant::PI)),
+    ];
+    for i in 0..((2 as i64).pow(depth + 1)) {
+        variables.push(Equation::Variable(Variable::Integer(i)));
+    }
+    variables
 }
 
 impl Equation {
     pub(super) fn bogointegrate(&self, integrate_to: &Variable) -> Equation {
         let simplified = self.clone().simplify_until_complete();
-        return primitives_iter(integrate_to)
-            .par_bridge()
-            .find_any(|x: &Equation| x.clone().is_primitive(&simplified, integrate_to))
-            .unwrap();
+        let mut depth = 0;
+        loop {
+            let equations_to_try = all_equations(integrate_to, depth);
+            let len = equations_to_try.len();
+            println!(
+                "Searching for primitive at depth {}, number of equations: {}",
+                depth, len
+            );
+            if let Some(primitive) = equations_to_try.into_par_iter().find_any(|x| {
+                println!(
+                    "Checking {}, depth: {}. Number of equations to try: {}",
+                    x, depth, len
+                );
+                x.clone().is_primitive(&simplified, integrate_to)
+            }) {
+                return primitive;
+            }
+            depth += 1;
+        }
     }
 
     fn is_primitive(self, simplified: &Equation, integrate_to: &Variable) -> bool {

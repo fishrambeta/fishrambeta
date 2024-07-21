@@ -67,10 +67,12 @@ pub(super) fn simplify_division(division: Box<(Equation, Equation)>) -> Equation
             )));
         }
         Equation::Variable(Variable::Integer(n)) => {
-            return Equation::Multiplication(vec![
-                Equation::Variable(Variable::Rational(Rational64::new(1, n))),
-                numerator,
-            ])
+            if n != 0 {
+                return Equation::Multiplication(vec![
+                    Equation::Variable(Variable::Rational(Rational64::new(1, n))),
+                    numerator,
+                ]);
+            }
         }
         Equation::Multiplication(ref mut multiplication) => {
             if let Some(index) = multiplication
