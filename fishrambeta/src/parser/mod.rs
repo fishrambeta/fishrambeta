@@ -7,12 +7,15 @@ impl Equation {
         let cleaned_latex = latex
             .replace("\\left(", "(")
             .replace("\\right)", ")")
-            .replace("\\cdot", "*");
+            .replace("\\cdot", "*")
+            .replace(" ", "");
 
         Equation::from_latex_internal(&cleaned_latex)
     }
 
     fn from_latex_internal(latex: &str) -> Equation {
+        println!("Parsin: {}", latex);
+
         if let Some(stripped) = latex.strip_prefix("-") {
             return Equation::from_latex_internal(stripped);
         }
