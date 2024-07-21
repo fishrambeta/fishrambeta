@@ -1,7 +1,6 @@
 use super::{Equation, EquationBTreeMap, Variable};
 use num_rational::Rational64;
 
-
 fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
     let mut new_mult = vec![];
     for term in multiplication {

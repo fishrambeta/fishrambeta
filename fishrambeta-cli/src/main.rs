@@ -54,6 +54,7 @@ fn main() {
     let args = Args::parse();
     let equation = Equation::from_latex(&args.equation);
     println!("Input equation: {}", equation);
+
     use std::time::Instant;
     let now = Instant::now();
     let value_dict = fishrambeta::physicsvalues::physics_values();

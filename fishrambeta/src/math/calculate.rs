@@ -19,17 +19,12 @@ impl Equation {
                 return addition.iter().map(|x| x.calculate(values)).sum()
             }
             Equation::Multiplication(multiplication) => {
-                return multiplication
-                    .iter()
-                    .map(|x| x.calculate(values))
-                    .product()
+                return multiplication.iter().map(|x| x.calculate(values)).product()
             }
             Equation::Division(division) => {
                 division.0.calculate(values) / division.1.calculate(values)
             }
-            Equation::Power(power) => {
-                power.0.calculate(values).powf(power.1.calculate(values))
-            }
+            Equation::Power(power) => power.0.calculate(values).powf(power.1.calculate(values)),
             Equation::Ln(ln) => ln.calculate(values).ln(),
             Equation::Sin(sin) => sin.calculate(values).sin(),
             Equation::Cos(cos) => cos.calculate(values).cos(),

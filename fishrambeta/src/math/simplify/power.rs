@@ -1,8 +1,6 @@
 use super::{Equation, Variable};
 use num::Signed;
 
-
-
 pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
     let base = power.0.simplify();
     let exponent = power.1.simplify();

@@ -18,7 +18,7 @@ impl Iterator for AllPrimitives {
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
         let equation = random_equation(&vec!["x".to_string()], &mut self.rng, 0);
-        if self.index % 10000 == 0 {
+        if self.index % 10000 != 0 {
             println!("{}: Guessing equation: {}", self.index, equation);
         }
         Some(equation)
