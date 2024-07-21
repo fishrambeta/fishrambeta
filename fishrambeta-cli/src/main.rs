@@ -53,11 +53,7 @@ impl fmt::Display for Result {
 
 fn main() {
     let args = Args::parse();
-    let equation = parser::IR::latex_to_equation(
-        args.equation.chars().collect::<Vec<_>>(),
-        args.implicit_multiplication,
-    );
-
+    let equation = Equation::from_latex(&args.equation);
     println!("Input equation: {}", equation);
     use std::time::Instant;
     let now = Instant::now();
