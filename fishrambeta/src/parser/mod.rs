@@ -97,12 +97,7 @@ impl Equation {
         match latex {
             "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
             "e" => Equation::Variable(Variable::Constant(Constant::E)),
-            letter => {
-                if letter.len() != 1 {
-                    todo!()
-                }
-                Equation::Variable(Variable::Letter(letter.to_string()))
-            }
+            letter => Equation::Variable(Variable::Letter(letter.to_string())),
         }
     }
 
