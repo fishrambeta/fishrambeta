@@ -13,8 +13,6 @@ impl Equation {
     }
 
     fn from_latex_internal(latex: &str) -> Equation {
-        println!("Parsing from latex: {}", latex);
-
         if latex.starts_with("-") {
             return Equation::from_latex_internal(&latex[1..]);
         }
