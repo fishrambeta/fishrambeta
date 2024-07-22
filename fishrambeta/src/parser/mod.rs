@@ -14,8 +14,6 @@ impl Equation {
     }
 
     fn from_latex_internal(latex: &str) -> Equation {
-        println!("Parsin: {}", latex);
-
         if let Some(stripped) = latex.strip_prefix("-") {
             return Equation::from_latex_internal(stripped);
         }
@@ -115,25 +113,67 @@ impl Equation {
                 Variable::Letter(l) => return l.to_string(),
                 Variable::Vector(_) => todo!(),
             },
-            Equation::Negative(n) => format!("-({})", n.to_latex()),
+            Equation::Negative(n) => {
+                if n.needs_to_be_bracketet() {
+                    format!("-({})", n.to_latex())
+                } else {
+                    format!("-{}", n.to_latex())
+                }
+            }
             Equation::Addition(a) => a
                 .iter()
-                .map(|t| format!("({})", t.to_latex()))
+                .map(|t| {
+                    if t.needs_to_be_bracketet() {
+                        format!("({})", t.to_latex())
+                    } else {
+                        format!("{}", t.to_latex())
+                    }
+                })
                 .collect::<Vec<_>>()
                 .join("+"),
             Equation::Multiplication(m) => m
                 .iter()
-                .map(|t| format!("({})", t.to_latex()))
+                .map(|t| {
+                    if t.needs_to_be_bracketet() {
+                        format!("({})", t.to_latex())
+                    } else {
+                        format!("{}", t.to_latex())
+                    }
+                })
                 .collect::<Vec<_>>()
                 .join("*"),
             Equation::Division(d) => format!("\\frac{{{}}}{{{}}}", d.0, d.1),
-            Equation::Power(p) => format!("({})^{{{}}}", p.0, p.1),
+            Equation::Power(p) => {
+                let base = if p.0.needs_to_be_bracketet() {
+                    format!("({})", p.0.to_latex())
+                } else {
+                    format!("{}", p.0.to_latex())
+                };
+                format!("{}^{{{}}}", base, p.1.to_latex())
+            }
             Equation::Ln(l) => format!("\\ln({})", l),
             Equation::Equals(e) => format!("{}={}", e.0, e.1),
             Equation::Sin(s) => format!("\\sin({})", s),
             Equation::Cos(c) => format!("\\cos({})", c),
             Equation::Abs(a) => format!("|{}|", a),
             Equation::Derivative(_) => todo!(),
+        };
+    }
+
+    fn needs_to_be_bracketet(&self) -> bool {
+        return match self {
+            Equation::Variable(_) => false,
+            Equation::Negative(_) => true,
+            Equation::Addition(a) => a.len() != 1,
+            Equation::Multiplication(m) => m.len() != 1,
+            Equation::Division(_) => false,
+            Equation::Power(_) => false,
+            Equation::Ln(_) => false,
+            Equation::Equals(_) => false,
+            Equation::Sin(_) => false,
+            Equation::Cos(_) => false,
+            Equation::Abs(_) => false,
+            Equation::Derivative(_) => true,
         };
     }
 
