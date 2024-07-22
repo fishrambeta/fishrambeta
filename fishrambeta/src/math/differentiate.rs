@@ -69,33 +69,22 @@ impl Equation {
                     (**ln).clone(),
                 )))
             }
-            Equation::Sin(sin) => {
-                Equation::Multiplication(vec![
-                    sin.differentiate(differentiate_to),
-                    Equation::Cos(sin.clone()),
-                ])
-            }
-            Equation::Cos(sin) => {
-                Equation::Negative(Box::new(Equation::Multiplication(vec![
-                    sin.differentiate(differentiate_to),
-                    Equation::Sin(sin.clone()),
-                ])))
-            }
-            Equation::Equals(equals) => {
-                Equation::Equals(Box::new((
-                    equals.0.differentiate(differentiate_to),
-                    equals.1.differentiate(differentiate_to),
-                )))
-            }
-            Equation::Abs(abs) => {
-                Equation::Division(Box::new((
-                    Equation::Multiplication(vec![
-                        *abs.clone(),
-                        abs.differentiate(differentiate_to),
-                    ]),
-                    Equation::Abs(abs.clone()),
-                )))
-            }
+            Equation::Sin(sin) => Equation::Multiplication(vec![
+                sin.differentiate(differentiate_to),
+                Equation::Cos(sin.clone()),
+            ]),
+            Equation::Cos(sin) => Equation::Negative(Box::new(Equation::Multiplication(vec![
+                sin.differentiate(differentiate_to),
+                Equation::Sin(sin.clone()),
+            ]))),
+            Equation::Equals(equals) => Equation::Equals(Box::new((
+                equals.0.differentiate(differentiate_to),
+                equals.1.differentiate(differentiate_to),
+            ))),
+            Equation::Abs(abs) => Equation::Division(Box::new((
+                Equation::Multiplication(vec![*abs.clone(), abs.differentiate(differentiate_to)]),
+                Equation::Abs(abs.clone()),
+            ))),
             Equation::Derivative(_) => {
                 panic!("Cannot differentiate derivative")
             }

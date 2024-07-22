@@ -11,8 +11,7 @@ impl Polynomial {
     pub fn to_latex(&self) -> String {
         let base = Equation::Variable(self.base.clone()).to_latex();
         let degree = self.terms.len();
-        return self
-            .terms
+        self.terms
             .clone()
             .into_iter()
             .rev()
@@ -20,7 +19,7 @@ impl Polynomial {
             .filter(|(_, x)| *x != Equation::Variable(Variable::Integer(0)))
             .map(|(i, term)| format!("({})\\cdot {}^{}", term, base, degree - 1 - i))
             .intersperse(" + ".to_string())
-            .collect();
+            .collect()
     }
 
     pub fn simplify(self) -> Polynomial {
@@ -64,7 +63,7 @@ impl Polynomial {
     }
 
     pub fn degree(&self) -> i64 {
-        if self.terms.len() == 0 {
+        if self.terms.is_empty() {
             return 0;
         }
         (self.terms.len() - 1) as i64
@@ -79,7 +78,7 @@ impl Polynomial {
 
     pub fn is_one(&self) -> bool {
         let mut terms = self.terms.clone();
-        if terms.len() == 0 {
+        if terms.is_empty() {
             return false;
         }
         if terms.remove(terms.len() - 1).simplify() == Equation::Variable(Variable::Integer(1)) {
@@ -87,7 +86,7 @@ impl Polynomial {
                 .into_iter()
                 .all(|x| x.simplify() == Equation::Variable(Variable::Integer(0)));
         }
-        return false;
+        false
     }
 
     fn single_term_polynomial(term: Equation, exponent: usize, base: Variable) -> Polynomial {
@@ -100,7 +99,7 @@ impl Polynomial {
     }
 
     pub fn differentiate(self) -> Polynomial {
-        return Polynomial {
+        Polynomial {
             terms: self
                 .terms
                 .into_iter()
@@ -114,14 +113,14 @@ impl Polynomial {
                 })
                 .collect(),
             base: self.base,
-        };
+        }
     }
 
     /// Returns a monic version of the polynomial (one where the first coefficient is one), and the
     /// original first coefficient
-    pub fn to_monic(mut self) -> (Polynomial, Equation) {
+    pub fn into_monic(mut self) -> (Polynomial, Equation) {
         let leading_coefficient = self.terms.remove(self.terms.len() - 1);
-        return (self / &leading_coefficient, leading_coefficient);
+        (self / &leading_coefficient, leading_coefficient)
     }
 
     /// Algorithm from wikipedia: Polynomial long division
@@ -156,38 +155,36 @@ impl Polynomial {
     /// Compute the polynomial GCD. Returns a monic polynomial in order to make the GCD unique
     pub fn gcd(self, other: Polynomial) -> Polynomial {
         let a = self.simplify();
-        let mut b = other.simplify();
+        let b = other.simplify();
 
         if b.is_zero() {
-            let (gcd, _) = a.to_monic();
+            let (gcd, _) = a.into_monic();
             return gcd;
         }
 
         let (q, r) = a.div(b.clone());
         let r = r.simplify().simplify();
-        return b.gcd(r);
+        b.gcd(r)
     }
 
     /// Compute the square free factorization of a polynomial, algorithm 8.2 from algorithms for
     /// computer algebra
     pub fn square_free_factorization(self) -> Vec<Polynomial> {
         let mut factors: Vec<_> = vec![];
-        let mut i = 1;
         let a = self.clone().simplify();
         let b = self.differentiate().simplify();
         let mut c = a.clone().gcd(b.clone()).simplify();
         let (mut w, _) = a.div(c.clone());
         w = w.simplify();
-        while (!c.is_one()) {
+        while !c.is_one() {
             let y = c.clone().gcd(w.clone()).simplify();
             let (z, _) = w.clone().div(y.clone());
             factors.push(z.simplify());
             w = y.clone();
             (c, _) = c.div(y);
-            i += 1;
         }
         factors.push(w);
-        return factors;
+        factors
     }
 
     pub fn from_equation(x: Equation, base: Variable) -> Polynomial {
@@ -201,11 +198,11 @@ impl Polynomial {
         match x {
             Equation::Variable(v) => {
                 if v == base {
-                    return Polynomial::single_term_polynomial(
+                    Polynomial::single_term_polynomial(
                         Equation::Variable(Variable::Integer(1)),
                         1,
                         base,
-                    );
+                    )
                 } else {
                     unreachable!()
                 }
@@ -258,17 +255,15 @@ impl Polynomial {
                 unreachable!()
             }
             Equation::Negative(n) => {
-                return Polynomial::constant(
-                    Equation::Variable(Variable::Integer(-1)),
-                    base.clone(),
-                ) * Polynomial::from_equation(*n, base);
+                Polynomial::constant(Equation::Variable(Variable::Integer(-1)), base.clone())
+                    * Polynomial::from_equation(*n, base)
             }
 
             a => unreachable!("{}", a),
         }
     }
 
-    pub fn to_equation(self) -> Equation {
+    pub fn into_equation(self) -> Equation {
         let mut total_equation: Vec<Equation> = Vec::new();
         for (exponent, equation) in self.terms.into_iter().enumerate() {
             let new_term = Equation::Multiplication(vec![
@@ -280,7 +275,7 @@ impl Polynomial {
             ]);
             total_equation.push(new_term);
         }
-        if total_equation.len() != 0 {
+        if !total_equation.is_empty() {
             Equation::Addition(total_equation)
         } else {
             Equation::Variable(Variable::Integer(0))
@@ -325,7 +320,7 @@ impl std::ops::Sub for Polynomial {
             panic!("Bases must be the same to add polynomials")
         }
 
-        return self + -other;
+        self + -other
     }
 }
 
@@ -339,10 +334,10 @@ impl std::ops::Div<&Equation> for Polynomial {
             .map(|x| Equation::Division(Box::new((x, other.clone()))))
             .collect();
         new_terms.push(Equation::Variable(Variable::Integer(1)));
-        return (Polynomial {
+        Polynomial {
             terms: new_terms,
             base: self.base,
-        });
+        }
     }
 }
 
@@ -385,7 +380,7 @@ impl std::ops::Mul for Polynomial {
         let new_terms_as_vec_of_equations: Vec<Equation> = new_terms_as_vec_of_vecs
             .into_iter()
             .map(|x| {
-                if x.len() != 0 {
+                if !x.is_empty() {
                     Equation::Addition(x)
                 } else {
                     Equation::Variable(Variable::Integer(0))

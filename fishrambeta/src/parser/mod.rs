@@ -126,7 +126,7 @@ impl Equation {
                     if t.needs_to_be_bracketet() {
                         format!("({})", t.to_latex())
                     } else {
-                        format!("{}", t.to_latex())
+                        t.to_latex()
                     }
                 })
                 .collect::<Vec<_>>()
@@ -137,7 +137,7 @@ impl Equation {
                     if t.needs_to_be_bracketet() {
                         format!("({})", t.to_latex())
                     } else {
-                        format!("{}", t.to_latex())
+                        t.to_latex()
                     }
                 })
                 .collect::<Vec<_>>()
@@ -147,7 +147,7 @@ impl Equation {
                 let base = if p.0.needs_to_be_bracketet() {
                     format!("({})", p.0.to_latex())
                 } else {
-                    format!("{}", p.0.to_latex())
+                    p.0.to_latex()
                 };
                 format!("{}^{{{}}}", base, p.1.to_latex())
             }
@@ -161,7 +161,7 @@ impl Equation {
     }
 
     fn needs_to_be_bracketet(&self) -> bool {
-        return match self {
+        match self {
             Equation::Variable(_) => false,
             Equation::Negative(_) => true,
             Equation::Addition(a) => a.len() != 1,
@@ -174,7 +174,7 @@ impl Equation {
             Equation::Cos(_) => false,
             Equation::Abs(_) => false,
             Equation::Derivative(_) => true,
-        };
+        }
     }
 
     pub fn to_numpy(&self) -> String {

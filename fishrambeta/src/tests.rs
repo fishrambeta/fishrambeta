@@ -1,5 +1,4 @@
-use crate::math::Variable::Vector;
-use crate::math::{Constant, Equation, Variable};
+use crate::math::{Equation, Variable};
 use std::collections::BTreeMap;
 
 #[rustfmt::skip]

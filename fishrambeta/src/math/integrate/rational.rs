@@ -10,8 +10,8 @@ impl Equation {
             // We must get p/q, where gcd(p,q)=1 and q is monic
             let (quotient, remainder) = a.clone().div(b.clone());
 
-            let polynomial_part = quotient.clone().to_equation().integrate(integrate_to);
-            let (q, leading_coefficient) = b.to_monic();
+            let polynomial_part = quotient.clone().into_equation().integrate(integrate_to);
+            let (q, leading_coefficient) = b.into_monic();
             let p = remainder / &leading_coefficient;
             println!("Polynomial part: {}", polynomial_part.simplify());
             assert!(
@@ -19,7 +19,7 @@ impl Equation {
                 //that by dividing, but I'll leave this in for a while.
                 p.clone()
                     .gcd(q.clone())
-                    .to_equation()
+                    .into_equation()
                     .simplify_until_complete()
                     == Equation::Variable(Variable::Integer(1))
             );

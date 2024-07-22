@@ -54,10 +54,10 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                     continue;
                 }
                 if multiplication.len() - number_of_numbers == 0 {
-                    // The multiplication is a
-                    // constant factor, so we add that factor to the addition
+                    // The multiplication is a constant factor, so we add that factor to the addition.
 
-                    // I'm sure this is some kind of mistake but I don't understand the code well enough to say what it is
+                    #[allow(dead_code)] // This is a clippy bug. This stuff is just added to (term,
+                    // count) as it should.
                     (
                         Equation::Variable(Variable::Rational(count)),
                         Equation::Variable(Variable::Integer(1)),
@@ -65,9 +65,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 }
                 let term: Vec<Equation> = multiplication
                     .into_iter()
-                    .filter(|x| {
-                        x.get_number_or_none().is_none()
-                    })
+                    .filter(|x| x.get_number_or_none().is_none())
                     .collect();
                 (Equation::Multiplication(term).simplify(), count)
             }
