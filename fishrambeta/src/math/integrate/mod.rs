@@ -59,30 +59,30 @@ impl Equation {
                     Equation::Variable(Variable::Integer(2)),
                 ))),
             ])),
-            Equation::Power(box (b, n)) if *b == Equation::Variable(integrate_to.clone()) => {
+            Equation::Power(ref power) if power.0 == Equation::Variable(integrate_to.clone()) => {
                 Some(Equation::Multiplication(vec![
                     Equation::Division(Box::new((
                         Equation::Variable(Variable::Integer(1)),
                         Equation::Addition(vec![
-                            n.clone(),
+                            power.1.clone(),
                             Equation::Variable(Variable::Integer(1)),
                         ]),
                     ))),
                     Equation::Power(Box::new((
                         Equation::Variable(integrate_to.clone()),
                         Equation::Addition(vec![
-                            n.clone(),
+                            power.1.clone(),
                             Equation::Variable(Variable::Integer(1)),
                         ]),
                     ))),
                 ]))
             }
-            Equation::Sin(box x) if *x == Equation::Variable(integrate_to.clone()) => {
+            Equation::Sin(ref x) if **x == Equation::Variable(integrate_to.clone()) => {
                 Some(Equation::Negative(Box::new(Equation::Cos(Box::new(
                     Equation::Variable(integrate_to.clone()),
                 )))))
             }
-            Equation::Cos(box x) if *x == Equation::Variable(integrate_to.clone()) => Some(
+            Equation::Cos(ref x) if **x == Equation::Variable(integrate_to.clone()) => Some(
                 Equation::Sin(Box::new(Equation::Variable(integrate_to.clone()))),
             ),
             _ => None,

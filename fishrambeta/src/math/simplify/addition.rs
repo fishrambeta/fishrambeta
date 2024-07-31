@@ -70,14 +70,16 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 (Equation::Multiplication(term).simplify(), count)
             }
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
-            Equation::Power(box (Equation::Sin(sin), Equation::Variable(Variable::Integer(2)))) => {
+            Equation::Power(ref power) if power.1 == Equation::Variable(Variable::Integer(2)) && matches!(&power.0, Equation::Sin(sin)) => {
+                let Equation::Sin(ref sin) = power.0 else {unreachable!()};
                 let previous_count = *sin_squares.get(&sin).unwrap_or(&0.into());
-                sin_squares.insert(*sin, previous_count + 1);
+                sin_squares.insert(*sin.clone(), previous_count + 1);
                 continue;
             }
-            Equation::Power(box (Equation::Cos(cos), Equation::Variable(Variable::Integer(2)))) => {
+            Equation::Power(ref power) if power.1 == Equation::Variable(Variable::Integer(2)) && matches!(&power.0, Equation::Cos(cos)) => {
+                let Equation::Cos(ref cos) = power.0 else {unreachable!()};
                 let previous_count = *cos_squares.get(&cos).unwrap_or(&0.into());
-                cos_squares.insert(*cos, previous_count + 1);
+                cos_squares.insert(*cos.clone(), previous_count + 1);
                 continue;
             }
 
