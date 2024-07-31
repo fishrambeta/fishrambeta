@@ -15,7 +15,7 @@ impl Equation {
 
     fn from_latex_internal(latex: &str) -> Equation {
         if let Some(stripped) = latex.strip_prefix("-") {
-            return Equation::from_latex_internal(stripped);
+            return Equation::Negative(Box::new(Equation::from_latex_internal(stripped)));
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
