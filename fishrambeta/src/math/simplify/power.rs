@@ -66,16 +66,16 @@ pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
         )));
     }
 
-    if let Some(n) = exponent.get_number_or_none()
-        && n < 0.into()
-    {
-        return Equation::Division(Box::new((
-            Equation::Variable(Variable::Integer(1)),
-            Equation::Power(Box::new((
-                base,
-                Equation::Variable(Variable::Rational(n.abs())).simplify(),
-            ))),
-        )));
+    if let Some(n) = exponent.get_number_or_none() {
+        if n < 0.into() {
+            return Equation::Division(Box::new((
+                Equation::Variable(Variable::Integer(1)),
+                Equation::Power(Box::new((
+                    base,
+                    Equation::Variable(Variable::Rational(n.abs())).simplify(),
+                ))),
+            )));
+        }
     }
 
     Equation::Power(Box::new((base, exponent)))

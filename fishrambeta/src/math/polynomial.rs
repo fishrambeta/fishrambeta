@@ -18,8 +18,8 @@ impl Polynomial {
             .enumerate()
             .filter(|(_, x)| *x != Equation::Variable(Variable::Integer(0)))
             .map(|(i, term)| format!("({})\\cdot {}^{}", term, base, degree - 1 - i))
-            .intersperse(" + ".to_string())
-            .collect()
+            .collect::<Vec<_>>()
+            .join(" + ")
     }
 
     pub fn simplify(self) -> Polynomial {
