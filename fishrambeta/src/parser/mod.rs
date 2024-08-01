@@ -4,11 +4,10 @@ use std::fmt;
 impl Equation {
     pub fn from_latex(latex: &str) -> Equation {
         //Cleanup steps
-        let cleaned_latex = latex
+        let mut cleaned_latex = latex
             .replace("\\left(", "(")
             .replace("\\right)", ")")
-            .replace("\\cdot", "*")
-            .replace(" ", "");
+            .replace("\\cdot", "*").replace(" ", "");
 
         Equation::from_latex_internal(&cleaned_latex)
     }
@@ -49,6 +48,16 @@ impl Equation {
         if let Ok(num) = latex.parse::<i64>() {
             return Equation::Variable(Variable::Integer(num));
         }
+
+        if let Some((left, right)) = latex.split_once(".") {
+        if let (Ok(left_num), Ok(right_num)) = (left.parse::<i64>(), right.parse::<i64>()){
+            assert!(right_num >= 0);
+            // Plus 1 because ilog is rounded down
+            let log = right.len();
+            let denom = 10_i64.pow(log as u32);
+            let numer = left_num*denom+right_num;
+            return Equation::Variable(Variable::Rational((numer, denom).into()));
+        }}
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\frac") {
             assert_eq!(parameters.len(), 2);
