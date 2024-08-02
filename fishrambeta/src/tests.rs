@@ -51,7 +51,7 @@ fn valuedicts() -> [BTreeMap<Variable, f64>; 30] {
 }
 
 fn simplified_is_equal(equation: &str, valuedicts: &[BTreeMap<Variable, f64>]) -> bool {
-    let parsed = Equation::from_latex(equation);
+    let parsed = Equation::from_latex(equation, false);
     let simplified = parsed.clone().simplify_until_complete();
 
     valuedicts
@@ -64,8 +64,8 @@ fn derivative_is_equal(
     expected_result: &str,
     valuedicts: &[BTreeMap<Variable, f64>],
 ) -> bool {
-    let parsed = Equation::from_latex(equation);
-    let correct = Equation::from_latex(expected_result);
+    let parsed = Equation::from_latex(equation, false);
+    let correct = Equation::from_latex(expected_result, false);
     let derivative = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();

@@ -2,12 +2,15 @@ use crate::math::{Constant, Equation, Variable};
 use std::fmt;
 
 impl Equation {
-    pub fn from_latex(latex: &str) -> Equation {
+    pub fn from_latex(latex: &str, implicit_multiplication: bool) -> Equation {
         //Cleanup steps
         let mut cleaned_latex = latex
             .replace("\\left(", "(")
             .replace("\\right)", ")")
-            .replace("\\cdot", "*").replace(" ", "");
+            .replace("\\cdot", "*");
+        if !implicit_multiplication {
+            cleaned_latex = cleaned_latex.replace(" ", "")
+        }
 
         Equation::from_latex_internal(&cleaned_latex)
     }
@@ -50,14 +53,15 @@ impl Equation {
         }
 
         if let Some((left, right)) = latex.split_once(".") {
-        if let (Ok(left_num), Ok(right_num)) = (left.parse::<i64>(), right.parse::<i64>()){
-            assert!(right_num >= 0);
-            // Plus 1 because ilog is rounded down
-            let log = right.len();
-            let denom = 10_i64.pow(log as u32);
-            let numer = left_num*denom+right_num;
-            return Equation::Variable(Variable::Rational((numer, denom).into()));
-        }}
+            if let (Ok(left_num), Ok(right_num)) = (left.parse::<i64>(), right.parse::<i64>()) {
+                assert!(right_num >= 0);
+                // Plus 1 because ilog is rounded down
+                let log = right.len();
+                let denom = 10_i64.pow(log as u32);
+                let numer = left_num * denom + right_num;
+                return Equation::Variable(Variable::Rational((numer, denom).into()));
+            }
+        }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\frac") {
             assert_eq!(parameters.len(), 2);
@@ -99,6 +103,16 @@ impl Equation {
         if let Some(parameters) = parse_latex_with_command(latex, "\\ln") {
             assert_eq!(parameters.len(), 1);
             return Equation::Ln(Box::new(Equation::from_latex_internal(parameters[0])));
+        }
+
+        let variables = split_into_variables(latex);
+        if variables.len() > 1 {
+            return Equation::Multiplication(
+                variables
+                    .into_iter()
+                    .map(|variable| Equation::from_latex_internal(variable))
+                    .collect(),
+            );
         }
 
         match latex {
@@ -303,6 +317,46 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
     } else {
         None
     }
+}
+
+fn split_into_variables(latex: &str) -> Vec<&str> {
+    let mut variables = Vec::new();
+    let mut split = latex.split(" ");
+    while let Some(var) = split.next() {
+        let mut i = 0;
+        while i < var.len() {
+            let next_i = i + get_index_of_next_variable_end(&var[i..]);
+            variables.push(&var[i..next_i]);
+            i = next_i;
+        }
+    }
+    variables
+}
+
+fn get_index_of_next_variable_end(latex: &str) -> usize {
+    if latex.starts_with("\\") {
+        return match latex.chars().enumerate().skip(1).find(|(i, c)| c == &'\\') {
+            Some((i, _)) => i,
+            None => latex.len(),
+        };
+    }
+    if latex.len() == 1 || &latex[1..2] != "_" {
+        return 1;
+    }
+    let mut current_depth = 0;
+    for (i, c) in latex.chars().enumerate().skip(2) {
+        if is_opening_bracket(c) {
+            current_depth += 1
+        }
+        if is_closing_bracket(c) {
+            current_depth -= 1
+        }
+
+        if current_depth == 0 {
+            return i + 1;
+        }
+    }
+    latex.len()
 }
 
 fn is_opening_bracket(c: char) -> bool {

@@ -8,7 +8,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn simplify(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation);
+    let parsed = Equation::from_latex(equation, true);
     let simplified = parsed.simplify_until_complete();
 
     simplified.to_latex()
@@ -16,7 +16,7 @@ pub fn simplify(equation: &str) -> String {
 
 #[wasm_bindgen]
 pub fn differentiate(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation);
+    let parsed = Equation::from_latex(equation, true);
     let differentiated = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
@@ -26,7 +26,7 @@ pub fn differentiate(equation: &str) -> String {
 
 #[wasm_bindgen]
 pub fn integrate(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation);
+    let parsed = Equation::from_latex(equation, true);
     let integrated = parsed
         .integrate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
@@ -43,7 +43,7 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
         user_values_values,
     );
     values.extend(user_values_hashmap);
-    let parsed: Equation = Equation::from_latex(equation);
+    let parsed: Equation = Equation::from_latex(equation, true);
 
     parsed.calculate(&values)
 }
