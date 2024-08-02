@@ -17,7 +17,7 @@ fn flatten_addition(addition: Vec<Equation>) -> Vec<Equation> {
 
 pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     if addition.len() == 1 {
-        return addition.remove(0);
+        return addition.remove(0).simplify();
     }
     let addition = flatten_addition(addition);
     let mut total_rational_term: Rational64 = 0.into();

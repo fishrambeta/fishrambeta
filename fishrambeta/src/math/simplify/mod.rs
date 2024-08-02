@@ -10,13 +10,13 @@ mod power;
 impl Equation {
     pub fn simplify_until_complete(self) -> Self {
         let mut equation = self.clone();
-        let mut previous = equation.to_latex();
+        let mut previous = self;
         for _ in 1..5 {
             equation = equation.simplify();
-            if equation.to_latex() == previous {
+            if equation == previous {
                 break;
             }
-            previous = equation.to_latex();
+            previous = equation.clone();
         }
         equation
     }
@@ -26,7 +26,7 @@ impl Equation {
         let mut previous = equation.to_latex();
         for i in 1..5 {
             equation = equation.simplify();
-            println!("{i}: {equation}");
+            println!("{i}: {}, {:?}", equation, equation);
             if equation.to_latex() == previous {
                 break;
             }
