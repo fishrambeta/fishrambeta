@@ -55,7 +55,6 @@ impl Equation {
         if let Some((left, right)) = latex.split_once(".") {
             if let (Ok(left_num), Ok(right_num)) = (left.parse::<i64>(), right.parse::<i64>()) {
                 assert!(right_num >= 0);
-                // Plus 1 because ilog is rounded down
                 let log = right.len();
                 let denom = 10_i64.pow(log as u32);
                 let numer = left_num * denom + right_num;
@@ -76,10 +75,54 @@ impl Equation {
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'^') {
-            return Equation::Power(Box::new((
-                Equation::from_latex_internal(a),
-                Equation::from_latex_internal(b),
-            )));
+            if true {
+                let mut multiplication_parts = vec![];
+                let mut a_depth = 0;
+                let mut a_stripped = a;
+                for (i, c) in a.chars().rev().enumerate() {
+                    if is_opening_bracket(c) {
+                        a_depth += 1
+                    }
+                    if is_closing_bracket(c) {
+                        a_depth -= 1
+                    }
+
+                    if a_depth == 0 {
+                        if i != a.len() - 1{
+                        multiplication_parts.push(Equation::from_latex_internal(&a[0..a.len()-i-1]));}
+                        a_stripped = &a[a.len()-i-1..];
+                        break;
+                    }
+                }
+
+                let mut b_depth = 0;
+                let mut b_stripped = b;
+                for (i, c) in b.chars().enumerate() {
+                    if is_opening_bracket(c) {
+                        b_depth += 1
+                    }
+                    if is_closing_bracket(c) {
+                        b_depth -= 1
+                    }
+
+                    if b_depth == 0 {
+                        if i != b.len()-1{
+                        multiplication_parts.push(Equation::from_latex_internal(&b[i+1..]));}
+                        b_stripped = &b[0..i+1];
+                        break;
+                }
+                }
+                multiplication_parts.push(Equation::Power(Box::new((
+                    Equation::from_latex_internal(a_stripped),
+                    Equation::from_latex_internal(b_stripped),
+                ))));
+                return Equation::Multiplication(multiplication_parts);
+            } else {
+                return Equation::Power(Box::new((
+                    Equation::from_latex_internal(a),
+                    Equation::from_latex_internal(b),
+                )));
+            }
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\sin") {
