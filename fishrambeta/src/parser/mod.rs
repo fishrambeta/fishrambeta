@@ -12,39 +12,45 @@ impl Equation {
             cleaned_latex = cleaned_latex.replace(" ", "")
         }
 
-        Equation::from_latex_internal(&cleaned_latex)
+        Equation::from_latex_internal(&cleaned_latex, implicit_multiplication)
     }
 
-    fn from_latex_internal(latex: &str) -> Equation {
+    fn from_latex_internal(latex: &str, implicit_multiplication: bool) -> Equation {
         if let Some(stripped) = latex.strip_prefix("-") {
-            return Equation::Negative(Box::new(Equation::from_latex_internal(stripped)));
+            return Equation::Negative(Box::new(Equation::from_latex_internal(
+                stripped,
+                implicit_multiplication,
+            )));
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
             return Equation::Addition(vec![
-                Equation::from_latex_internal(a),
-                Equation::from_latex_internal(b),
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::from_latex_internal(b, implicit_multiplication),
             ]);
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'-') {
             return Equation::Addition(vec![
-                Equation::from_latex_internal(a),
-                Equation::Negative(Box::new(Equation::from_latex_internal(b))),
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::Negative(Box::new(Equation::from_latex_internal(
+                    b,
+                    implicit_multiplication,
+                ))),
             ]);
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'*') {
             return Equation::Multiplication(vec![
-                Equation::from_latex_internal(a),
-                Equation::from_latex_internal(b),
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::from_latex_internal(b, implicit_multiplication),
             ]);
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'/') {
             return Equation::Division(Box::new((
-                Equation::from_latex_internal(a),
-                Equation::from_latex_internal(b),
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::from_latex_internal(b, implicit_multiplication),
             )));
         }
 
@@ -65,13 +71,16 @@ impl Equation {
         if let Some(parameters) = parse_latex_with_command(latex, "\\frac") {
             assert_eq!(parameters.len(), 2);
             return Equation::Division(Box::new((
-                Equation::from_latex_internal(parameters[0]),
-                Equation::from_latex_internal(parameters[1]),
+                Equation::from_latex_internal(parameters[0], implicit_multiplication),
+                Equation::from_latex_internal(parameters[1], implicit_multiplication),
             )));
         }
 
         if is_in_redundant_brackets(latex) {
-            return Equation::from_latex_internal(&latex[1..latex.len() - 1]);
+            return Equation::from_latex_internal(
+                &latex[1..latex.len() - 1],
+                implicit_multiplication,
+            );
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'^') {
@@ -88,9 +97,13 @@ impl Equation {
                     }
 
                     if a_depth == 0 {
-                        if i != a.len() - 1{
-                        multiplication_parts.push(Equation::from_latex_internal(&a[0..a.len()-i-1]));}
-                        a_stripped = &a[a.len()-i-1..];
+                        if i != a.len() - 1 {
+                            multiplication_parts.push(Equation::from_latex_internal(
+                                &a[0..a.len() - i - 1],
+                                implicit_multiplication,
+                            ));
+                        }
+                        a_stripped = &a[a.len() - i - 1..];
                         break;
                     }
                 }
@@ -106,46 +119,65 @@ impl Equation {
                     }
 
                     if b_depth == 0 {
-                        if i != b.len()-1{
-                        multiplication_parts.push(Equation::from_latex_internal(&b[i+1..]));}
-                        b_stripped = &b[0..i+1];
+                        if i != b.len() - 1 {
+                            multiplication_parts.push(Equation::from_latex_internal(
+                                &b[i + 1..],
+                                implicit_multiplication,
+                            ));
+                        }
+                        b_stripped = &b[0..i + 1];
                         break;
-                }
+                    }
                 }
                 multiplication_parts.push(Equation::Power(Box::new((
-                    Equation::from_latex_internal(a_stripped),
-                    Equation::from_latex_internal(b_stripped),
+                    Equation::from_latex_internal(a_stripped, implicit_multiplication),
+                    Equation::from_latex_internal(b_stripped, implicit_multiplication),
                 ))));
                 return Equation::Multiplication(multiplication_parts);
             } else {
                 return Equation::Power(Box::new((
-                    Equation::from_latex_internal(a),
-                    Equation::from_latex_internal(b),
+                    Equation::from_latex_internal(a, implicit_multiplication),
+                    Equation::from_latex_internal(b, implicit_multiplication),
                 )));
             }
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\sin") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Sin(Box::new(Equation::from_latex_internal(parameters[0])));
+            return Equation::Sin(Box::new(Equation::from_latex_internal(
+                parameters[0],
+                implicit_multiplication,
+            )));
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\cos") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Cos(Box::new(Equation::from_latex_internal(parameters[0])));
+            return Equation::Cos(Box::new(Equation::from_latex_internal(
+                parameters[0],
+                implicit_multiplication,
+            )));
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\tan") {
             assert_eq!(parameters.len(), 1);
             return Equation::Division(Box::new((
-                Equation::Sin(Box::new(Equation::from_latex_internal(parameters[0]))),
-                Equation::Cos(Box::new(Equation::from_latex_internal(parameters[0]))),
+                Equation::Sin(Box::new(Equation::from_latex_internal(
+                    parameters[0],
+                    implicit_multiplication,
+                ))),
+                Equation::Cos(Box::new(Equation::from_latex_internal(
+                    parameters[0],
+                    implicit_multiplication,
+                ))),
             )));
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\ln") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Ln(Box::new(Equation::from_latex_internal(parameters[0])));
+            return Equation::Ln(Box::new(Equation::from_latex_internal(
+                parameters[0],
+                implicit_multiplication,
+            )));
         }
 
         let variables = split_into_variables(latex);
@@ -153,7 +185,9 @@ impl Equation {
             return Equation::Multiplication(
                 variables
                     .into_iter()
-                    .map(|variable| Equation::from_latex_internal(variable))
+                    .map(|variable| {
+                        Equation::from_latex_internal(variable, implicit_multiplication)
+                    })
                     .collect(),
             );
         }
