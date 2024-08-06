@@ -75,7 +75,7 @@ impl Equation {
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'^') {
-            if true {
+            if implicit_multiplication {
                 let mut multiplication_parts = vec![];
                 let mut a_depth = 0;
                 let mut a_stripped = a;
