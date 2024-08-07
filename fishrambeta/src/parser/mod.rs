@@ -429,7 +429,7 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
             current_depth -= 1
         }
 
-        if current_depth == 0 {
+        if current_depth == 0 && !(c.is_digit(10) || c == '.') {
             return i + 1;
         }
     }
