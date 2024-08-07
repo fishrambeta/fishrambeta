@@ -180,16 +180,18 @@ impl Equation {
             )));
         }
 
-        let variables = split_into_variables(latex);
-        if variables.len() > 1 {
-            return Equation::Multiplication(
-                variables
-                    .into_iter()
-                    .map(|variable| {
-                        Equation::from_latex_internal(variable, implicit_multiplication)
-                    })
-                    .collect(),
-            );
+        if implicit_multiplication {
+            let variables = split_into_variables(latex);
+            if variables.len() > 1 {
+                return Equation::Multiplication(
+                    variables
+                        .into_iter()
+                        .map(|variable| {
+                            Equation::from_latex_internal(variable, implicit_multiplication)
+                        })
+                        .collect(),
+                );
+            }
         }
 
         match latex {
