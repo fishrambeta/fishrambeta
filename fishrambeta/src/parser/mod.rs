@@ -420,7 +420,22 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
         };
     }
     if latex.len() == 1 || &latex[1..2] != "_" {
-        return 1;
+        if latex.chars().next().unwrap().is_digit(10) {
+            let mut i = 1;
+            loop {
+                if i + 2 >= latex.len() {
+                    break;
+                }
+                let next_character = latex.chars().skip(i).next().unwrap();
+                if !next_character.is_digit(10) {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        } else {
+            return 1;
+        }
     }
     let mut current_depth = 0;
     for (i, c) in latex.chars().enumerate().skip(2) {
@@ -431,7 +446,7 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
             current_depth -= 1
         }
 
-        if current_depth == 0 && !(c.is_digit(10) || c == '.') {
+        if current_depth == 0 {
             return i + 1;
         }
     }
