@@ -400,8 +400,8 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
 
 fn split_into_variables(latex: &str) -> Vec<&str> {
     let mut variables = Vec::new();
-    let mut split = latex.split(" ");
-    while let Some(var) = split.next() {
+    let split = latex.split(" ");
+    for var in split {
         let mut i = 0;
         while i < var.len() {
             let next_i = i + get_index_of_next_variable_end(&var[i..]);
@@ -414,14 +414,14 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
 
 fn get_index_of_next_variable_end(latex: &str) -> usize {
     if latex.starts_with("\\") {
-        return match latex.chars().enumerate().skip(1).find(|(i, c)| c == &'\\') {
+        return match latex.chars().enumerate().skip(1).find(|(_i, c)| c == &'\\') {
             Some((i, _)) => i,
             None => latex.len(),
         };
     }
     if latex.len() == 1 || &latex[1..2] != "_" {
         for i in 0..latex.len() {
-            if !latex.chars().skip(i).next().unwrap().is_digit(10) {
+            if !latex.chars().nth(i).unwrap().is_ascii_digit() {
                 if i == 0 {
                     return 1;
                 }

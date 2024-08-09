@@ -15,6 +15,8 @@ fn flatten_addition(addition: Vec<Equation>) -> Vec<Equation> {
     new_addition
 }
 
+#[allow(dead_code)] // This is a clippy bug. This stuff is just added to (term,
+#[allow(clippy::no_effect)]
 pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     if addition.len() == 1 {
         return addition.remove(0).simplify();
@@ -56,7 +58,6 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                 if multiplication.len() - number_of_numbers == 0 {
                     // The multiplication is a constant factor, so we add that factor to the addition.
 
-                    #[allow(dead_code)] // This is a clippy bug. This stuff is just added to (term,
                     // count) as it should.
                     (
                         Equation::Variable(Variable::Rational(count)),
@@ -72,23 +73,23 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
             Equation::Power(ref power)
                 if power.1 == Equation::Variable(Variable::Integer(2))
-                    && matches!(&power.0, Equation::Sin(sin)) =>
+                    && matches!(&power.0, Equation::Sin(_)) =>
             {
                 let Equation::Sin(ref sin) = power.0 else {
                     unreachable!()
                 };
-                let previous_count = *sin_squares.get(&sin).unwrap_or(&0.into());
+                let previous_count = *sin_squares.get(sin).unwrap_or(&0.into());
                 sin_squares.insert(*sin.clone(), previous_count + 1);
                 continue;
             }
             Equation::Power(ref power)
                 if power.1 == Equation::Variable(Variable::Integer(2))
-                    && matches!(&power.0, Equation::Cos(cos)) =>
+                    && matches!(&power.0, Equation::Cos(_)) =>
             {
                 let Equation::Cos(ref cos) = power.0 else {
                     unreachable!()
                 };
-                let previous_count = *cos_squares.get(&cos).unwrap_or(&0.into());
+                let previous_count = *cos_squares.get(cos).unwrap_or(&0.into());
                 cos_squares.insert(*cos.clone(), previous_count + 1);
                 continue;
             }
