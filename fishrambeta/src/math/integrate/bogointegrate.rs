@@ -105,7 +105,7 @@ impl Equation {
         let is_primitive =
             self.differentiate(integrate_to).simplify_until_complete() == *simplified;
         if is_primitive {
-            println!("{} is a primitive of {}", self, simplified);
+            println!("{self} is a primitive of {simplified}");
         }
         is_primitive
     }

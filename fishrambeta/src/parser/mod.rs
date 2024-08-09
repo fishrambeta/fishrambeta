@@ -2,6 +2,7 @@ use crate::math::{Constant, Equation, Variable};
 use std::fmt;
 
 impl Equation {
+    #[must_use]
     pub fn from_latex(latex: &str, implicit_multiplication: bool) -> Equation {
         //Cleanup steps
         let mut cleaned_latex = latex
@@ -9,7 +10,7 @@ impl Equation {
             .replace("\\right)", ")")
             .replace("\\cdot", "*");
         if !implicit_multiplication {
-            cleaned_latex = cleaned_latex.replace(" ", "")
+            cleaned_latex = cleaned_latex.replace(' ', "");
         }
 
         Equation::from_latex_internal(&cleaned_latex, implicit_multiplication)
@@ -58,11 +59,11 @@ impl Equation {
             return Equation::Variable(Variable::Integer(num));
         }
 
-        if let Some((left, right)) = latex.split_once(".") {
+        if let Some((left, right)) = latex.split_once('.') {
             if let (Ok(left_num), Ok(right_num)) = (left.parse::<i64>(), right.parse::<i64>()) {
                 assert!(right_num >= 0);
                 let log = right.len();
-                let denom = 10_i64.pow(log as u32);
+                let denom = 10_i64.pow(log.try_into().unwrap());
                 let numer = left_num * denom + right_num;
                 return Equation::Variable(Variable::Rational((numer, denom).into()));
             }
@@ -90,10 +91,10 @@ impl Equation {
                 let mut a_stripped = a;
                 for (i, c) in a.chars().rev().enumerate() {
                     if is_opening_bracket(c) {
-                        a_depth += 1
+                        a_depth += 1;
                     }
                     if is_closing_bracket(c) {
-                        a_depth -= 1
+                        a_depth -= 1;
                     }
 
                     if a_depth == 0 {
@@ -112,10 +113,10 @@ impl Equation {
                 let mut b_stripped = b;
                 for (i, c) in b.chars().enumerate() {
                     if is_opening_bracket(c) {
-                        b_depth += 1
+                        b_depth += 1;
                     }
                     if is_closing_bracket(c) {
-                        b_depth -= 1
+                        b_depth -= 1;
                     }
 
                     if b_depth == 0 {
@@ -125,7 +126,7 @@ impl Equation {
                                 implicit_multiplication,
                             ));
                         }
-                        b_stripped = &b[0..i + 1];
+                        b_stripped = &b[0..=i];
                         break;
                     }
                 }
@@ -201,6 +202,7 @@ impl Equation {
         }
     }
 
+    #[must_use]
     pub fn to_latex(&self) -> String {
         return match self {
             Equation::Variable(v) => match v {
@@ -253,11 +255,11 @@ impl Equation {
                 };
                 format!("{}^{{{}}}", base, p.1.to_latex())
             }
-            Equation::Ln(l) => format!("\\ln({})", l),
+            Equation::Ln(l) => format!("\\ln({l})"),
             Equation::Equals(e) => format!("{}={}", e.0, e.1),
-            Equation::Sin(s) => format!("\\sin({})", s),
-            Equation::Cos(c) => format!("\\cos({})", c),
-            Equation::Abs(a) => format!("|{}|", a),
+            Equation::Sin(s) => format!("\\sin({s})"),
+            Equation::Cos(c) => format!("\\cos({c})"),
+            Equation::Abs(a) => format!("|{a}|"),
             Equation::Derivative(_) => todo!(),
         };
     }
@@ -279,6 +281,7 @@ impl Equation {
         }
     }
 
+    #[must_use]
     pub fn to_numpy(&self) -> String {
         return match self {
             Equation::Variable(v) => match v {
@@ -304,11 +307,11 @@ impl Equation {
                 .join("*"),
             Equation::Division(d) => format!("({})/({})", d.0, d.1),
             Equation::Power(p) => format!("np.power(({}),{{{}}})", p.0, p.1),
-            Equation::Ln(l) => format!("np.log({})", l),
+            Equation::Ln(l) => format!("np.log({l})"),
             Equation::Equals(e) => format!("{}={}", e.0, e.1),
-            Equation::Sin(s) => format!("np.sin({})", s),
-            Equation::Cos(c) => format!("np.cos({})", c),
-            Equation::Abs(a) => format!("np.abs({})", a),
+            Equation::Sin(s) => format!("np.sin({s})"),
+            Equation::Cos(c) => format!("np.cos({c})"),
+            Equation::Abs(a) => format!("np.abs({a})"),
             Equation::Derivative(_) => todo!(),
         };
     }
@@ -324,10 +327,10 @@ fn is_in_redundant_brackets(latex: &str) -> bool {
     let length = latex.len();
     for (i, c) in latex.chars().enumerate() {
         if is_opening_bracket(c) {
-            current_depth += 1
+            current_depth += 1;
         }
         if is_closing_bracket(c) {
-            current_depth -= 1
+            current_depth -= 1;
         }
 
         if current_depth == 0 {
@@ -351,10 +354,10 @@ fn parse_latex_with_command<'a>(latex: &'a str, command: &'a str) -> Option<Vec<
         }
 
         if is_opening_bracket(c) {
-            current_depth += 1
+            current_depth += 1;
         }
         if is_closing_bracket(c) {
-            current_depth -= 1
+            current_depth -= 1;
         }
     }
 
@@ -380,10 +383,10 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
     let mut right_start = latex.len();
     for (i, c) in latex.chars().rev().enumerate() {
         if is_opening_bracket(c) {
-            current_depth += 1
+            current_depth += 1;
         }
         if is_closing_bracket(c) {
-            current_depth -= 1
+            current_depth -= 1;
         }
 
         if c == *operator && current_depth == 0 {
@@ -391,16 +394,16 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
             break;
         }
     }
-    if right_start != latex.len() {
-        Some((&latex[..right_start], &latex[right_start + 1..]))
-    } else {
+    if right_start == latex.len() {
         None
+    } else {
+        Some((&latex[..right_start], &latex[right_start + 1..]))
     }
 }
 
 fn split_into_variables(latex: &str) -> Vec<&str> {
     let mut variables = Vec::new();
-    let split = latex.split(" ");
+    let split = latex.split(' ');
     for var in split {
         let mut i = 0;
         while i < var.len() {
@@ -413,7 +416,7 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
 }
 
 fn get_index_of_next_variable_end(latex: &str) -> usize {
-    if latex.starts_with("\\") {
+    if latex.starts_with('\\') {
         return match latex.chars().enumerate().skip(1).find(|(_i, c)| c == &'\\') {
             Some((i, _)) => i,
             None => latex.len(),
@@ -432,10 +435,10 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
     let mut current_depth = 0;
     for (i, c) in latex.chars().enumerate().skip(2) {
         if is_opening_bracket(c) {
-            current_depth += 1
+            current_depth += 1;
         }
         if is_closing_bracket(c) {
-            current_depth -= 1
+            current_depth -= 1;
         }
 
         if current_depth == 0 {

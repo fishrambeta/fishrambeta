@@ -5,12 +5,12 @@ mod bogointegrate;
 mod rational;
 
 impl Equation {
-    pub fn integrate(&self, integrate_to: &Variable) -> Equation {
+    #[must_use] pub fn integrate(&self, integrate_to: &Variable) -> Equation {
         let mut equation_to_integrate: Equation = (*self).clone().simplify();
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
 
-        for fixed_term in fixed_terms.into_iter() {
+        for fixed_term in fixed_terms {
             if equation_to_integrate.has_factor(&fixed_term)
                 && fixed_term.term_is_constant(integrate_to)
             {
@@ -21,7 +21,7 @@ impl Equation {
 
         #[allow(clippy::never_loop)]
         loop {
-            println!("Equation to integrate: {}", equation_to_integrate);
+            println!("Equation to integrate: {equation_to_integrate}");
             if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
                 integrated_equation.push(integrated_term);
                 break;
@@ -89,7 +89,7 @@ impl Equation {
         };
     }
 
-    pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {
+    #[must_use] pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {
         match self {
             Equation::Addition(a) => a.iter().all(|x| x.term_is_constant(integrate_to)),
             Equation::Multiplication(m) => m.iter().all(|x| x.term_is_constant(integrate_to)),

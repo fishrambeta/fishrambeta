@@ -27,7 +27,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     let mut sin_squares: BTreeMap<Equation, Rational64> = BTreeMap::new();
     let mut cos_squares: BTreeMap<Equation, Rational64> = BTreeMap::new();
 
-    for equation in addition.into_iter() {
+    for equation in addition {
         let (term, count) = match equation.simplify() {
             Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Variable(Variable::Integer(i)) => {
@@ -106,7 +106,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         simplified_addition
             .push(Equation::Variable(Variable::Rational(total_rational_term)).simplify());
     }
-    for (equation, count) in terms.into_iter() {
+    for (equation, count) in terms {
         if count == 1.into() {
             simplified_addition.push(equation);
         } else {
@@ -119,7 +119,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         }
     }
 
-    for (sin, mut sin_count) in sin_squares.into_iter() {
+    for (sin, mut sin_count) in sin_squares {
         let mut cos_count = *cos_squares.get(&sin).unwrap_or(&0.into());
         let number_of_ones = sin_count.min(cos_count);
         cos_squares.remove(&sin);
@@ -154,7 +154,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
             );
         }
     }
-    for (cos, cos_count) in cos_squares.into_iter() {
+    for (cos, cos_count) in cos_squares {
         simplified_addition.push(
             Equation::Multiplication(vec![
                 Equation::Variable(Variable::Rational(cos_count)).simplify(),

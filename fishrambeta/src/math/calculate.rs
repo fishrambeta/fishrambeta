@@ -2,7 +2,7 @@ use crate::math::{Equation, Variable};
 use std::collections::BTreeMap;
 
 impl Equation {
-    pub fn calculate(&self, values: &BTreeMap<Variable, f64>) -> f64 {
+    #[must_use] pub fn calculate(&self, values: &BTreeMap<Variable, f64>) -> f64 {
         match self {
             Equation::Variable(variable) => {
                 match variable {

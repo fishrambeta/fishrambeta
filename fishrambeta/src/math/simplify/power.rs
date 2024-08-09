@@ -16,7 +16,7 @@ pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
     match base {
         Equation::Multiplication(terms) => {
             let mut simplified_power: Vec<Equation> = vec![];
-            for term in terms.into_iter() {
+            for term in terms {
                 simplified_power.push(Equation::Power(Box::new((term, exponent.clone()))));
             }
             return Equation::Multiplication(simplified_power);

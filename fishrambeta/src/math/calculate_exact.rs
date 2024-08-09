@@ -5,6 +5,7 @@ use num::Signed;
 use num_rational::Rational64;
 
 impl Equation {
+    #[must_use]
     pub fn calculate_exact(&self) -> Option<Rational64> {
         match self {
             Equation::Variable(variable) => {
@@ -16,10 +17,13 @@ impl Equation {
                 None
             }
             Equation::Addition(addition) => {
-                return addition.iter().map(|x| x.calculate_exact()).sum()
+                return addition.iter().map(super::Equation::calculate_exact).sum()
             }
             Equation::Multiplication(multiplication) => {
-                return multiplication.iter().map(|x| x.calculate_exact()).product()
+                return multiplication
+                    .iter()
+                    .map(super::Equation::calculate_exact)
+                    .product()
             }
             Equation::Division(division) => {
                 let numerator = division.0.calculate_exact();
@@ -46,14 +50,8 @@ impl Equation {
                     Ok(x) => x,
                     Err(_) => return None,
                 };
-                let numerator = match checked_pow(*base.numer(), exponent_num) {
-                    Some(x) => x,
-                    None => return None,
-                };
-                let denominator = match checked_pow(*base.denom(), exponent_num) {
-                    Some(x) => x,
-                    None => return None,
-                };
+                let numerator = checked_pow(*base.numer(), exponent_num)?;
+                let denominator = checked_pow(*base.denom(), exponent_num)?;
                 Some(Rational64::new(numerator, denominator))
             }
             Equation::Abs(abs) => {

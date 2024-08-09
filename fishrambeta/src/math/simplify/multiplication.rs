@@ -14,10 +14,10 @@ fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
     new_mult
 }
 
-fn distribute_terms(multiplication: Vec<Equation>, addition: Vec<Equation>) -> Equation {
+fn distribute_terms(multiplication: &[Equation], addition: Vec<Equation>) -> Equation {
     let mut new_addition = Vec::new();
     for addition_term in addition {
-        let mut new_multiplication = multiplication.clone();
+        let mut new_multiplication = multiplication.to_owned();
         new_multiplication.push(addition_term);
         new_addition.push(Equation::Multiplication(new_multiplication));
     }
@@ -69,11 +69,11 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
             }
             Equation::Addition(addition) => {
                 multiplication.remove(index);
-                return distribute_terms(multiplication, addition);
+                return distribute_terms(&multiplication, addition);
             }
             term => (term, Equation::Variable(Variable::Integer(1))),
         };
-        terms.insert_or_push(term, count)
+        terms.insert_or_push(term, count);
     }
 
     let mut simplified_multiplication: Vec<Equation> = Vec::new();

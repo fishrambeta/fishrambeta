@@ -3,6 +3,7 @@ use num_integer::Integer;
 use crate::math::{Equation, Variable};
 
 impl Equation {
+    #[must_use]
     pub fn has_factor(self: &Equation, factor: &Equation) -> bool {
         if self == factor {
             return true;
@@ -24,6 +25,7 @@ impl Equation {
         }
     }
 
+    #[must_use]
     pub fn gcd(self: &Equation) -> i64 {
         match self {
             Equation::Variable(Variable::Integer(n)) => {
@@ -36,18 +38,18 @@ impl Equation {
             Equation::Addition(addition) => {
                 let mut gcd = 1;
                 let mut first_done = false;
-                for x in addition.iter().map(|x| x.gcd()) {
-                    if !first_done {
+                for x in addition.iter().map(super::Equation::gcd) {
+                    if first_done {
+                        gcd = gcd.gcd(&x);
+                    } else {
                         gcd = x;
                         first_done = true;
-                    } else {
-                        gcd = gcd.gcd(&x);
                     }
                 }
                 gcd
             }
             Equation::Multiplication(multiplication) => {
-                return multiplication.iter().map(|x| x.gcd()).product()
+                return multiplication.iter().map(super::Equation::gcd).product()
             }
             Equation::Division(division) => division.0.gcd().gcd(&division.1.gcd()),
             _ => 1,
@@ -60,7 +62,7 @@ impl Equation {
         match self {
             Equation::Multiplication(multiplication) => {
                 for factor in multiplication {
-                    factors.append(&mut factor.get_all_factors())
+                    factors.append(&mut factor.get_all_factors());
                 }
             }
             Equation::Power(power) => factors.push(power.0.clone()),
@@ -69,6 +71,7 @@ impl Equation {
         factors
     }
 
+    #[must_use]
     pub fn get_factors(self: &Equation) -> Vec<Equation> {
         let mut factors: Vec<Equation> = self
             .get_all_factors()
@@ -77,11 +80,12 @@ impl Equation {
             .collect();
         let gcd = self.gcd();
         if gcd != 1 {
-            factors.push(Equation::Variable(Variable::Integer(gcd)))
+            factors.push(Equation::Variable(Variable::Integer(gcd)));
         }
         factors
     }
 
+    #[must_use]
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
         let factors = self.get_all_factors();
         let mut shared_factors = vec![];
@@ -97,10 +101,12 @@ impl Equation {
         shared_factors
     }
 
+    #[must_use]
     pub fn remove_factor(self: Equation, factor: &Equation) -> Equation {
-        if !self.has_factor(factor) {
-            panic!("Trying to remove factor that's not a factor");
-        }
+        assert!(
+            self.has_factor(factor),
+            "Trying to remove factor that's not a factor"
+        );
 
         if self == *factor {
             return Equation::Variable(Variable::Integer(1));
@@ -121,10 +127,10 @@ impl Equation {
                         }
                     })
                     .collect();
-                return if !new.is_empty() {
-                    Equation::Multiplication(new)
-                } else {
+                return if new.is_empty() {
                     Equation::Variable(Variable::Integer(1))
+                } else {
+                    Equation::Multiplication(new)
                 };
             }
             Equation::Power(power) => {

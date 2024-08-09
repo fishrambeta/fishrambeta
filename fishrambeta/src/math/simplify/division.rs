@@ -29,11 +29,8 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                 .iter()
                 .position(|x| matches!(x, Equation::Variable(Variable::Rational(_))))
             {
-                let rational = if let Equation::Variable(Variable::Rational(r)) =
-                    multiplication.remove(index)
-                {
-                    r
-                } else {
+                let Equation::Variable(Variable::Rational(rational)) = multiplication.remove(index)
+                else {
                     unreachable!()
                 };
                 multiplication.push(Equation::Variable(Variable::Integer(*rational.numer())));
@@ -77,11 +74,8 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                 .iter()
                 .position(|x| matches!(x, Equation::Variable(Variable::Rational(_))))
             {
-                let rational = if let Equation::Variable(Variable::Rational(r)) =
-                    multiplication.remove(index)
-                {
-                    r
-                } else {
+                let Equation::Variable(Variable::Rational(rational)) = multiplication.remove(index)
+                else {
                     unreachable!()
                 };
                 multiplication.push(Equation::Variable(Variable::Integer(*rational.numer())));

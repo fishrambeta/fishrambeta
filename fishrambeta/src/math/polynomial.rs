@@ -23,7 +23,11 @@ impl Polynomial {
     }
 
     pub fn simplify(self) -> Polynomial {
-        let terms: Vec<Equation> = self.terms.into_iter().map(|x| x.simplify()).collect();
+        let terms: Vec<Equation> = self
+            .terms
+            .into_iter()
+            .map(super::Equation::simplify)
+            .collect();
         let mut terms_new: Vec<Equation> = terms
             .into_iter()
             .rev()
@@ -37,7 +41,7 @@ impl Polynomial {
     }
 
     /// Returns a polynomial with a value of 0
-    fn zero(base: Variable, degree: i64) -> Polynomial {
+    fn zero(base: Variable, degree: usize) -> Polynomial {
         Polynomial {
             terms: (0..=degree)
                 .map(|_| Equation::Variable(Variable::Integer(0)))
@@ -62,11 +66,11 @@ impl Polynomial {
         }
     }
 
-    pub fn degree(&self) -> i64 {
+    pub fn degree(&self) -> usize {
         if self.terms.is_empty() {
             return 0;
         }
-        (self.terms.len() - 1) as i64
+        self.terms.len() - 1
     }
 
     pub fn is_zero(&self) -> bool {
@@ -92,7 +96,7 @@ impl Polynomial {
     fn single_term_polynomial(term: Equation, exponent: usize, base: Variable) -> Polynomial {
         let mut terms: Vec<Equation> = vec![];
         for _ in 0..exponent {
-            terms.push(Equation::Variable(Variable::Integer(0)))
+            terms.push(Equation::Variable(Variable::Integer(0)));
         }
         terms.push(term);
         Polynomial { terms, base }
@@ -107,7 +111,7 @@ impl Polynomial {
                 .enumerate()
                 .map(|(exponent, term)| {
                     Equation::Multiplication(vec![
-                        Equation::Variable(Variable::Integer((exponent + 1) as i64)),
+                        Equation::Variable(Variable::Integer(i64::try_from(exponent).unwrap() + 1)),
                         term,
                     ])
                 })
@@ -126,9 +130,10 @@ impl Polynomial {
     /// Algorithm from wikipedia: Polynomial long division
     pub fn div(self, other: Polynomial) -> (Polynomial, Polynomial) {
         let base = self.base.clone();
-        if base != other.base {
-            panic!("Polynomials must have the same base to divide")
-        }
+        assert!(
+            base == other.base,
+            "Polynomials must have the same base to divide"
+        );
 
         let mut remainder = self.simplify();
         let divisor = other.simplify();
@@ -138,15 +143,15 @@ impl Polynomial {
             let remainder_degree = remainder.degree();
             let t = Polynomial::single_term_polynomial(
                 Equation::Division(Box::new((
-                    remainder.terms[remainder.degree() as usize].clone(),
-                    divisor.terms[divisor.degree() as usize].clone(),
+                    remainder.terms[remainder.degree()].clone(),
+                    divisor.terms[divisor.degree()].clone(),
                 ))),
-                (remainder.degree() - divisor.degree()) as usize,
+                remainder.degree() - divisor.degree(),
                 base.clone(),
             );
             quotient = quotient + t.clone();
             remainder = remainder - t * divisor.clone();
-            remainder.terms.truncate((remainder_degree) as usize);
+            remainder.terms.truncate(remainder_degree);
         }
 
         (quotient, remainder)
@@ -213,7 +218,7 @@ impl Polynomial {
                     .into_iter()
                     .map(|x| Polynomial::from_equation(x, base.clone()))
                 {
-                    total = total + polynomial_term
+                    total = total + polynomial_term;
                 }
                 total
             }
@@ -223,7 +228,7 @@ impl Polynomial {
                     .into_iter()
                     .map(|x| Polynomial::from_equation(x, base.clone()))
                 {
-                    total = total * polynomial_term
+                    total = total * polynomial_term;
                 }
                 total
             }
@@ -232,7 +237,7 @@ impl Polynomial {
                     if let Some(exponent) = p.1.get_integer_or_none() {
                         Polynomial::single_term_polynomial(
                             Equation::Variable(Variable::Integer(1)),
-                            exponent as usize,
+                            exponent.try_into().unwrap(),
                             base,
                         )
                     } else {
@@ -275,10 +280,10 @@ impl Polynomial {
             ]);
             total_equation.push(new_term);
         }
-        if !total_equation.is_empty() {
-            Equation::Addition(total_equation)
-        } else {
+        if total_equation.is_empty() {
             Equation::Variable(Variable::Integer(0))
+        } else {
+            Equation::Addition(total_equation)
         }
     }
 }
@@ -287,9 +292,10 @@ impl std::ops::Add for Polynomial {
     type Output = Self;
 
     fn add(self, other: Polynomial) -> Self::Output {
-        if self.base != other.base {
-            panic!("Bases must be the same to add polynomials")
-        }
+        assert!(
+            self.base == other.base,
+            "Bases must be the same to add polynomials"
+        );
 
         let (longest, shortest) = if self.terms.len() > other.terms.len() {
             (self.terms, other.terms)
@@ -316,9 +322,10 @@ impl std::ops::Sub for Polynomial {
     type Output = Self;
 
     fn sub(self, other: Polynomial) -> Self::Output {
-        if self.base != other.base {
-            panic!("Bases must be the same to add polynomials")
-        }
+        assert!(
+            self.base == other.base,
+            "Bases must be the same to add polynomials"
+        );
 
         self + -other
     }
@@ -361,9 +368,10 @@ impl std::ops::Mul for Polynomial {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
-        if self.base != other.base {
-            panic!("Bases must be the same to multiply polynomials")
-        }
+        assert!(
+            self.base == other.base,
+            "Bases must be the same to multiply polynomials"
+        );
 
         let max_exponent = self.terms.len() * other.terms.len();
         let mut new_terms_as_vec_of_vecs: Vec<Vec<Equation>> =
@@ -380,10 +388,10 @@ impl std::ops::Mul for Polynomial {
         let new_terms_as_vec_of_equations: Vec<Equation> = new_terms_as_vec_of_vecs
             .into_iter()
             .map(|x| {
-                if !x.is_empty() {
-                    Equation::Addition(x)
-                } else {
+                if x.is_empty() {
                     Equation::Variable(Variable::Integer(0))
+                } else {
+                    Equation::Addition(x)
                 }
             })
             .collect();
