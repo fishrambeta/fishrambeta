@@ -420,21 +420,13 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
         };
     }
     if latex.len() == 1 || &latex[1..2] != "_" {
-        if latex.chars().next().unwrap().is_digit(10) {
-            let mut i = 1;
-            loop {
-                if i + 2 >= latex.len() {
-                    break;
+        for i in 0..latex.len() {
+            if !latex.chars().skip(i).next().unwrap().is_digit(10) {
+                if i == 0 {
+                    return 1;
                 }
-                let next_character = latex.chars().skip(i).next().unwrap();
-                if !next_character.is_digit(10) {
-                    break;
-                }
-                i += 1;
+                return i;
             }
-            return i;
-        } else {
-            return 1;
         }
     }
     let mut current_depth = 0;
