@@ -1,0 +1,3 @@
+[submodule "fishrambeta-web/external-javascript"]
+	path = fishrambeta-web/external-javascript
+	url = https://github.com/fishrambeta/external-javascript.git
