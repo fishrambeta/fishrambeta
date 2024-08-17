@@ -1,7 +1,7 @@
 use crate::math::{Constant, Variable};
 use std::collections::BTreeMap;
 
-#[must_use] pub fn physics_values() -> BTreeMap<Variable, f64> {
+pub fn physics_values() -> BTreeMap<Variable, f64> {
     let mut values = BTreeMap::new();
     values.insert(Variable::Letter("g".to_string()), 9.81);
     values.insert(Variable::Letter("\\hbar".to_string()), 1.054_571_817e-34);

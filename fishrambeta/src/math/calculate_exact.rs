@@ -5,7 +5,6 @@ use num::Signed;
 use num_rational::Rational64;
 
 impl Equation {
-    #[must_use]
     pub fn calculate_exact(&self) -> Option<Rational64> {
         match self {
             Equation::Variable(variable) => {

@@ -5,7 +5,7 @@ mod bogointegrate;
 mod rational;
 
 impl Equation {
-    #[must_use] pub fn integrate(&self, integrate_to: &Variable) -> Equation {
+    pub fn integrate(&self, integrate_to: &Variable) -> Equation {
         let mut equation_to_integrate: Equation = (*self).clone().simplify();
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
@@ -89,7 +89,7 @@ impl Equation {
         };
     }
 
-    #[must_use] pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {
+    pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {
         match self {
             Equation::Addition(a) => a.iter().all(|x| x.term_is_constant(integrate_to)),
             Equation::Multiplication(m) => m.iter().all(|x| x.term_is_constant(integrate_to)),

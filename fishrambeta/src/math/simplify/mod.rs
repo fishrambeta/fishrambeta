@@ -8,7 +8,7 @@ mod multiplication;
 mod power;
 
 impl Equation {
-    #[must_use] pub fn simplify_until_complete(self) -> Self {
+    pub fn simplify_until_complete(self) -> Self {
         let mut equation = self.clone();
         let mut previous = self;
         for _ in 1..5 {
@@ -21,7 +21,7 @@ impl Equation {
         equation
     }
 
-    #[must_use] pub fn simplify_until_complete_with_print(self) -> Self {
+    pub fn simplify_until_complete_with_print(self) -> Self {
         let mut equation = self.clone();
         let mut previous = equation.to_latex();
         for i in 1..5 {

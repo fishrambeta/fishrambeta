@@ -1,7 +1,7 @@
 use crate::math::{Equation, Variable};
 
 impl Equation {
-    #[must_use] pub fn differentiate(self: &Equation, differentiate_to: &Variable) -> Equation {
+    pub fn differentiate(self: &Equation, differentiate_to: &Variable) -> Equation {
         match self {
             Equation::Variable(variable) => {
                 if variable == differentiate_to {

@@ -3,7 +3,6 @@ use num_integer::Integer;
 use crate::math::{Equation, Variable};
 
 impl Equation {
-    #[must_use]
     pub fn has_factor(self: &Equation, factor: &Equation) -> bool {
         if self == factor {
             return true;
@@ -25,7 +24,6 @@ impl Equation {
         }
     }
 
-    #[must_use]
     pub fn gcd(self: &Equation) -> i64 {
         match self {
             Equation::Variable(Variable::Integer(n)) => {
@@ -71,7 +69,6 @@ impl Equation {
         factors
     }
 
-    #[must_use]
     pub fn get_factors(self: &Equation) -> Vec<Equation> {
         let mut factors: Vec<Equation> = self
             .get_all_factors()
@@ -85,7 +82,6 @@ impl Equation {
         factors
     }
 
-    #[must_use]
     pub fn shared_factors(self: &Equation, other: &Equation) -> Vec<Equation> {
         let factors = self.get_all_factors();
         let mut shared_factors = vec![];
@@ -101,7 +97,6 @@ impl Equation {
         shared_factors
     }
 
-    #[must_use]
     pub fn remove_factor(self: Equation, factor: &Equation) -> Equation {
         assert!(
             self.has_factor(factor),
