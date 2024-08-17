@@ -55,9 +55,8 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
                     terms.insert_or_push(division.0, power.1.clone());
                     terms.insert_or_push(division.1, Equation::Negative(Box::new(power.1)));
                     continue;
-                } else {
-                    (power.0, power.1)
                 }
+                (power.0, power.1)
             }
             Equation::Division(division) => {
                 multiplication.remove(index);

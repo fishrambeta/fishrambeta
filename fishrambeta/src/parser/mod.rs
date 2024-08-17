@@ -90,8 +90,6 @@ impl Equation {
                 let mut a_variables = split_into_variables(a);
                 let mut b_variables = split_into_variables(b);
 
-                println!("a: {:?}", a_variables);
-                println!("b: {:?}", b_variables);
                 let a_stripped = a_variables
                     .pop()
                     .expect("Left side of power cannot be empty");
@@ -108,12 +106,11 @@ impl Equation {
                     Equation::from_latex_internal(b_stripped, implicit_multiplication),
                 ))));
                 return Equation::Multiplication(multiplication_parts);
-            } else {
-                return Equation::Power(Box::new((
-                    Equation::from_latex_internal(a, implicit_multiplication),
-                    Equation::from_latex_internal(b, implicit_multiplication),
-                )));
             }
+            return Equation::Power(Box::new((
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::from_latex_internal(b, implicit_multiplication),
+            )));
         }
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\sin") {
@@ -269,7 +266,6 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
             let next_i = i + get_index_of_next_variable_end(&var[i..]);
             variables.push(&var[i..next_i]);
             i = next_i;
-            println!("variables: {:?}", variables);
         }
     }
     variables
@@ -281,10 +277,10 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
     let mut depth = 0;
     for (i, c) in latex.chars().enumerate() {
         if is_opening_bracket(c) {
-            depth += 1
+            depth += 1;
         }
         if is_closing_bracket(c) {
-            depth -= 1
+            depth -= 1;
         }
         if depth != 0 {
             continue;
@@ -297,11 +293,11 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
             if is_in_command {
                 return i;
             }
-            is_in_command = true
+            is_in_command = true;
         }
 
         if c.is_ascii_digit() {
-            is_in_number = true
+            is_in_number = true;
         }
 
         if !c.is_ascii_digit() && !is_in_command {

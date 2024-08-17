@@ -4,6 +4,7 @@
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::must_use_candidate)]
+#![allow(clippy::return_self_not_must_use)]
 
 pub mod math;
 pub mod parser;
