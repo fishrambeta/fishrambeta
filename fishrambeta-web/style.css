@@ -10,12 +10,33 @@ span.latex-input {
   height: auto;
 }
 
+span.latex-key {
+  font-size: 120%;
+  min-width: 10%;
+  max-width: 40%;
+  height: auto;
+}
+
+span.latex-value {
+  font-size: 120%;
+  min-width: 20%;
+  max-width: 40%;
+  height: auto;
+}
+
 span.latex-result {
   font-size: 150%;
 }
 
 select {
   margin: 5px;
+}
+
+.hint {
+  margin: 0;
+  padding: 0;
+  font-size: 75%;
+  color: gray;
 }
 
 .container {
