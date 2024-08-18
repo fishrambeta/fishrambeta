@@ -1,133 +1,62 @@
-<!DOCTYPE html>
-<html lang="en-US">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-  <meta charset="utf-8" />
-  <title>Fishrambeta</title>
-
-  <script src="external-javascript/jquery.min.js"></script>
-  <link rel="stylesheet" href="external-javascript/mathquill/mathquill.css">
-  <script src="external-javascript/mathquill/mathquill.js"></script>
-
-  <script>
-    var MQ = MathQuill.getInterface(2);
-  </script>
-</head>
-
-<body>
-  <script type="module">
-    import init, {simplify, calculate, differentiate, integrate} from "./pkg/fishrambeta_wasm.js";
-    init().then(() => {
-      window.calculate = calculate;
-      window.differentiate = differentiate;
-      window.simplify = simplify;
-      window.integrate = integrate;
-    });
-  </script>
-
-  <p>Equation</p>
-  <p><span id="equation"></span></p>
-  <select name="operation" id="operation" onchange="process_operation()">
-    <option value="calculate">Calculate</option>
-    <option value="simplify">Simplify</option>
-    <option value="differentiate">Differentiate</option>
-    <option value="integrate">Integrate</option>
-  </select>
-  <p><span id="result"></span></p>
-  <p>Values</p>
-  <div id="values">
-
-  </div>
-  <script>
-    var equation_span = document.getElementById('equation');
-    var equation_mathfield = MQ.MathField(equation_span, {
-      spaceBehavesLikeTab: true,
-      handlers: {
-        edit: function () {
-          try {
-            process_operation();
-          } catch (e) {
-            console.log(e);
-          }
-        }
-      }
-    });
-
-    var resultSpan = document.getElementById('result');
-    let result_mathfield = MQ.StaticMath(resultSpan);
-
-    var values_fields = [];
-    function add_new_value_field() {
-      var element = document.getElementById("values");
-      element.insertAdjacentHTML('afterbegin', '<p><span id="valuefieldkey' + values_fields.length + '"></span>=<span id="valuefieldvalue' + values_fields.length + '"></span></p>');
-      var key_span = document.getElementById('valuefieldkey' + values_fields.length);
-      var key_mathfield = MQ.MathField(key_span, {
-        spaceBehavesLikeTab: true,
-        handlers: {
-          edit: function () {
-            try {
-              process_operation();
-            } catch {
-            }
-          }
-        }
-      });
-
-      var value_span = document.getElementById('valuefieldvalue' + values_fields.length);
-      var value_mathfield = MQ.MathField(value_span, {
-        spaceBehavesLikeTab: true,
-        handlers: {
-          edit: function () {
-            try {
-              process_operation();
-            } catch {
-            }
-          }
-        }
-      });
-      values_fields.push([key_mathfield, value_mathfield]);
-    }
-
-    for (let i = 0; i < 10; i++) {
-      add_new_value_field();
-    }
-
-    function process_operation() {
-      var equation = equation_mathfield.latex();
-      var keys = [];
-      var values = [];
-      for (keyvaluepair of values_fields.toReversed()) {
-        try {
-          console.log(keyvaluepair[0].latex(), keyvaluepair[1].latex());
-          var key = keyvaluepair[0].latex();
-          var value = calculate(keyvaluepair[1].latex(), "", []);
-          keys.push(key);
-          values.push(value);
-        } catch (e) {
-        }
-      }
-      console.log(keys);
-      console.log(values);
-      console.log(document.getElementById("operation").value);
-      switch (document.getElementById("operation").value) {
-        case "calculate":
-          var result = calculate(equation, keys.join("\\n\\n"), values);
-          break;
-        case "differentiate":
-          var result = differentiate(equation);
-          break;
-        case "simplify":
-          var result = simplify(equation);
-          break;
-        case "integrate":
-          var result = integrate(equation);
-          break;
-      }
-
-      result_mathfield.latex(result);
-    }
-
-  </script>
-</body>
-
+    <link rel="stylesheet" href="style.css" />
+    <script src="external-javascript/jquery.min.js"></script>
+    <link rel="stylesheet" href="external-javascript/mathquill/mathquill.css" />
+    <script src="external-javascript/mathquill/mathquill.js"></script>
+    <script type="module" src="script.js" defer></script>
+    <title>fishrambeta</title>
+  </head>
+  <body>
+    <center>
+      <div>
+        <img
+          src="FishramLogoTextSVG.svg"
+          class="logo"
+          alt="fishrambeta logo: a cartoon shark with the text fishrambeta to its right."
+        />
+      </div>
+      <br />
+      <div>
+        <span class="latex-input" id="latex-input"></span>
+      </div>
+      <br />
+      <div>
+        <span class="latex-result" id="latex-result"></span>
+      </div>
+      <div class="container">
+        <div class="column" id="input-column">
+          <h3>Options</h3>
+          <div>
+            <span>Operation</span
+            ><select
+              name="operation"
+              id="operation"
+              onchange="on_operation_changed()"
+            >
+              <option value="simplify">Simplify</option>
+              <option value="calculate">Calculate</option>
+              <option value="differentiate">Differentiate</option>
+              <option value="integrate">Integrate</option>
+            </select>
+          </div>
+          <div id="input-values">
+            <div>
+              <h4 style="margin-bottom: 0">Values for Calculation</h4>
+              <p class="hint">(can contain calculations themselves)</p>
+            </div>
+            <div id="input-values-container"></div>
+          </div>
+        </div>
+        <div class="column" id="steps-column">
+          <h3>Steps</h3>
+          <p>Steps are not implemented yet...</p>
+        </div>
+      </div>
+    </center>
+  </body>
 </html>
