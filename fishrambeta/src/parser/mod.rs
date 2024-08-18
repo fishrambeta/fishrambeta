@@ -90,6 +90,9 @@ impl Equation {
                 let mut a_variables = split_into_variables(a);
                 let mut b_variables = split_into_variables(b);
 
+                println!("a: {:?}", a);
+                println!("a variables: {:?}", a_variables);
+
                 let a_stripped = a_variables
                     .pop()
                     .expect("Left side of power cannot be empty");
@@ -259,14 +262,11 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
 
 fn split_into_variables(latex: &str) -> Vec<&str> {
     let mut variables = Vec::new();
-    let split = latex.split(' ');
-    for var in split {
-        let mut i = 0;
-        while i < var.len() {
-            let next_i = i + get_index_of_next_variable_end(&var[i..]);
-            variables.push(&var[i..next_i]);
-            i = next_i;
-        }
+    let mut i = 0;
+    while i < latex.len() {
+        let next_i = i + get_index_of_next_variable_end(&latex[i..]);
+        variables.push(&latex[i..next_i]);
+        i = next_i;
     }
     variables
 }
@@ -282,6 +282,7 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
         if is_closing_bracket(c) {
             depth -= 1;
         }
+        println!("i: {}, c: {}, depth: {}", i, c, depth);
         if depth != 0 {
             continue;
         }
@@ -294,6 +295,10 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
                 return i;
             }
             is_in_command = true;
+        }
+
+        if is_closing_bracket(c) {
+            return i + 1;
         }
 
         if c.is_ascii_digit() {
