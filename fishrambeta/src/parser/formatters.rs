@@ -1,4 +1,4 @@
-use crate::math::{Equation, Variable, Constant};
+use crate::math::{Constant, Equation, Variable};
 
 impl Equation {
     pub fn to_latex(&self) -> String {

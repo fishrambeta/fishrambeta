@@ -90,9 +90,6 @@ impl Equation {
                 let mut a_variables = split_into_variables(a);
                 let mut b_variables = split_into_variables(b);
 
-                println!("a: {:?}", a);
-                println!("a variables: {:?}", a_variables);
-
                 let a_stripped = a_variables
                     .pop()
                     .expect("Left side of power cannot be empty");
@@ -282,7 +279,6 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
         if is_closing_bracket(c) {
             depth -= 1;
         }
-        println!("i: {}, c: {}, depth: {}", i, c, depth);
         if depth != 0 {
             continue;
         }
