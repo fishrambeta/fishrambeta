@@ -1,3 +1,5 @@
+use num::Rational64;
+
 use crate::math::{Constant, Equation, Variable};
 use std::fmt;
 
@@ -110,6 +112,14 @@ impl Equation {
             return Equation::Power(Box::new((
                 Equation::from_latex_internal(a, implicit_multiplication),
                 Equation::from_latex_internal(b, implicit_multiplication),
+            )));
+        }
+
+        if let Some(parameters) = parse_latex_with_command(latex, "\\sqrt") {
+            assert_eq!(parameters.len(), 1);
+            return Equation::Power(Box::new((
+                Equation::from_latex_internal(parameters[0], implicit_multiplication),
+                Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
             )));
         }
 
