@@ -7,16 +7,22 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn simplify(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation, true);
+pub fn latex_to_numpy(equation: &str) -> String {
+    let parsed = Equation::from_latex(equation, false);
+    parsed.to_numpy()
+}
+
+#[wasm_bindgen]
+pub fn simplify(equation: &str, implicit_multiplication: bool) -> String {
+    let parsed = Equation::from_latex(equation, implicit_multiplication);
     let simplified = parsed.simplify_until_complete();
 
     simplified.to_latex()
 }
 
 #[wasm_bindgen]
-pub fn differentiate(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation, true);
+pub fn differentiate(equation: &str, implicit_multiplication: bool) -> String {
+    let parsed = Equation::from_latex(equation, implicit_multiplication);
     let differentiated = parsed
         .differentiate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
@@ -25,8 +31,8 @@ pub fn differentiate(equation: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn integrate(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation, true);
+pub fn integrate(equation: &str, implicit_multiplication: bool) -> String {
+    let parsed = Equation::from_latex(equation, implicit_multiplication);
     let integrated = parsed
         .integrate(&Variable::Letter("x".to_string()))
         .simplify_until_complete();
@@ -35,7 +41,12 @@ pub fn integrate(equation: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f64]) -> f64 {
+pub fn calculate(
+    equation: &str,
+    user_values_keys: &str,
+    user_values_values: &[f64],
+    implicit_multiplication: bool,
+) -> f64 {
     console_error_panic_hook::set_once();
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
@@ -43,7 +54,7 @@ pub fn calculate(equation: &str, user_values_keys: &str, user_values_values: &[f
         user_values_values,
     );
     values.extend(user_values_hashmap);
-    let parsed: Equation = Equation::from_latex(equation, true);
+    let parsed: Equation = Equation::from_latex(equation, implicit_multiplication);
 
     parsed.calculate(&values)
 }
