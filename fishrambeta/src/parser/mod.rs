@@ -161,8 +161,8 @@ impl Equation {
             )));
         }
 
-        if implicit_multiplication {
-            let variables = split_into_variables(latex);
+        let variable = if implicit_multiplication {
+            let mut variables = split_into_variables(latex);
             if variables.len() > 1 {
                 return Equation::Multiplication(
                     variables
@@ -173,9 +173,12 @@ impl Equation {
                         .collect(),
                 );
             }
-        }
+            variables.remove(0)
+        } else {
+            latex
+        };
 
-        match latex {
+        match variable {
             "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
             "e" => Equation::Variable(Variable::Constant(Constant::E)),
             letter => Equation::Variable(Variable::Letter(letter.to_string())),
@@ -270,11 +273,24 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
 fn split_into_variables(latex: &str) -> Vec<&str> {
     let mut variables = Vec::new();
     let mut i = 0;
-    while i < latex.len() {
-        let next_i = i + get_index_of_next_variable_end(&latex[i..]);
-        variables.push(&latex[i..next_i]);
-        i = next_i;
+    let mut split: Vec<&str> = Vec::new();
+    let mut remaining_latex = latex;
+    while let Some((a, b)) = split_latex_at_operator(remaining_latex, &' ') {
+        split.push(b);
+        remaining_latex = a;
     }
+    if remaining_latex != "" {
+        split.push(remaining_latex);
+    }
+    println!("split: {:?}", split);
+    for part in split.into_iter().rev() {
+        while i < part.len() {
+            let next_i = i + get_index_of_next_variable_end(&part[i..]);
+            variables.push(&part[i..next_i]);
+            i = next_i;
+        }
+    }
+    println!("variables: {:?}", variables);
     variables
 }
 
