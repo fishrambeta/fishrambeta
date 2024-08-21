@@ -91,24 +91,24 @@ impl Equation {
                 Variable::Letter(l) => return l.to_string(),
                 Variable::Vector(_) => todo!(),
             },
-            Equation::Negative(n) => format!("-({})", n.to_latex()),
+            Equation::Negative(n) => format!("-({})", n.to_numpy()),
             Equation::Addition(a) => a
                 .iter()
-                .map(|t| format!("({})", t.to_latex()))
+                .map(|t| format!("({})", t.to_numpy()))
                 .collect::<Vec<_>>()
                 .join("+"),
             Equation::Multiplication(m) => m
                 .iter()
-                .map(|t| format!("({})", t.to_latex()))
+                .map(|t| format!("({})", t.to_numpy()))
                 .collect::<Vec<_>>()
                 .join("*"),
-            Equation::Division(d) => format!("({})/({})", d.0, d.1),
-            Equation::Power(p) => format!("np.power(({}),{{{}}})", p.0, p.1),
-            Equation::Ln(l) => format!("np.log({l})"),
-            Equation::Equals(e) => format!("{}={}", e.0, e.1),
-            Equation::Sin(s) => format!("np.sin({s})"),
-            Equation::Cos(c) => format!("np.cos({c})"),
-            Equation::Abs(a) => format!("np.abs({a})"),
+            Equation::Division(d) => format!("({})/({})", d.0.to_numpy(), d.1.to_numpy()),
+            Equation::Power(p) => format!("np.power(({}),({}))", p.0.to_numpy(), p.1.to_numpy()),
+            Equation::Ln(l) => format!("np.log({})", l.to_numpy()),
+            Equation::Equals(e) => format!("{}={}", e.0.to_numpy(), e.1.to_numpy()),
+            Equation::Sin(s) => format!("np.sin({})", s.to_numpy()),
+            Equation::Cos(c) => format!("np.cos({})", c.to_numpy()),
+            Equation::Abs(a) => format!("np.abs({})", a.to_numpy()),
             Equation::Derivative(_) => todo!(),
         };
     }

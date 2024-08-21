@@ -1,5 +1,6 @@
 import init, {
   simplify,
+  latex_to_numpy,
   calculate,
   differentiate,
   integrate,
@@ -43,7 +44,12 @@ function get_values() {
 function process_operation() {
   var input = input_mathfield.latex();
   var operation = document.getElementById("operation").value;
+  var implicit_multiplication = document.getElementById(
+    "implicit-multiplication-checkbox",
+  ).checked;
   result_mathfield.latex("");
+  result_latex_copypaste.value = "";
+  result_numpy_copypaste.value = "";
   if (input == "") {
     return;
   }
@@ -52,22 +58,42 @@ function process_operation() {
 
     switch (operation) {
       case "simplify":
-        result = simplify(input);
+        result = simplify(input, implicit_multiplication);
         break;
       case "calculate":
         var values = get_values();
+        console.log("values:");
         console.log(values);
-        result = calculate(input, values.keys.join("\\n\\n"), values.values);
+        result = calculate(
+          input,
+          values.keys.join("\\n\\n"),
+          values.values,
+          implicit_multiplication,
+        );
         break;
       case "differentiate":
-        result = differentiate(input);
+        var differentiate_to = differentiate_to_mathfield.latex();
+        if (differentiate_to == "") {
+          throw new Error("Cannot differentiate to empty string");
+        }
+        result = differentiate(
+          input,
+          differentiate_to,
+          implicit_multiplication,
+        );
         break;
       case "integrate":
-        result = integrate(input);
+        var integrate_to = integrate_to_mathfield.latex();
+        if (integrate_to == "") {
+          throw new Error("Cannot integrate to empty string");
+        }
+        result = integrate(input, integrate_to, implicit_multiplication);
         break;
     }
-
     result_mathfield.latex(result);
+    result_latex_copypaste.value = result;
+    var numpy = latex_to_numpy(String(result));
+    result_numpy_copypaste.value = numpy;
   } catch (error) {
     console.log(error);
     result_mathfield.latex("\\textbf{Invalid LaTeX (" + error + ")}");
@@ -118,28 +144,90 @@ var input_mathfield = MQ.MathField(input_span, {
   },
 });
 
+var differentiate_to_span = document.getElementById("differentiate-to");
+var differentiate_to_mathfield = MQ.MathField(differentiate_to_span, {
+  spaceBehavesLikeTab: true,
+  handlers: {
+    edit: on_input_changed,
+  },
+});
+
+var integrate_to_span = document.getElementById("integrate-to");
+var integrate_to_mathfield = MQ.MathField(integrate_to_span, {
+  spaceBehavesLikeTab: true,
+  handlers: {
+    edit: on_input_changed,
+  },
+});
+
 var result_span = document.getElementById("latex-result");
 let result_mathfield = MQ.StaticMath(result_span);
 
-document.addEventListener("DOMContentLoaded", function () {
-  const selectElement = document.getElementById("operation");
-  const targetElement = document.getElementById("input-values");
+var result_latex_copypaste = document.getElementById("latex-result-copypaste");
+var result_numpy_copypaste = document.getElementById("numpy-result-copypaste");
 
-  // Function to check the selected value and show/hide the target element accordingly
-  function toggleVisibility() {
-    if (selectElement.value === "calculate") {
-      targetElement.style.display = "block";
+document.addEventListener("DOMContentLoaded", function () {
+  const operation_element = document.getElementById("operation");
+  const input_values_element = document.getElementById("input-values");
+  const differentiate_options = document.getElementById(
+    "differentiate-options",
+  );
+  const integrate_options = document.getElementById("integrate-options");
+
+  function toggle_visibilities() {
+    if (operation_element.value === "calculate") {
+      input_values_element.style.display = "block";
     } else {
-      targetElement.style.display = "none";
+      input_values_element.style.display = "none";
+    }
+
+    if (operation_element.value === "differentiate") {
+      differentiate_options.style.display = "block";
+    } else {
+      differentiate_options.style.display = "none";
+    }
+
+    if (operation_element.value === "integrate") {
+      integrate_options.style.display = "block";
+    } else {
+      integrate_options.style.display = "none";
     }
   }
 
-  // Call the function on page load to set the initial state
-  toggleVisibility();
+  toggle_visibilities();
 
   // Add an event listener to the select element
-  selectElement.addEventListener("change", toggleVisibility);
+  operation_element.addEventListener("change", toggle_visibilities);
 });
+
+function on_update_latex_checkbox() {
+  var checkbox = document.getElementById("show-latex-checkbox");
+  var element = document.getElementById("latex-result-p");
+
+  if (checkbox.checked) {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+document
+  .getElementById("show-latex-checkbox")
+  .addEventListener("change", on_update_latex_checkbox);
+on_update_latex_checkbox();
+function on_update_numpy_checkbox() {
+  var checkbox = document.getElementById("show-numpy-checkbox");
+  var element = document.getElementById("numpy-result-p");
+
+  if (checkbox.checked) {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+document
+  .getElementById("show-numpy-checkbox")
+  .addEventListener("change", on_update_numpy_checkbox);
+on_update_numpy_checkbox();
 
 for (let i = 0; i < 10; i++) {
   add_new_value_field(i);
