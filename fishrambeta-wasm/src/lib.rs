@@ -21,20 +21,24 @@ pub fn simplify(equation: &str, implicit_multiplication: bool) -> String {
 }
 
 #[wasm_bindgen]
-pub fn differentiate(equation: &str, implicit_multiplication: bool) -> String {
+pub fn differentiate(
+    equation: &str,
+    differentiate_to: &str,
+    implicit_multiplication: bool,
+) -> String {
     let parsed = Equation::from_latex(equation, implicit_multiplication);
     let differentiated = parsed
-        .differentiate(&Variable::Letter("x".to_string()))
+        .differentiate(&Variable::Letter(differentiate_to.to_string()))
         .simplify_until_complete();
 
     differentiated.to_latex()
 }
 
 #[wasm_bindgen]
-pub fn integrate(equation: &str, implicit_multiplication: bool) -> String {
+pub fn integrate(equation: &str, integrate_to: &str, implicit_multiplication: bool) -> String {
     let parsed = Equation::from_latex(equation, implicit_multiplication);
     let integrated = parsed
-        .integrate(&Variable::Letter("x".to_string()))
+        .integrate(&Variable::Letter(integrate_to.to_string()))
         .simplify_until_complete();
 
     integrated.to_latex()

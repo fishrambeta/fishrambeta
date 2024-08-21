@@ -32,6 +32,15 @@ select {
   margin: 5px;
 }
 
+input {
+  margin: 5px;
+}
+
+.nomargin {
+  margin: 0;
+  padding: 0;
+}
+
 .hint {
   margin: 0;
   padding: 0;
