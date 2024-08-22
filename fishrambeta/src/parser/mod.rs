@@ -272,7 +272,6 @@ fn split_latex_at_operator<'a>(latex: &'a str, operator: &'a char) -> Option<(&'
 
 fn split_into_variables(latex: &str) -> Vec<&str> {
     let mut variables = Vec::new();
-    let mut i = 0;
     let mut split: Vec<&str> = Vec::new();
     let mut remaining_latex = latex;
     while let Some((a, b)) = split_latex_at_operator(remaining_latex, &' ') {
@@ -283,6 +282,7 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
         split.push(remaining_latex);
     }
     for part in split.into_iter().rev() {
+        let mut i = 0;
         while i < part.len() {
             let next_i = i + get_index_of_next_variable_end(&part[i..]);
             variables.push(&part[i..next_i]);
