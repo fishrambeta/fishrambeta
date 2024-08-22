@@ -282,7 +282,6 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
     if remaining_latex != "" {
         split.push(remaining_latex);
     }
-    println!("split: {:?}", split);
     for part in split.into_iter().rev() {
         while i < part.len() {
             let next_i = i + get_index_of_next_variable_end(&part[i..]);
@@ -290,13 +289,11 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
             i = next_i;
         }
     }
-    println!("variables: {:?}", variables);
     variables
 }
 
 fn get_index_of_next_variable_end(latex: &str) -> usize {
-    let mut is_in_command = false;
-    let mut is_in_number = false;
+    let mut variable_type = VariableType::None;
     let mut depth = 0;
     for (i, c) in latex.chars().enumerate() {
         if is_opening_bracket(c) {
@@ -308,35 +305,38 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
         if depth != 0 {
             continue;
         }
-
-        if c == '\\' {
-            if is_in_number {
+        match variable_type {
+            VariableType::None => {
+                if c == '\\' {
+                    variable_type = VariableType::Command;
+                    continue;
+                }
+                if c.is_ascii_digit() || c == '.' {
+                    variable_type = VariableType::Number;
+                    continue;
+                }
+                variable_type = VariableType::Letter;
+            }
+            VariableType::Command => {
+                if c.is_ascii_digit() || c == '.' || c == '\\' {
+                    return i;
+                }
+            }
+            VariableType::Number => {
+                if !(c.is_ascii_digit() || c == '.') {
+                    return i;
+                }
+            }
+            VariableType::Letter => {
+                if c == '_' {
+                    variable_type = VariableType::LetterWithSubscript;
+                    continue;
+                }
                 return i;
             }
-            if is_in_command {
-                return i;
+            VariableType::LetterWithSubscript => {
+                return i + 1;
             }
-            is_in_command = true;
-        }
-
-        if is_closing_bracket(c) {
-            return i + 1;
-        }
-
-        if c.is_ascii_digit() {
-            is_in_number = true;
-        }
-
-        if !c.is_ascii_digit() && !is_in_command {
-            if i == 0 {
-                return 1;
-            }
-            return i;
-        }
-
-        // This happens when we just entered a command
-        if c.is_ascii_digit() && is_in_command {
-            return i;
         }
     }
     latex.len()
@@ -347,4 +347,13 @@ fn is_opening_bracket(c: char) -> bool {
 }
 fn is_closing_bracket(c: char) -> bool {
     [')', '}'].contains(&c)
+}
+
+#[derive(Debug)]
+enum VariableType {
+    None,
+    Command,
+    Number,
+    Letter,
+    LetterWithSubscript,
 }
