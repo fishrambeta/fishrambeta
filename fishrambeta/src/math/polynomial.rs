@@ -26,7 +26,7 @@ impl Polynomial {
         let terms: Vec<Equation> = self
             .terms
             .into_iter()
-            .map(super::Equation::simplify)
+            .map(|term| term.simplify(&mut None))
             .collect();
         let mut terms_new: Vec<Equation> = terms
             .into_iter()
@@ -77,7 +77,7 @@ impl Polynomial {
         return self
             .terms
             .iter()
-            .all(|x| x.clone().simplify() == Equation::Variable(Variable::Integer(0)));
+            .all(|x| x.clone().simplify(&mut None) == Equation::Variable(Variable::Integer(0)));
     }
 
     pub fn is_one(&self) -> bool {
@@ -85,10 +85,12 @@ impl Polynomial {
         if terms.is_empty() {
             return false;
         }
-        if terms.remove(terms.len() - 1).simplify() == Equation::Variable(Variable::Integer(1)) {
+        if terms.remove(terms.len() - 1).simplify(&mut None)
+            == Equation::Variable(Variable::Integer(1))
+        {
             return terms
                 .into_iter()
-                .all(|x| x.simplify() == Equation::Variable(Variable::Integer(0)));
+                .all(|x| x.simplify(&mut None) == Equation::Variable(Variable::Integer(0)));
         }
         false
     }

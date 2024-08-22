@@ -1,10 +1,13 @@
 use super::{Equation, Variable};
-
+use crate::math::steps::StepLogger;
 use num_rational::Rational64;
 
-pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
-    let mut numerator = division.0.simplify();
-    let mut denominator = division.1.simplify();
+pub(super) fn simplify_division(
+    division: (Equation, Equation),
+    step_logger: &mut Option<StepLogger>,
+) -> Equation {
+    let mut numerator = division.0.simplify(step_logger);
+    let mut denominator = division.1.simplify(step_logger);
 
     match numerator {
         Equation::Division(division) => {
@@ -12,7 +15,7 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                 division.0,
                 Equation::Multiplication(vec![division.1, denominator]),
             )))
-            .simplify();
+            .simplify(step_logger);
         }
         Equation::Variable(Variable::Rational(rational)) => {
             return Equation::Division(Box::new((
@@ -21,7 +24,7 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                     denominator,
                     Equation::Variable(Variable::Integer(*rational.denom())),
                 ])
-                .simplify(),
+                .simplify(step_logger),
             )));
         }
         Equation::Multiplication(ref mut multiplication) => {
@@ -40,7 +43,7 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                         denominator,
                         Equation::Variable(Variable::Integer(*rational.denom())),
                     ])
-                    .simplify(),
+                    .simplify(step_logger),
                 )));
             }
         }
@@ -52,7 +55,7 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                 Equation::Multiplication(vec![numerator, division.1]),
                 division.0,
             )))
-            .simplify();
+            .simplify(step_logger);
         }
         Equation::Variable(Variable::Rational(rational)) => {
             return Equation::Division(Box::new((
@@ -84,7 +87,7 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
                         numerator,
                         Equation::Variable(Variable::Integer(*rational.denom())),
                     ])
-                    .simplify(),
+                    .simplify(step_logger),
                     Equation::Multiplication(multiplication.clone()),
                 )));
             }
@@ -100,8 +103,8 @@ pub(super) fn simplify_division(division: (Equation, Equation)) -> Equation {
         }
     }
 
-    numerator = numerator.simplify();
-    denominator = denominator.simplify();
+    numerator = numerator.simplify(step_logger);
+    denominator = denominator.simplify(step_logger);
 
     if numerator == Equation::Variable(Variable::Integer(0)) {
         Equation::Variable(Variable::Integer(0))

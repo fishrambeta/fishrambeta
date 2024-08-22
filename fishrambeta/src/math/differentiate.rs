@@ -58,7 +58,8 @@ impl Equation {
             }
             Equation::Power(power) => differentiate_power(power, differentiate_to),
             Equation::Ln(ln) => {
-                if ln.clone().simplify_until_complete() == Equation::Variable(Variable::Integer(0))
+                if ln.clone().simplify_until_complete(&mut None)
+                    == Equation::Variable(Variable::Integer(0))
                 {
                     //TODO:
                     //this can probably be done better

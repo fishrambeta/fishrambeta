@@ -1,12 +1,16 @@
-use super::{Equation, Variable};
+use super::{steps::StepLogger, Equation, Variable};
 use num_rational::Rational64;
 
 mod bogointegrate;
 mod rational;
 
 impl Equation {
-    pub fn integrate(&self, integrate_to: &Variable) -> Equation {
-        let mut equation_to_integrate: Equation = (*self).clone().simplify();
+    pub fn integrate(
+        &self,
+        integrate_to: &Variable,
+        step_logger: &mut Option<StepLogger>,
+    ) -> Equation {
+        let mut equation_to_integrate: Equation = (*self).clone().simplify(step_logger);
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
 
@@ -14,7 +18,9 @@ impl Equation {
             if equation_to_integrate.has_factor(&fixed_term)
                 && fixed_term.term_is_constant(integrate_to)
             {
-                equation_to_integrate = equation_to_integrate.remove_factor(&fixed_term).simplify();
+                equation_to_integrate = equation_to_integrate
+                    .remove_factor(&fixed_term)
+                    .simplify(step_logger);
                 integrated_equation.push(fixed_term);
             }
         }
@@ -22,13 +28,13 @@ impl Equation {
         #[allow(clippy::never_loop)]
         loop {
             println!("Equation to integrate: {equation_to_integrate}");
-            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
+            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to, step_logger) {
                 integrated_equation.push(integrated_term);
                 break;
             }
 
             if equation_to_integrate.is_rational_function(integrate_to) {
-                equation_to_integrate.integrate_rational(integrate_to);
+                equation_to_integrate.integrate_rational(integrate_to, step_logger);
                 break;
             }
 
@@ -39,10 +45,13 @@ impl Equation {
         Equation::Multiplication(integrated_equation)
     }
 
-    fn standard_integrals(&self, integrate_to: &Variable) -> Option<Equation> {
+    fn standard_integrals(&self, integrate_to: &Variable, step_logger: &mut Option<StepLogger>) -> Option<Equation> {
         return match self {
             Equation::Addition(addition) => Some(Equation::Addition(
-                addition.iter().map(|x| x.integrate(integrate_to)).collect(),
+                addition
+                    .iter()
+                    .map(|x| x.integrate(integrate_to, step_logger))
+                    .collect(),
             )),
             Equation::Variable(Variable::Integer(i)) => Some(Equation::Multiplication(vec![
                 Equation::Variable(Variable::Integer(*i)),

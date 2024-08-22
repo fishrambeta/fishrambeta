@@ -94,7 +94,7 @@ fn random_equation(
 
 impl Equation {
     pub(super) fn bogointegrate(&self, integrate_to: &Variable) -> Equation {
-        let simplified = self.clone().simplify_until_complete();
+        let simplified = self.clone().simplify_until_complete(&mut None);
         primitives_iter(integrate_to)
             .par_bridge()
             .find_any(|x: &Equation| x.clone().is_primitive(&simplified, integrate_to))
@@ -102,8 +102,10 @@ impl Equation {
     }
 
     fn is_primitive(&self, simplified: &Equation, integrate_to: &Variable) -> bool {
-        let is_primitive =
-            self.differentiate(integrate_to).simplify_until_complete() == *simplified;
+        let is_primitive = self
+            .differentiate(integrate_to)
+            .simplify_until_complete(&mut None)
+            == *simplified;
         if is_primitive {
             println!("{self} is a primitive of {simplified}");
         }

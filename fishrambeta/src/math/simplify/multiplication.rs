@@ -1,4 +1,5 @@
 use super::{Equation, EquationBTreeMap, Variable};
+use crate::math::steps::StepLogger;
 use num_rational::Rational64;
 
 fn flatten_multiplication(multiplication: Vec<Equation>) -> Vec<Equation> {
@@ -24,14 +25,17 @@ fn distribute_terms(multiplication: &[Equation], addition: Vec<Equation>) -> Equ
     Equation::Addition(new_addition)
 }
 
-pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation {
+pub(super) fn simplify_multiplication(
+    multiplication: Vec<Equation>,
+    step_logger: &mut Option<StepLogger>,
+) -> Equation {
     let mut multiplication = flatten_multiplication(multiplication);
     let mut terms: EquationBTreeMap = EquationBTreeMap::new();
     let mut total_rational_factor: Rational64 = 1.into();
 
     let mut total_is_negative = false;
     for (index, equation) in multiplication.iter().enumerate() {
-        let (term, count) = match equation.clone().simplify() {
+        let (term, count) = match equation.clone().simplify(step_logger) {
             Equation::Variable(Variable::Integer(0)) => {
                 return Equation::Variable(Variable::Integer(0));
             }
@@ -81,13 +85,18 @@ pub(super) fn simplify_multiplication(multiplication: Vec<Equation>) -> Equation
         total_rational_factor *= -1;
     }
     if total_rational_factor != 1.into() || terms.0.is_empty() {
-        simplified_multiplication
-            .push(Equation::Variable(Variable::Rational(total_rational_factor)).simplify());
+        simplified_multiplication.push(
+            Equation::Variable(Variable::Rational(total_rational_factor)).simplify(step_logger),
+        );
     }
 
     for (term, count) in terms.0 {
         simplified_multiplication.push(
-            Equation::Power(Box::new((term, Equation::Addition(count).simplify()))).simplify(),
+            Equation::Power(Box::new((
+                term,
+                Equation::Addition(count).simplify(step_logger),
+            )))
+            .simplify(step_logger),
         );
     }
 
