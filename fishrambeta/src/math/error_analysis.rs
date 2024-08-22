@@ -7,7 +7,7 @@ impl Equation {
     pub fn error_analysis(self, error_variables: Vec<Variable>, step_logger: &mut Option<StepLogger>) -> Equation {
         let mut terms: Vec<Equation> = Vec::new();
         for variable in error_variables {
-            let mut derivative = self.differentiate(&variable);
+            let mut derivative = self.differentiate(&variable, step_logger);
             derivative = derivative.simplify_until_complete(step_logger);
             let term = Equation::Power(Box::new((
                 Equation::Multiplication(vec![

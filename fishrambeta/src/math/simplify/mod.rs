@@ -45,16 +45,14 @@ impl Equation {
             } else {
                 Equation::Variable(Variable::Rational(calculated))
             };
-            if let Some(step_logger) = step_logger {
-                step_logger.add_step(Step::new(
-                    self,
-                    numerical_part.clone(),
-                    Some("Calculate part consisting of only numbers"),
-                ))
-            }
             return numerical_part;
         }
-        match self {
+        let before = if step_logger.is_some() {
+            Some(self.clone())
+        } else {
+            None
+        };
+        let simplified = match self {
             Equation::Variable(variable) => match variable {
                 Variable::Rational(r) => {
                     if r.is_integer() {
@@ -66,7 +64,7 @@ impl Equation {
                 variable => Equation::Variable(variable),
             },
             Equation::Negative(negative) => match *negative {
-                Equation::Negative(negative) => (*negative).simplify(step_logger),
+                Equation::Negative(negative) => (*negative).simplify(&mut None),
                 Equation::Variable(Variable::Integer(0)) => {
                     Equation::Variable(Variable::Integer(0))
                 }
@@ -77,26 +75,34 @@ impl Equation {
                     Equation::Variable(Variable::Rational(-rational))
                 }
 
-                negative => Equation::Negative(Box::new(negative.simplify(step_logger))),
+                negative => Equation::Negative(Box::new(negative.simplify(&mut None))),
             },
-            Equation::Addition(addition) => addition::simplify_addition(addition, step_logger),
+            Equation::Addition(addition) => addition::simplify_addition(addition, &mut None),
             Equation::Multiplication(multiplication) => {
-                multiplication::simplify_multiplication(multiplication, step_logger)
+                multiplication::simplify_multiplication(multiplication, &mut None)
             }
-            Equation::Division(division) => division::simplify_division(*division, step_logger),
-            Equation::Power(power) => power::simplify_power(*power, step_logger),
-            Equation::Ln(ln) => Equation::Ln(Box::new(ln.simplify(step_logger))),
-            Equation::Sin(sin) => Equation::Sin(Box::new(sin.simplify(step_logger))),
-            Equation::Cos(cos) => Equation::Cos(Box::new(cos.simplify(step_logger))),
-            Equation::Abs(abs) => Equation::Abs(Box::new(abs.simplify(step_logger))),
+            Equation::Division(division) => division::simplify_division(*division, &mut None),
+            Equation::Power(power) => power::simplify_power(*power, &mut None),
+            Equation::Ln(ln) => Equation::Ln(Box::new(ln.simplify(&mut None))),
+            Equation::Sin(sin) => Equation::Sin(Box::new(sin.simplify(&mut None))),
+            Equation::Cos(cos) => Equation::Cos(Box::new(cos.simplify(&mut None))),
+            Equation::Abs(abs) => Equation::Abs(Box::new(abs.simplify(&mut None))),
             Equation::Equals(equation) => Equation::Equals(Box::new((
-                equation.0.simplify(step_logger),
-                equation.1.simplify(step_logger),
+                equation.0.simplify(&mut None),
+                equation.1.simplify(&mut None),
             ))),
             Equation::Derivative(_) => {
                 panic!("Derivative cannot be simplified")
             }
+        };
+        if let Some(step_logger) = step_logger {
+            step_logger.add_step(Step::new(
+                before.unwrap(),
+                simplified.clone(),
+                Some("Simplify"),
+            ))
         }
+        simplified
     }
 }
 

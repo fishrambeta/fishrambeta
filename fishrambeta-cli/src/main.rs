@@ -67,7 +67,7 @@ fn main() {
         &mut step_logger,
     );
     let elapsed = now.elapsed();
-    println!("Steps: {:?}", step_logger);
+    println!("{}", step_logger.unwrap());
     println!("Elapsed: {:.2?}", elapsed);
     println!("{}", result);
 }
@@ -90,7 +90,7 @@ fn process_operation(
         Operation::Differentiate => {
             let mut equation = equation
                 .clone()
-                .differentiate(&Variable::Letter("x".to_string()));
+                .differentiate(&Variable::Letter("x".to_string()), step_logger);
             println!("Unsimplified: {}", equation);
             equation = equation.simplify_until_complete_with_print(step_logger);
             Result::Equation(equation)

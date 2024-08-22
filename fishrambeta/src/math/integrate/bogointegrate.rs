@@ -103,7 +103,7 @@ impl Equation {
 
     fn is_primitive(&self, simplified: &Equation, integrate_to: &Variable) -> bool {
         let is_primitive = self
-            .differentiate(integrate_to)
+            .differentiate(integrate_to, &mut None)
             .simplify_until_complete(&mut None)
             == *simplified;
         if is_primitive {
