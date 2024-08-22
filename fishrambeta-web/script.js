@@ -35,7 +35,7 @@ function get_values(implicit_multiplication) {
       value_latex != null &&
       key_latex !== undefined
     ) {
-      var value = calculate(value_latex, "", [], implicit_multiplication);
+      var value = calculate(value_latex, "", [], implicit_multiplication).latex;
       keys.push(key_latex);
       values.push(value);
     }
@@ -65,6 +65,8 @@ function process_operation() {
     "implicit-multiplication-checkbox",
   ).checked;
   result_mathfield.latex("");
+  steps_parent.innerHTML = "";
+
   result_latex_copypaste.value = "";
   result_numpy_copypaste.value = "";
   if (input == "") {
@@ -120,9 +122,21 @@ function process_operation() {
         );
         break;
     }
-    result_mathfield.latex(result);
-    result_latex_copypaste.value = result;
-    var numpy = latex_to_numpy(String(result));
+    result_mathfield.latex(result.latex);
+    result_latex_copypaste.value = result.latex;
+    console.log(result.steps);
+    var i = 0;
+    for (var step of result.steps) {
+      steps_parent.insertAdjacentHTML(
+        "beforeend",
+        `<p><span id="step-latex-${i}"></span></p>`,
+      );
+      var step_span = document.getElementById(`step-latex-${i}`);
+      var step_mathfield = MQ.StaticMath(step_span);
+      step_mathfield.latex(step);
+      i += 1;
+    }
+    var numpy = latex_to_numpy(String(result.latex));
     result_numpy_copypaste.value = numpy;
   } catch (error) {
     console.log(error);
@@ -214,6 +228,8 @@ var integrate_to_mathfield = MQ.MathField(integrate_to_span, {
 
 var result_span = document.getElementById("latex-result");
 let result_mathfield = MQ.StaticMath(result_span);
+
+var steps_parent = document.getElementById("steps-parent");
 
 var result_latex_copypaste = document.getElementById("latex-result-copypaste");
 var result_numpy_copypaste = document.getElementById("numpy-result-copypaste");
