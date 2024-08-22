@@ -51,7 +51,6 @@ pub fn calculate(
     user_values_values: &[f64],
     implicit_multiplication: bool,
 ) -> f64 {
-    console_error_panic_hook::set_once();
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
         user_values_keys.split("\\n\\n").collect::<Vec<_>>(),
@@ -59,7 +58,6 @@ pub fn calculate(
     );
     values.extend(user_values_hashmap);
     let parsed: Equation = Equation::from_latex(equation, implicit_multiplication);
-
     parsed.calculate(&values)
 }
 
