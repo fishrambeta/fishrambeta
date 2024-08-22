@@ -20,7 +20,7 @@ window.on_operation_changed = function () {
   process_operation();
 };
 
-function get_values() {
+function get_values(implicit_multiplication) {
   var keys = [];
   var values = [];
   console.log(value_fields);
@@ -31,9 +31,10 @@ function get_values() {
       key_latex != "" &&
       value_latex != "" &&
       key_latex != null &&
-      value_latex != null
+      value_latex != null &&
+      key_latex !== undefined
     ) {
-      var value = calculate(value_latex, "", []);
+      var value = calculate(value_latex, "", [], implicit_multiplication);
       keys.push(key_latex);
       values.push(value);
     }
@@ -61,7 +62,7 @@ function process_operation() {
         result = simplify(input, implicit_multiplication);
         break;
       case "calculate":
-        var values = get_values();
+        var values = get_values(implicit_multiplication);
         console.log("values:");
         console.log(values);
         result = calculate(
