@@ -4,12 +4,14 @@ import init, {
   calculate,
   differentiate,
   integrate,
+  error_analysis,
 } from "./pkg/fishrambeta_wasm.js";
 init().then(() => {
   window.calculate = calculate;
   window.differentiate = differentiate;
   window.simplify = simplify;
   window.integrate = integrate;
+  window.error_analysis = error_analysis;
 });
 
 function on_input_changed() {
@@ -23,7 +25,6 @@ window.on_operation_changed = function () {
 function get_values(implicit_multiplication) {
   var keys = [];
   var values = [];
-  console.log(value_fields);
   for (var i = 0; i < value_fields.length; i++) {
     var key_latex = value_fields[i].key.latex();
     var value_latex = value_fields[i].value.latex();
@@ -40,6 +41,21 @@ function get_values(implicit_multiplication) {
     }
   }
   return { keys: keys, values: values };
+}
+
+function get_error_variables() {
+  var variables = [];
+  for (var i = 0; i < value_fields.length; i++) {
+    var variable_latex = error_variable_fields[i].latex();
+    if (
+      variable_latex != "" &&
+      variable_latex != null &&
+      variable_latex !== undefined
+    ) {
+      variables.push(variable_latex);
+    }
+  }
+  return variables;
 }
 
 function process_operation() {
@@ -90,6 +106,19 @@ function process_operation() {
         }
         result = integrate(input, integrate_to, implicit_multiplication);
         break;
+      case "error-analysis":
+        var error_variables = get_error_variables();
+        if (error_variables.length == 0) {
+          throw new Error(
+            "Cannot do error analysis without specifying variables",
+          );
+        }
+        result = error_analysis(
+          input,
+          error_variables.join("\\n\\n"),
+          implicit_multiplication,
+        );
+        break;
     }
     result_mathfield.latex(result);
     result_latex_copypaste.value = result;
@@ -134,7 +163,29 @@ function add_new_value_field(id) {
   value_fields[id] = { key: key_mathfield, value: value_mathfield };
 }
 
+function add_error_variable_field(id) {
+  var container = document.getElementById("error-variables-container");
+  var key_id = `error-variable-${id}`;
+  container.insertAdjacentHTML(
+    "afterbegin",
+    `<p><span class="latex-key" id="${key_id}"></span></p>`,
+  );
+  var error_variable_span = document.getElementById(key_id);
+  var error_variable_mathfield = MQ.MathField(error_variable_span, {
+    spaceBehavesLikeTab: true,
+    handlers: {
+      edit: function () {
+        try {
+          process_operation();
+        } catch {}
+      },
+    },
+  });
+  error_variable_fields[id] = error_variable_mathfield;
+}
+
 var value_fields = [];
+var error_variable_fields = [];
 
 var MQ = MathQuill.getInterface(2);
 var input_span = document.getElementById("latex-input");
@@ -174,6 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
     "differentiate-options",
   );
   const integrate_options = document.getElementById("integrate-options");
+  const error_analysis_options = document.getElementById(
+    "error-analysis-options",
+  );
 
   function toggle_visibilities() {
     if (operation_element.value === "calculate") {
@@ -192,6 +246,12 @@ document.addEventListener("DOMContentLoaded", function () {
       integrate_options.style.display = "block";
     } else {
       integrate_options.style.display = "none";
+    }
+
+    if (operation_element.value === "error-analysis") {
+      error_analysis_options.style.display = "block";
+    } else {
+      error_analysis_options.style.display = "none";
     }
   }
 
@@ -232,4 +292,8 @@ on_update_numpy_checkbox();
 
 for (let i = 0; i < 10; i++) {
   add_new_value_field(i);
+}
+
+for (let i = 0; i < 10; i++) {
+  add_error_variable_field(i);
 }
