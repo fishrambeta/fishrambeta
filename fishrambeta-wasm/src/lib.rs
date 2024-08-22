@@ -61,6 +61,22 @@ pub fn calculate(
     parsed.calculate(&values)
 }
 
+#[wasm_bindgen]
+pub fn error_analysis(
+    equation: &str,
+    error_variables: &str,
+    implicit_multiplication: bool,
+) -> String {
+    let parsed: Equation = Equation::from_latex(equation, implicit_multiplication);
+    let error_variables: Vec<_> = error_variables
+        .split("\\n\\n")
+        .map(|variable| Equation::Variable(Variable::Letter(variable.to_string())))
+        .collect();
+    return parsed
+        .error_analysis(error_variables)
+        .simplify_until_complete();
+}
+
 fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, f64> {
     let mut values_hashmap = HashMap::new();
     for (key, value) in keys.iter().zip(values.iter()) {
