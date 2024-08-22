@@ -56,12 +56,12 @@ impl fmt::Display for Step {
         match &self.message {
             Some(message) => write!(
                 f,
-                "\\textbf{{{}: }}{} \\textbf{{=>}} {}",
+                "\\textbf{{{}: }}{} \\textbf{{ => }} {}",
                 message, self.equation_before, self.equation_after
             ),
             None => write!(
                 f,
-                "{} \\textbf{{=>}} {}",
+                "{} \\textbf{{ => }} {}",
                 self.equation_before, self.equation_after
             ),
         }
