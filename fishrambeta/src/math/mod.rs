@@ -4,6 +4,7 @@ mod calculate;
 mod calculate_exact;
 mod compare;
 mod differentiate;
+mod error_analysis;
 mod factors;
 mod integrate;
 mod multiply_by;

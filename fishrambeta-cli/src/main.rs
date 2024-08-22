@@ -22,7 +22,7 @@ pub struct Args {
     implicit_multiplication: bool,
     //Variables to propagate errors of, seperated by commas
     #[arg(long, default_value = "")]
-    propagate_variables: String,
+    error_variables: String,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -62,7 +62,7 @@ fn main() {
         equation.clone(),
         args.operation,
         &value_dict,
-        &args.propagate_variables,
+        &args.error_variables,
     );
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -73,7 +73,7 @@ fn process_operation(
     equation: Equation,
     operation: Operation,
     value_dict: &BTreeMap<Variable, f64>,
-    propagate_variables: &str,
+    error_variables: &str,
 ) -> Result {
     match operation {
         Operation::Simplify => {
@@ -101,27 +101,15 @@ fn process_operation(
             Result::Equation(equation)
         }
         Operation::Error => {
-            let variables = propagate_variables.split(',').collect::<Vec<_>>();
-            let mut terms: Vec<Equation> = Vec::new();
-            for variable in variables {
-                let mut derivative =
-                    equation.differentiate(&Variable::Letter(variable.to_string()));
-                derivative = derivative.simplify_until_complete_with_print();
-                let term = Equation::Power(Box::new((
-                    Equation::Multiplication(vec![
-                        derivative,
-                        Equation::Variable(Variable::Letter(format!("s_{}", variable))),
-                    ]),
-                    Equation::Variable(Variable::Integer(2)),
-                )));
-                terms.push(term);
-            }
-            let mut result = Equation::Power(Box::new((
-                Equation::Addition(terms),
-                Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
-            )));
-            result = result.simplify_until_complete_with_print();
-            Result::Equation(result)
+            let variables = error_variables
+                .split(',')
+                .map(|variable| Variable::Letter(variable.to_string()))
+                .collect::<Vec<_>>();
+            Result::Equation(
+                equation
+                    .error_analysis(variables)
+                    .simplify_until_complete_with_print(),
+            )
         }
         _ => {
             panic!("Operation not yet supported")
