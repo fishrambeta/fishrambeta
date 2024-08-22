@@ -48,6 +48,7 @@
               <option value="calculate">Calculate</option>
               <option value="differentiate">Differentiate</option>
               <option value="integrate">Integrate</option>
+              <option value="error-analysis">Error Analysis</option>
             </select>
             <p class="nomargin">
               <input
@@ -92,7 +93,6 @@
               </p>
               <span class="latex-key" id="differentiate-to">x</span>
             </div>
-            <div id="input-values-container"></div>
           </div>
           <div id="integrate-options">
             <div>
@@ -104,6 +104,15 @@
               <span class="latex-key" id="integrate-to">x</span>
             </div>
             <div id="input-values-container"></div>
+          </div>
+          <div id="error-analysis-options">
+            <div>
+              <h4 style="margin-bottom: 0">Error Variables</h4>
+              <p class="hint">
+                (Variables whose errors will be taken into account)
+              </p>
+            </div>
+            <div id="error-variables-container"></div>
           </div>
         </div>
         <div class="column" id="steps-column">
