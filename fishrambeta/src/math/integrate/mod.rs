@@ -62,12 +62,17 @@ impl Equation {
             step_logger.open_step(self.clone(), Some("Apply standard integral"))
         }
         let result = match self {
-            Equation::Addition(addition) => Some(Equation::Addition(
-                addition
-                    .iter()
-                    .map(|x| x.integrate(integrate_to, step_logger))
-                    .collect(),
-            )),
+            Equation::Addition(addition) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Use addition rule for derivatives")
+                }
+                Some(Equation::Addition(
+                    addition
+                        .iter()
+                        .map(|x| x.integrate(integrate_to, step_logger))
+                        .collect(),
+                ))
+            }
             Equation::Variable(Variable::Integer(i)) => Some(Equation::Multiplication(vec![
                 Equation::Variable(Variable::Integer(*i)),
                 Equation::Variable(integrate_to.clone()),
