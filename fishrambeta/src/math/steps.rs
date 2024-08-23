@@ -89,7 +89,7 @@ impl Step {
     fn _to_string(&self, depth: usize) -> String {
         let mut stringified = "\\textbf{ ".to_string();
         for _ in 0..depth {
-            stringified.push_str("--");
+            stringified.push_str("-");
         }
         stringified += "}";
         stringified += &match &self.message {
