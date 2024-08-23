@@ -22,25 +22,31 @@
     <br />
     <div>
       <p style="text-align: center">
-        <span class="latex-input" id="latex-input"></span>
+        <span
+          title="input equation"
+          class="latex-input"
+          id="latex-input"
+        ></span>
       </p>
     </div>
     <br />
     <div style="text-align: center">
       <span class="latex-result" id="latex-result"></span>
       <p class="nomargin" id="latex-result-p" style="display: none">
-        <span>LaTeX</span><input id="latex-result-copypaste" readonly />
+        <label for="latex-result-copypaste">LaTeX</label
+        ><input id="latex-result-copypaste" readonly />
       </p>
       <p class="nomargin" id="numpy-result-p" style="display: none">
-        <span>numpy</span><input id="numpy-result-copypaste" readonly />
+        <label for="numpy-result-copypaste">NumPy</label
+        ><input id="numpy-result-copypaste" readonly />
       </p>
     </div>
     <div class="container">
       <div style="text-align: center" class="column" id="input-column">
         <h3>Options</h3>
         <div>
-          <span>Operation</span
-          ><select
+          <label for="operation">Operation</label>
+          <select
             name="operation"
             id="operation"
             onchange="on_operation_changed()"
