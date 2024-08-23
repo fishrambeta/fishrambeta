@@ -32,25 +32,28 @@ impl Equation {
                         .collect::<Vec<_>>(),
                 )
             }
-            Equation::Multiplication(multiplication) => Equation::Addition(
-                multiplication
-                    .iter()
-                    .map(|x| {
-                        if let Some(step_logger) = step_logger {
-                            step_logger.set_message("Differentiate by applying the product rule")
-                        }
-                        let mut multiplication_new: Vec<Equation> = multiplication.clone();
-                        multiplication_new.remove(
-                            multiplication_new
-                                .iter()
-                                .position(|y| y == x)
-                                .expect("This shouldn't happen"),
-                        );
-                        multiplication_new.push(x.differentiate(differentiate_to, step_logger));
-                        Equation::Multiplication(multiplication_new).simplify(step_logger)
-                    })
-                    .collect::<Vec<_>>(),
-            ),
+            Equation::Multiplication(multiplication) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by applying the product rule")
+                }
+                Equation::Addition(
+                    multiplication
+                        .iter()
+                        .map(|x| {
+                            let mut multiplication_new: Vec<Equation> = multiplication.clone();
+                            multiplication_new.remove(
+                                multiplication_new
+                                    .iter()
+                                    .position(|y| y == x)
+                                    .expect("This shouldn't happen"),
+                            );
+                            multiplication_new.push(x.differentiate(differentiate_to, step_logger));
+                            Equation::Multiplication(multiplication_new).simplify(step_logger)
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .simplify(step_logger)
+            }
             Equation::Division(division) => {
                 if let Some(step_logger) = step_logger {
                     step_logger.set_message("Differentiate by applying the quotient rule")
