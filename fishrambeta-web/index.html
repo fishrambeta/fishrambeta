@@ -12,114 +12,114 @@
     <title>fishrambeta</title>
   </head>
   <body>
-    <center>
-      <div>
-        <img
-          src="FishramLogoTextSVG.svg"
-          class="logo"
-          alt="fishrambeta logo: a cartoon shark with the text fishrambeta to its right."
-        />
-      </div>
-      <br />
-      <div>
+    <div style="text-align: center">
+      <img
+        src="FishramLogoTextSVG.svg"
+        class="logo"
+        alt="fishrambeta logo: a cartoon shark with the text fishrambeta to its right."
+      />
+    </div>
+    <br />
+    <div>
+      <p style="text-align: center">
         <span class="latex-input" id="latex-input"></span>
-      </div>
-      <br />
-      <div>
-        <span class="latex-result" id="latex-result"></span>
-        <p class="nomargin" id="latex-result-p" style="display: none">
-          <span>LaTeX</span><input id="latex-result-copypaste" readonly />
-        </p>
-        <p class="nomargin" id="numpy-result-p" style="display: none">
-          <span>numpy</span><input id="numpy-result-copypaste" readonly />
-        </p>
-      </div>
-      <div class="container">
-        <div class="column" id="input-column">
-          <h3>Options</h3>
-          <div>
-            <span>Operation</span
-            ><select
-              name="operation"
-              id="operation"
+      </p>
+    </div>
+    <br />
+    <div style="text-align: center">
+      <span class="latex-result" id="latex-result"></span>
+      <p class="nomargin" id="latex-result-p" style="display: none">
+        <span>LaTeX</span><input id="latex-result-copypaste" readonly />
+      </p>
+      <p class="nomargin" id="numpy-result-p" style="display: none">
+        <span>numpy</span><input id="numpy-result-copypaste" readonly />
+      </p>
+    </div>
+    <div class="container">
+      <div style="text-align: center" class="column" id="input-column">
+        <h3>Options</h3>
+        <div>
+          <span>Operation</span
+          ><select
+            name="operation"
+            id="operation"
+            onchange="on_operation_changed()"
+          >
+            <option value="simplify">Simplify</option>
+            <option value="calculate">Calculate</option>
+            <option value="differentiate">Differentiate</option>
+            <option value="integrate">Integrate</option>
+            <option value="error-analysis">Error Analysis</option>
+          </select>
+          <p class="nomargin">
+            <input
+              type="checkbox"
+              id="implicit-multiplication-checkbox"
               onchange="on_operation_changed()"
+              checked
+            />
+            <label
+              title="Enabling implicit multiplication allows you to omit the multiplication symbol, but means variable names can only be one character."
+              for="implicit-multiplication-checkbox"
             >
-              <option value="simplify">Simplify</option>
-              <option value="calculate">Calculate</option>
-              <option value="differentiate">Differentiate</option>
-              <option value="integrate">Integrate</option>
-              <option value="error-analysis">Error Analysis</option>
-            </select>
+              Implicit Multiplication
+            </label>
+          </p>
+          <details>
+            <summary>Output Options</summary>
             <p class="nomargin">
-              <input
-                type="checkbox"
-                id="implicit-multiplication-checkbox"
-                onchange="on_operation_changed()"
-                checked
-              />
-              <label
-                title="Enabling implicit multiplication allows you to omit the multiplication symbol, but means variable names can only be one character."
-                for="implicit-multiplication-checkbox"
-              >
-                Implicit Multiplication
-              </label>
+              <input type="checkbox" id="show-latex-checkbox" />
+              <label for="show-latex-checkbox">Show Output LaTeX</label>
             </p>
-            <details>
-              <summary>Output Options</summary>
-              <p class="nomargin">
-                <input type="checkbox" id="show-latex-checkbox" />
-                <label for="show-latex-checkbox">Show Output LaTeX</label>
-              </p>
-              <p class="nomargin">
-                <input type="checkbox" id="show-numpy-checkbox" /><label
-                  for="show-numpy-checkbox"
-                  >Show Output numpy Code</label
-                >
-              </p>
-            </details>
+            <p class="nomargin">
+              <input type="checkbox" id="show-numpy-checkbox" /><label
+                for="show-numpy-checkbox"
+                >Show Output numpy Code</label
+              >
+            </p>
+          </details>
+        </div>
+        <div id="input-values">
+          <div>
+            <h4 style="margin-bottom: 0">Values for Calculation</h4>
+            <p class="hint">(can contain calculations themselves)</p>
           </div>
-          <div id="input-values">
-            <div>
-              <h4 style="margin-bottom: 0">Values for Calculation</h4>
-              <p class="hint">(can contain calculations themselves)</p>
-            </div>
-            <div id="input-values-container"></div>
-          </div>
-          <div id="differentiate-options">
-            <div>
-              <h4 style="margin-bottom: 0">Differentiate To</h4>
-              <p class="hint">
-                (variable with respect to which the derivative should be taken)
-              </p>
-              <span class="latex-key" id="differentiate-to">x</span>
-            </div>
-          </div>
-          <div id="integrate-options">
-            <div>
-              <h4 style="margin-bottom: 0">Integrate To</h4>
-              <p class="hint">
-                (variable with respect to which the antiderivative should be
-                taken)
-              </p>
-              <span class="latex-key" id="integrate-to">x</span>
-            </div>
-            <div id="input-values-container"></div>
-          </div>
-          <div id="error-analysis-options">
-            <div>
-              <h4 style="margin-bottom: 0">Error Variables</h4>
-              <p class="hint">
-                (Variables whose errors will be taken into account)
-              </p>
-            </div>
-            <div id="error-variables-container"></div>
+          <div id="input-values-container"></div>
+        </div>
+        <div id="differentiate-options">
+          <div>
+            <h4 style="margin-bottom: 0">Differentiate To</h4>
+            <p class="hint">
+              (variable with respect to which the derivative should be taken)
+            </p>
+            <span class="latex-key" id="differentiate-to">x</span>
           </div>
         </div>
-        <div class="column" id="steps-column">
-          <h3>Steps</h3>
-          <p>Steps are not implemented yet...</p>
+        <div id="integrate-options">
+          <div>
+            <h4 style="margin-bottom: 0">Integrate To</h4>
+            <p class="hint">
+              (variable with respect to which the antiderivative should be
+              taken)
+            </p>
+            <span class="latex-key" id="integrate-to">x</span>
+          </div>
+          <div id="input-values-container"></div>
+        </div>
+        <div id="error-analysis-options">
+          <div>
+            <h4 style="margin-bottom: 0">Error Variables</h4>
+            <p class="hint">
+              (Variables whose errors will be taken into account)
+            </p>
+          </div>
+          <div id="error-variables-container"></div>
         </div>
       </div>
-    </center>
+      <div style="text-align: center" class="column" id="steps-column">
+        <h3>Steps</h3>
+        <div style="text-align: left" id="steps-parent"></div>
+      </div>
+    </div>
   </body>
 </html>

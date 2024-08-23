@@ -47,20 +47,21 @@ input {
   font-size: 75%;
   color: gray;
 }
-
 .container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: minmax(100px, 1fr) minmax(200px, 2fr);
   gap: 20px;
   padding: 20px;
-  max-width: 800px;
   margin: 0 auto;
+  max-width: 70%;
 }
 
 .column {
   background-color: #f7f7f7;
   padding: 20px;
+  overflow: auto;
   border: 1px solid #ddd;
+  flex-grow: 1;
 }
 
 /* When screen width is less than 600px, merge columns into tabs */

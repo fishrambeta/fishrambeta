@@ -1,12 +1,19 @@
-use super::{Equation, Variable};
+use super::{steps::StepLogger, Equation, Variable};
 use num_rational::Rational64;
 
 mod bogointegrate;
 mod rational;
 
 impl Equation {
-    pub fn integrate(&self, integrate_to: &Variable) -> Equation {
-        let mut equation_to_integrate: Equation = (*self).clone().simplify();
+    pub fn integrate(
+        &self,
+        integrate_to: &Variable,
+        step_logger: &mut Option<StepLogger>,
+    ) -> Equation {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Integrate"))
+        }
+        let mut equation_to_integrate: Equation = (*self).clone().simplify(step_logger);
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
 
@@ -14,7 +21,9 @@ impl Equation {
             if equation_to_integrate.has_factor(&fixed_term)
                 && fixed_term.term_is_constant(integrate_to)
             {
-                equation_to_integrate = equation_to_integrate.remove_factor(&fixed_term).simplify();
+                equation_to_integrate = equation_to_integrate
+                    .remove_factor(&fixed_term)
+                    .simplify(step_logger);
                 integrated_equation.push(fixed_term);
             }
         }
@@ -22,28 +31,48 @@ impl Equation {
         #[allow(clippy::never_loop)]
         loop {
             println!("Equation to integrate: {equation_to_integrate}");
-            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to) {
+            if let Some(integrated_term) =
+                equation_to_integrate.standard_integrals(integrate_to, step_logger)
+            {
                 integrated_equation.push(integrated_term);
                 break;
             }
 
             if equation_to_integrate.is_rational_function(integrate_to) {
-                equation_to_integrate.integrate_rational(integrate_to);
+                equation_to_integrate.integrate_rational(integrate_to, step_logger);
                 break;
             }
 
             integrated_equation.push(equation_to_integrate.bogointegrate(integrate_to));
             break;
         }
-
-        Equation::Multiplication(integrated_equation)
+        let result = Equation::Multiplication(integrated_equation);
+        if let Some(step_logger) = step_logger {
+            step_logger.close_step(result.clone());
+        }
+        result
     }
 
-    fn standard_integrals(&self, integrate_to: &Variable) -> Option<Equation> {
-        return match self {
-            Equation::Addition(addition) => Some(Equation::Addition(
-                addition.iter().map(|x| x.integrate(integrate_to)).collect(),
-            )),
+    fn standard_integrals(
+        &self,
+        integrate_to: &Variable,
+        step_logger: &mut Option<StepLogger>,
+    ) -> Option<Equation> {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Apply standard integral"))
+        }
+        let result = match self {
+            Equation::Addition(addition) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Use addition rule for derivatives")
+                }
+                Some(Equation::Addition(
+                    addition
+                        .iter()
+                        .map(|x| x.integrate(integrate_to, step_logger))
+                        .collect(),
+                ))
+            }
             Equation::Variable(Variable::Integer(i)) => Some(Equation::Multiplication(vec![
                 Equation::Variable(Variable::Integer(*i)),
                 Equation::Variable(integrate_to.clone()),
@@ -87,6 +116,13 @@ impl Equation {
             ),
             _ => None,
         };
+        if let Some(step_logger) = step_logger {
+            match result {
+                Some(ref result) => step_logger.close_step(result.clone()),
+                None => step_logger.cancel_step(),
+            }
+        }
+        result
     }
 
     pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {

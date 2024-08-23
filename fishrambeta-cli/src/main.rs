@@ -1,7 +1,7 @@
 use clap::Parser;
 use clap::ValueEnum;
+use fishrambeta::math::steps::StepLogger;
 use fishrambeta::math::{Equation, Variable};
-use num_rational::Rational64;
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -58,13 +58,16 @@ fn main() {
     use std::time::Instant;
     let now = Instant::now();
     let value_dict = fishrambeta::physicsvalues::physics_values();
+    let mut step_logger = Some(StepLogger::new());
     let result = process_operation(
         equation.clone(),
         args.operation,
         &value_dict,
         &args.error_variables,
+        &mut step_logger,
     );
     let elapsed = now.elapsed();
+    println!("{}", step_logger.unwrap());
     println!("Elapsed: {:.2?}", elapsed);
     println!("{}", result);
 }
@@ -74,11 +77,12 @@ fn process_operation(
     operation: Operation,
     value_dict: &BTreeMap<Variable, f64>,
     error_variables: &str,
+    step_logger: &mut Option<StepLogger>,
 ) -> Result {
     match operation {
         Operation::Simplify => {
             let mut equation = equation.clone();
-            equation = equation.simplify_until_complete_with_print();
+            equation = equation.simplify_until_complete_with_print(step_logger);
             println!("{}", equation.to_numpy());
             Result::Equation(equation)
         }
@@ -86,18 +90,18 @@ fn process_operation(
         Operation::Differentiate => {
             let mut equation = equation
                 .clone()
-                .differentiate(&Variable::Letter("x".to_string()));
+                .differentiate(&Variable::Letter("x".to_string()), step_logger);
             println!("Unsimplified: {}", equation);
-            equation = equation.simplify_until_complete_with_print();
+            equation = equation.simplify_until_complete_with_print(step_logger);
             Result::Equation(equation)
         }
         Operation::Integrate => {
             println!("Start integrate");
             let mut equation = equation
                 .clone()
-                .integrate(&Variable::Letter("x".to_string()));
+                .integrate(&Variable::Letter("x".to_string()), step_logger);
             println!("Unsimplified: {}", equation);
-            equation = equation.simplify_until_complete_with_print();
+            equation = equation.simplify_until_complete_with_print(step_logger);
             Result::Equation(equation)
         }
         Operation::Error => {
@@ -107,8 +111,8 @@ fn process_operation(
                 .collect::<Vec<_>>();
             Result::Equation(
                 equation
-                    .error_analysis(variables)
-                    .simplify_until_complete_with_print(),
+                    .error_analysis(variables, step_logger)
+                    .simplify_until_complete_with_print(step_logger),
             )
         }
         _ => {

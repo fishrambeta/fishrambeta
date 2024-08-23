@@ -1,9 +1,14 @@
+use crate::math::steps::StepLogger;
+
 use super::{Equation, Variable};
 use num::Signed;
 
-pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
-    let base = power.0.simplify();
-    let exponent = power.1.simplify();
+pub(super) fn simplify_power(
+    power: (Equation, Equation),
+    step_logger: &mut Option<StepLogger>,
+) -> Equation {
+    let base = power.0.simplify(step_logger);
+    let exponent = power.1.simplify(step_logger);
 
     if let Some(n) = exponent.get_number_or_none() {
         if n == 1.into() {
@@ -72,7 +77,7 @@ pub(super) fn simplify_power(power: (Equation, Equation)) -> Equation {
                 Equation::Variable(Variable::Integer(1)),
                 Equation::Power(Box::new((
                     base,
-                    Equation::Variable(Variable::Rational(n.abs())).simplify(),
+                    Equation::Variable(Variable::Rational(n.abs())).simplify(step_logger),
                 ))),
             )));
         }

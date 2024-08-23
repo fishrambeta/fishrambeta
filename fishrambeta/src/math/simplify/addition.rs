@@ -1,4 +1,5 @@
 use super::{Equation, Variable};
+use crate::math::steps::StepLogger;
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 
@@ -17,9 +18,12 @@ fn flatten_addition(addition: Vec<Equation>) -> Vec<Equation> {
 
 #[allow(dead_code)] // This is a clippy bug. This stuff is just added to (term,
 #[allow(clippy::no_effect)]
-pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
+pub(super) fn simplify_addition(
+    mut addition: Vec<Equation>,
+    step_logger: &mut Option<StepLogger>,
+) -> Equation {
     if addition.len() == 1 {
-        return addition.remove(0).simplify();
+        return addition.remove(0).simplify(step_logger);
     }
     let addition = flatten_addition(addition);
     let mut total_rational_term: Rational64 = 0.into();
@@ -28,7 +32,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
     let mut cos_squares: BTreeMap<Equation, Rational64> = BTreeMap::new();
 
     for equation in addition {
-        let (term, count) = match equation.simplify() {
+        let (term, count) = match equation.simplify(step_logger) {
             Equation::Variable(Variable::Integer(0)) => continue,
             Equation::Variable(Variable::Integer(i)) => {
                 total_rational_term += i;
@@ -68,7 +72,7 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                     .into_iter()
                     .filter(|x| x.get_number_or_none().is_none())
                     .collect();
-                (Equation::Multiplication(term).simplify(), count)
+                (Equation::Multiplication(term).simplify(step_logger), count)
             }
             Equation::Negative(negative) => (*negative, Rational64::new(-1, 1)),
             Equation::Power(ref power)
@@ -103,8 +107,9 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
 
     let mut simplified_addition: Vec<Equation> = Vec::new();
     if total_rational_term != 0.into() {
-        simplified_addition
-            .push(Equation::Variable(Variable::Rational(total_rational_term)).simplify());
+        simplified_addition.push(
+            Equation::Variable(Variable::Rational(total_rational_term)).simplify(step_logger),
+        );
     }
     for (equation, count) in terms {
         if count == 1.into() {
@@ -112,9 +117,9 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         } else {
             let next_term = Equation::Multiplication(vec![
                 equation,
-                Equation::Variable(Variable::Rational(count)).simplify(),
+                Equation::Variable(Variable::Rational(count)).simplify(step_logger),
             ])
-            .simplify();
+            .simplify(step_logger);
             simplified_addition.push(next_term);
         }
     }
@@ -127,18 +132,18 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
         cos_count -= number_of_ones;
         if number_of_ones != 0.into() {
             simplified_addition
-                .push(Equation::Variable(Variable::Rational(number_of_ones)).simplify());
+                .push(Equation::Variable(Variable::Rational(number_of_ones)).simplify(step_logger));
         }
         if sin_count != 0.into() {
             simplified_addition.push(
                 Equation::Multiplication(vec![
-                    Equation::Variable(Variable::Rational(sin_count)).simplify(),
+                    Equation::Variable(Variable::Rational(sin_count)).simplify(step_logger),
                     Equation::Power(Box::new((
                         Equation::Sin(Box::new(sin.clone())),
                         Equation::Variable(Variable::Integer(2)),
                     ))),
                 ])
-                .simplify(),
+                .simplify(step_logger),
             );
         }
         if cos_count != 0.into() {
@@ -147,23 +152,23 @@ pub(super) fn simplify_addition(mut addition: Vec<Equation>) -> Equation {
                     Equation::Variable(Variable::Rational(cos_count)),
                     Equation::Power(Box::new((
                         Equation::Cos(Box::new(sin)),
-                        Equation::Variable(Variable::Integer(2)).simplify(),
+                        Equation::Variable(Variable::Integer(2)).simplify(step_logger),
                     ))),
                 ])
-                .simplify(),
+                .simplify(step_logger),
             );
         }
     }
     for (cos, cos_count) in cos_squares {
         simplified_addition.push(
             Equation::Multiplication(vec![
-                Equation::Variable(Variable::Rational(cos_count)).simplify(),
+                Equation::Variable(Variable::Rational(cos_count)).simplify(step_logger),
                 Equation::Power(Box::new((
                     Equation::Cos(Box::new(cos)),
                     Equation::Variable(Variable::Integer(2)),
                 ))),
             ])
-            .simplify(),
+            .simplify(step_logger),
         );
     }
 

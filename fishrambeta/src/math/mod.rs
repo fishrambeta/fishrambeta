@@ -10,6 +10,7 @@ mod integrate;
 mod multiply_by;
 mod polynomial;
 mod simplify;
+pub mod steps;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]

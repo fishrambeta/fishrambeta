@@ -1,8 +1,8 @@
 use super::{Equation, Variable};
-use crate::math::polynomial::Polynomial;
+use crate::math::{polynomial::Polynomial, steps::StepLogger};
 
 impl Equation {
-    pub(super) fn integrate_rational(self, integrate_to: &Variable) -> Equation {
+    pub(super) fn integrate_rational(self, integrate_to: &Variable, step_logger: &mut Option<StepLogger>) -> Equation {
         if let Equation::Division(d) = self {
             let a = Polynomial::from_equation(d.0, integrate_to.clone());
             let b = Polynomial::from_equation(d.1, integrate_to.clone()).simplify();
@@ -10,17 +10,17 @@ impl Equation {
             // We must get p/q, where gcd(p,q)=1 and q is monic
             let (quotient, remainder) = a.clone().div(b.clone());
 
-            let polynomial_part = quotient.clone().into_equation().integrate(integrate_to);
+            let polynomial_part = quotient.clone().into_equation().integrate(integrate_to, step_logger);
             let (q, leading_coefficient) = b.into_monic();
             let p = remainder / &leading_coefficient;
-            println!("Polynomial part: {}", polynomial_part.simplify());
+            println!("Polynomial part: {}", polynomial_part.simplify(step_logger));
             assert!(
                 //We must have a gcd of 1 to progress, I'm pretty sure we already guarantee
                 //that by dividing, but I'll leave this in for a while.
                 p.clone()
                     .gcd(q.clone())
                     .into_equation()
-                    .simplify_until_complete()
+                    .simplify_until_complete(step_logger)
                     == Equation::Variable(Variable::Integer(1))
             );
 

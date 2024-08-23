@@ -43,7 +43,7 @@ impl Equation {
                     }
                 })
                 .collect::<Vec<_>>()
-                .join("*"),
+                .join("\\cdot "),
             Equation::Division(d) => format!("\\frac{{{}}}{{{}}}", d.0, d.1),
             Equation::Power(p) => {
                 let base = if p.0.needs_to_be_bracketet() {

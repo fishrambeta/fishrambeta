@@ -1,10 +1,17 @@
 use fishrambeta::{
     self,
-    math::{Equation, Variable},
+    math::{steps::StepLogger, Equation, Variable},
     physicsvalues,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+
+#[derive(Serialize, Deserialize)]
+pub struct Result {
+    latex: String,
+    steps: Vec<String>,
+}
 
 #[wasm_bindgen]
 pub fn latex_to_numpy(equation: &str) -> String {
@@ -13,11 +20,16 @@ pub fn latex_to_numpy(equation: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn simplify(equation: &str, implicit_multiplication: bool) -> String {
+pub fn simplify(equation: &str, implicit_multiplication: bool) -> JsValue {
     let parsed = Equation::from_latex(equation, implicit_multiplication);
-    let simplified = parsed.simplify_until_complete();
+    let mut step_logger = Some(StepLogger::new());
+    let simplified = parsed.simplify_until_complete(&mut step_logger);
 
-    simplified.to_latex()
+    serde_wasm_bindgen::to_value(&Result {
+        latex: simplified.to_latex(),
+        steps: step_logger.unwrap().get_steps_as_strings(),
+    })
+    .unwrap()
 }
 
 #[wasm_bindgen]
@@ -25,23 +37,38 @@ pub fn differentiate(
     equation: &str,
     differentiate_to: &str,
     implicit_multiplication: bool,
-) -> String {
+) -> JsValue {
     let parsed = Equation::from_latex(equation, implicit_multiplication);
+    let mut step_logger = Some(StepLogger::new());
     let differentiated = parsed
-        .differentiate(&Variable::Letter(differentiate_to.to_string()))
-        .simplify_until_complete();
-
-    differentiated.to_latex()
+        .differentiate(
+            &Variable::Letter(differentiate_to.to_string()),
+            &mut step_logger,
+        )
+        .simplify_until_complete(&mut step_logger);
+    serde_wasm_bindgen::to_value(&Result {
+        latex: differentiated.to_latex(),
+        steps: step_logger.unwrap().get_steps_as_strings(),
+    })
+    .unwrap()
 }
 
 #[wasm_bindgen]
-pub fn integrate(equation: &str, integrate_to: &str, implicit_multiplication: bool) -> String {
+pub fn integrate(equation: &str, integrate_to: &str, implicit_multiplication: bool) -> JsValue {
     let parsed = Equation::from_latex(equation, implicit_multiplication);
+    let mut step_logger = Some(StepLogger::new());
     let integrated = parsed
-        .integrate(&Variable::Letter(integrate_to.to_string()))
-        .simplify_until_complete();
+        .integrate(
+            &Variable::Letter(integrate_to.to_string()),
+            &mut step_logger,
+        )
+        .simplify_until_complete(&mut step_logger);
 
-    integrated.to_latex()
+    serde_wasm_bindgen::to_value(&Result {
+        latex: integrated.to_latex(),
+        steps: step_logger.unwrap().get_steps_as_strings(),
+    })
+    .unwrap()
 }
 
 #[wasm_bindgen]
@@ -50,7 +77,7 @@ pub fn calculate(
     user_values_keys: &str,
     user_values_values: &[f64],
     implicit_multiplication: bool,
-) -> f64 {
+) -> JsValue {
     let mut values = physicsvalues::physics_values();
     let user_values_hashmap = user_values_to_hashmap(
         user_values_keys.split("\\n\\n").collect::<Vec<_>>(),
@@ -58,7 +85,14 @@ pub fn calculate(
     );
     values.extend(user_values_hashmap);
     let parsed: Equation = Equation::from_latex(equation, implicit_multiplication);
-    parsed.calculate(&values)
+    let result = parsed.calculate(&values);
+    serde_wasm_bindgen::to_value(&Result {
+        latex: result.to_string(),
+        steps: vec![
+            "\\textbf{I hope you know how to fill in variables in an equation...}".to_string(),
+        ],
+    })
+    .unwrap()
 }
 
 #[wasm_bindgen]
@@ -66,16 +100,21 @@ pub fn error_analysis(
     equation: &str,
     error_variables: &str,
     implicit_multiplication: bool,
-) -> String {
+) -> JsValue {
     let parsed: Equation = Equation::from_latex(equation, implicit_multiplication);
+    let mut step_logger = Some(StepLogger::new());
     let error_variables: Vec<_> = error_variables
         .split("\\n\\n")
         .map(|variable| Variable::Letter(variable.to_string()))
         .collect();
-    return parsed
-        .error_analysis(error_variables)
-        .simplify_until_complete()
-        .to_latex();
+    let errors = parsed
+        .error_analysis(error_variables, &mut step_logger)
+        .simplify_until_complete(&mut step_logger);
+    serde_wasm_bindgen::to_value(&Result {
+        latex: errors.to_latex(),
+        steps: step_logger.unwrap().get_steps_as_strings(),
+    })
+    .unwrap()
 }
 
 fn user_values_to_hashmap(keys: Vec<&str>, values: &[f64]) -> HashMap<Variable, f64> {
