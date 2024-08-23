@@ -10,6 +10,9 @@ impl Equation {
         integrate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Integrate"))
+        }
         let mut equation_to_integrate: Equation = (*self).clone().simplify(step_logger);
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
@@ -28,7 +31,9 @@ impl Equation {
         #[allow(clippy::never_loop)]
         loop {
             println!("Equation to integrate: {equation_to_integrate}");
-            if let Some(integrated_term) = equation_to_integrate.standard_integrals(integrate_to, step_logger) {
+            if let Some(integrated_term) =
+                equation_to_integrate.standard_integrals(integrate_to, step_logger)
+            {
                 integrated_equation.push(integrated_term);
                 break;
             }
@@ -41,12 +46,22 @@ impl Equation {
             integrated_equation.push(equation_to_integrate.bogointegrate(integrate_to));
             break;
         }
-
-        Equation::Multiplication(integrated_equation)
+        let result = Equation::Multiplication(integrated_equation);
+        if let Some(step_logger) = step_logger {
+            step_logger.close_step(result.clone());
+        }
+        result
     }
 
-    fn standard_integrals(&self, integrate_to: &Variable, step_logger: &mut Option<StepLogger>) -> Option<Equation> {
-        return match self {
+    fn standard_integrals(
+        &self,
+        integrate_to: &Variable,
+        step_logger: &mut Option<StepLogger>,
+    ) -> Option<Equation> {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Apply standard integral"))
+        }
+        let result = match self {
             Equation::Addition(addition) => Some(Equation::Addition(
                 addition
                     .iter()
@@ -96,6 +111,13 @@ impl Equation {
             ),
             _ => None,
         };
+        if let Some(step_logger) = step_logger {
+            match result {
+                Some(ref result) => step_logger.close_step(result.clone()),
+                None => step_logger.cancel_step(),
+            }
+        }
+        result
     }
 
     pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {

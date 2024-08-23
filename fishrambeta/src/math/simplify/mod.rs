@@ -1,8 +1,6 @@
 use crate::math::{steps::StepLogger, Equation, Variable};
 use std::collections::BTreeMap;
 
-use super::steps::Step;
-
 mod addition;
 mod division;
 mod multiplication;

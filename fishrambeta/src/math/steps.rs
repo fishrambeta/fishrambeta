@@ -56,6 +56,10 @@ impl StepLogger {
         }
     }
 
+    pub fn cancel_step(&mut self) {
+        self.current_step_stack.pop();
+    }
+
     pub fn get_steps_as_strings(&self) -> Vec<String> {
         self.to_string()
             .lines()
