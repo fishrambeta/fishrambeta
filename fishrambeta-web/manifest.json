@@ -11,6 +11,14 @@
   "theme_color": "#0037eb",
   "id": "io.fishrambeta.android",
   "description": "A FOSS computer algebra system for physicists and engineers.",
+  "icons": [
+  {
+      "src": "LogoVierkantSVG.svg",
+      "sizes": "512x512",
+      "type": "image/svg",
+      "purpose": "any"
+  }
+  ],
   "lang": "en",
   "categories": [
     "education",
