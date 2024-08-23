@@ -66,6 +66,10 @@ impl StepLogger {
             .map(|line| line.to_string())
             .collect()
     }
+
+    pub fn set_message(&mut self, message: &str) {
+        self.current_step_stack.last_mut().unwrap().message = Some(message.to_string());
+    }
 }
 impl fmt::Display for StepLogger {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

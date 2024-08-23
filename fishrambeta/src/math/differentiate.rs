@@ -1,4 +1,4 @@
-use super::steps::{Step, StepLogger};
+use super::steps::StepLogger;
 use crate::math::{Equation, Variable};
 
 impl Equation {
@@ -8,7 +8,7 @@ impl Equation {
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
         if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Apply standard derivative"))
+            step_logger.open_step(self.clone(), Some("Differentiate"))
         }
         let derivative = match self {
             Equation::Variable(variable) => {
@@ -21,16 +21,24 @@ impl Equation {
             Equation::Negative(negative) => Equation::Negative(Box::new(
                 negative.differentiate(differentiate_to, step_logger),
             )),
-            Equation::Addition(addition) => Equation::Addition(
-                addition
-                    .iter()
-                    .map(|x| x.differentiate(differentiate_to, step_logger))
-                    .collect::<Vec<_>>(),
-            ),
+            Equation::Addition(addition) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by applying the sum rule");
+                }
+                Equation::Addition(
+                    addition
+                        .iter()
+                        .map(|x| x.differentiate(differentiate_to, step_logger))
+                        .collect::<Vec<_>>(),
+                )
+            }
             Equation::Multiplication(multiplication) => Equation::Addition(
                 multiplication
                     .iter()
                     .map(|x| {
+                        if let Some(step_logger) = step_logger {
+                            step_logger.set_message("Differentiate by applying the product rule")
+                        }
                         let mut multiplication_new: Vec<Equation> = multiplication.clone();
                         multiplication_new.remove(
                             multiplication_new
@@ -39,11 +47,14 @@ impl Equation {
                                 .expect("This shouldn't happen"),
                         );
                         multiplication_new.push(x.differentiate(differentiate_to, step_logger));
-                        Equation::Multiplication(multiplication_new)
+                        Equation::Multiplication(multiplication_new).simplify(step_logger)
                     })
                     .collect::<Vec<_>>(),
             ),
             Equation::Division(division) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by applying the quotient rule")
+                }
                 let numerator = Equation::Addition(vec![
                     Equation::Multiplication(vec![
                         division.1.clone(),
@@ -60,8 +71,16 @@ impl Equation {
                 )));
                 Equation::Division(Box::new((numerator, denominator)))
             }
-            Equation::Power(power) => differentiate_power(power, differentiate_to, step_logger),
+            Equation::Power(power) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by applying the power rule")
+                }
+                differentiate_power(power, differentiate_to, step_logger).simplify(step_logger)
+            }
             Equation::Ln(ln) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                }
                 if ln.clone().simplify_until_complete(&mut None)
                     == Equation::Variable(Variable::Integer(0))
                 {
@@ -74,14 +93,24 @@ impl Equation {
                     (**ln).clone(),
                 )))
             }
-            Equation::Sin(sin) => Equation::Multiplication(vec![
-                sin.differentiate(differentiate_to, step_logger),
-                Equation::Cos(sin.clone()),
-            ]),
-            Equation::Cos(sin) => Equation::Negative(Box::new(Equation::Multiplication(vec![
-                sin.differentiate(differentiate_to, step_logger),
-                Equation::Sin(sin.clone()),
-            ]))),
+            Equation::Sin(sin) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                };
+                Equation::Multiplication(vec![
+                    sin.differentiate(differentiate_to, step_logger),
+                    Equation::Cos(sin.clone()),
+                ])
+            }
+            Equation::Cos(sin) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                };
+                Equation::Negative(Box::new(Equation::Multiplication(vec![
+                    sin.differentiate(differentiate_to, step_logger),
+                    Equation::Sin(sin.clone()),
+                ])))
+            }
             Equation::Equals(equals) => Equation::Equals(Box::new((
                 equals.0.differentiate(differentiate_to, step_logger),
                 equals.1.differentiate(differentiate_to, step_logger),
