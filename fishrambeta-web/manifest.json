@@ -1,0 +1,19 @@
+
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "FishramBeta",
+  "orientation": "any",
+  "scope": "/fishrambeta",
+  "short_name": "FishramBeta",
+  "start_url": "/fishrambeta",
+  "theme_color": "#0037eb",
+  "id": "io.fishrambeta.android",
+  "description": "A FOSS computer algebra system for physicists and engineers.",
+  "lang": "en",
+  "categories": [
+    "education",
+    "utilities"
+  ]
+}
