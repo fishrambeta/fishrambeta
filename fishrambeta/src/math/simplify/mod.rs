@@ -47,11 +47,9 @@ impl Equation {
             };
             return numerical_part;
         }
-        let before = if step_logger.is_some() {
-            Some(self.clone())
-        } else {
-            None
-        };
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Simplify"))
+        }
         let simplified = match self {
             Equation::Variable(variable) => match variable {
                 Variable::Rational(r) => {
@@ -96,11 +94,7 @@ impl Equation {
             }
         };
         if let Some(step_logger) = step_logger {
-            step_logger.add_step(Step::new(
-                before.unwrap(),
-                simplified.clone(),
-                Some("Simplify"),
-            ))
+            step_logger.close_step(simplified.clone())
         }
         simplified
     }

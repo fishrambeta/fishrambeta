@@ -7,6 +7,9 @@ impl Equation {
         differentiate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(self.clone(), Some("Apply standard derivative"))
+        }
         let derivative = match self {
             Equation::Variable(variable) => {
                 if variable == differentiate_to {
@@ -95,11 +98,7 @@ impl Equation {
             }
         };
         if let Some(step_logger) = step_logger {
-            step_logger.add_step(Step::new(
-                self.clone(),
-                derivative.clone(),
-                Some("Apply standard derivative"),
-            ))
+            step_logger.close_step(derivative.clone())
         }
         derivative
     }
