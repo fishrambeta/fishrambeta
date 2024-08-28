@@ -2,6 +2,18 @@ img {
   max-width: 50%;
   height: auto;
 }
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background-color: #f7f7f7;
+  padding: 20px;
+  overflow: auto;
+  border: 1px solid #ddd;
+  flex-grow: 1;
+}
 
 span.latex-input {
   font-size: 200%;
@@ -79,4 +91,9 @@ input {
   .column:last-child {
     border-top: none;
   }
+}
+
+.copyleft {
+  display: inline-block;
+  transform: rotate(180deg);
 }
