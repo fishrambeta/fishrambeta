@@ -2,19 +2,29 @@ img {
   max-width: 50%;
   height: auto;
 }
+
+html,
+body {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.wrapper {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 footer {
-  position: fixed;
-  left: 0;
-  bottom: 0;
   width: 100%;
   text-align: center;
   background-color: #f7f7f7;
   padding: 20px;
-  overflow: auto;
   border: 1px solid #ddd;
-  flex-grow: 1;
 }
-
 span.latex-input {
   font-size: 200%;
   min-width: 60%;
