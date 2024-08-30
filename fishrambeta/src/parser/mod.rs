@@ -318,6 +318,10 @@ fn get_index_of_next_variable_end(latex: &str) -> usize {
                 variable_type = VariableType::Letter;
             }
             VariableType::Command => {
+                if c == '_' {
+                    variable_type = VariableType::LetterWithSubscript;
+                    continue;
+                }
                 if c.is_ascii_digit() || c == '.' || c == '\\' {
                     return i;
                 }
