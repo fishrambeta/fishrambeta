@@ -20,13 +20,7 @@ impl Equation {
     }
 
     fn from_latex_internal(latex: &str, implicit_multiplication: bool) -> Equation {
-        if let Some(stripped) = latex.strip_prefix("-") {
-            return Equation::Negative(Box::new(Equation::from_latex_internal(
-                stripped,
-                implicit_multiplication,
-            )));
-        }
-
+        println!("from latex: {}", latex);
         if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
             return Equation::Addition(vec![
                 Equation::from_latex_internal(a, implicit_multiplication),
@@ -35,13 +29,15 @@ impl Equation {
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'-') {
-            return Equation::Addition(vec![
-                Equation::from_latex_internal(a, implicit_multiplication),
-                Equation::Negative(Box::new(Equation::from_latex_internal(
-                    b,
-                    implicit_multiplication,
-                ))),
-            ]);
+            if latex.strip_prefix("-").is_none() {
+                return Equation::Addition(vec![
+                    Equation::from_latex_internal(a, implicit_multiplication),
+                    Equation::Negative(Box::new(Equation::from_latex_internal(
+                        b,
+                        implicit_multiplication,
+                    ))),
+                ]);
+            }
         }
 
         if let Some((a, b)) = split_latex_at_operator(latex, &'*') {
@@ -60,6 +56,13 @@ impl Equation {
 
         if let Ok(num) = latex.parse::<i64>() {
             return Equation::Variable(Variable::Integer(num));
+        }
+
+        if let Some(stripped) = latex.strip_prefix("-") {
+            return Equation::Negative(Box::new(Equation::from_latex_internal(
+                stripped,
+                implicit_multiplication,
+            )));
         }
 
         if let Some((left, right)) = latex.split_once('.') {
