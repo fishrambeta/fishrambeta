@@ -158,7 +158,7 @@ impl Equation {
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\arcsin") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Sin(Box::new(Equation::from_latex_internal(
+            return Equation::Arcsin(Box::new(Equation::from_latex_internal(
                 parameters[0],
                 implicit_multiplication,
             )));
@@ -166,7 +166,7 @@ impl Equation {
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\arccos") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Cos(Box::new(Equation::from_latex_internal(
+            return Equation::Arccos(Box::new(Equation::from_latex_internal(
                 parameters[0],
                 implicit_multiplication,
             )));
@@ -174,7 +174,7 @@ impl Equation {
 
         if let Some(parameters) = parse_latex_with_command(latex, "\\arctan") {
             assert_eq!(parameters.len(), 1);
-            return Equation::Cos(Box::new(Equation::from_latex_internal(
+            return Equation::Arctan(Box::new(Equation::from_latex_internal(
                 parameters[0],
                 implicit_multiplication,
             )));
