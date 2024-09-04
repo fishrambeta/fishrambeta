@@ -82,6 +82,9 @@ impl Equation {
             Equation::Ln(ln) => Equation::Ln(Box::new(ln.simplify(&mut None))),
             Equation::Sin(sin) => Equation::Sin(Box::new(sin.simplify(&mut None))),
             Equation::Cos(cos) => Equation::Cos(Box::new(cos.simplify(&mut None))),
+            Equation::Arcsin(sin) => Equation::Arcsin(Box::new(sin.simplify(&mut None))),
+            Equation::Arccos(cos) => Equation::Arccos(Box::new(cos.simplify(&mut None))),
+            Equation::Arctan(tan) => Equation::Arctan(Box::new(tan.simplify(&mut None))),
             Equation::Abs(abs) => Equation::Abs(Box::new(abs.simplify(&mut None))),
             Equation::Equals(equation) => Equation::Equals(Box::new((
                 equation.0.simplify(&mut None),

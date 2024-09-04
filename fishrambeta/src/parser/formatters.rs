@@ -57,6 +57,9 @@ impl Equation {
             Equation::Equals(e) => format!("{}={}", e.0, e.1),
             Equation::Sin(s) => format!("\\sin({s})"),
             Equation::Cos(c) => format!("\\cos({c})"),
+            Equation::Arcsin(s) => format!("\\arcsin({s})"),
+            Equation::Arccos(c) => format!("\\arccos({c})"),
+            Equation::Arctan(t) => format!("\\arctan({t})"),
             Equation::Abs(a) => format!("|{a}|"),
             Equation::Derivative(_) => todo!(),
         };
@@ -74,6 +77,9 @@ impl Equation {
             Equation::Equals(_) => false,
             Equation::Sin(_) => false,
             Equation::Cos(_) => false,
+            Equation::Arcsin(_) => false,
+            Equation::Arccos(_) => false,
+            Equation::Arctan(_) => false,
             Equation::Abs(_) => false,
             Equation::Derivative(_) => true,
         }
@@ -108,6 +114,9 @@ impl Equation {
             Equation::Equals(e) => format!("{}={}", e.0.to_numpy(), e.1.to_numpy()),
             Equation::Sin(s) => format!("np.sin({})", s.to_numpy()),
             Equation::Cos(c) => format!("np.cos({})", c.to_numpy()),
+            Equation::Arcsin(s) => format!("np.arcsin({})", s.to_numpy()),
+            Equation::Arccos(c) => format!("np.arccos({})", c.to_numpy()),
+            Equation::Arctan(t) => format!("np.arctan({})", t.to_numpy()),
             Equation::Abs(a) => format!("np.abs({})", a.to_numpy()),
             Equation::Derivative(_) => todo!(),
         };

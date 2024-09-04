@@ -28,6 +28,9 @@ impl Equation {
             Equation::Ln(ln) => ln.calculate(values).ln(),
             Equation::Sin(sin) => sin.calculate(values).sin(),
             Equation::Cos(cos) => cos.calculate(values).cos(),
+            Equation::Arcsin(t) => t.calculate(values).asin(),
+            Equation::Arccos(t) => t.calculate(values).acos(),
+            Equation::Arctan(t) => t.calculate(values).atan(),
             Equation::Abs(abs) => abs.calculate(values).abs(),
             Equation::Equals(_) => panic!("Cannot calculate equals"),
             Equation::Derivative(_) => {

@@ -1,3 +1,5 @@
+use num::Rational64;
+
 use super::steps::StepLogger;
 use crate::math::{Equation, Variable};
 
@@ -113,6 +115,58 @@ impl Equation {
                     sin.differentiate(differentiate_to, step_logger),
                     Equation::Sin(sin.clone()),
                 ])))
+            }
+
+            Equation::Arcsin(t) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                };
+                Equation::Division(Box::new((
+                    t.differentiate(differentiate_to, step_logger),
+                    Equation::Power(Box::new((
+                        Equation::Addition(vec![
+                            Equation::Variable(Variable::Integer(1)),
+                            Equation::Negative(Box::new(Equation::Power(Box::new((
+                                *t.clone(),
+                                Equation::Variable(Variable::Integer(2)),
+                            ))))),
+                        ]),
+                        Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
+                    ))),
+                )))
+            }
+            Equation::Arccos(t) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                };
+                Equation::Negative(Box::new(Equation::Division(Box::new((
+                    t.differentiate(differentiate_to, step_logger),
+                    Equation::Power(Box::new((
+                        Equation::Addition(vec![
+                            Equation::Variable(Variable::Integer(1)),
+                            Equation::Negative(Box::new(Equation::Power(Box::new((
+                                *t.clone(),
+                                Equation::Variable(Variable::Integer(2)),
+                            ))))),
+                        ]),
+                        Equation::Variable(Variable::Rational(Rational64::new(1, 2))),
+                    ))),
+                )))))
+            }
+            Equation::Arctan(t) => {
+                if let Some(step_logger) = step_logger {
+                    step_logger.set_message("Differentiate by using the chain rule")
+                };
+                Equation::Negative(Box::new(Equation::Division(Box::new((
+                    t.differentiate(differentiate_to, step_logger),
+                    Equation::Addition(vec![
+                        Equation::Variable(Variable::Integer(1)),
+                        Equation::Power(Box::new((
+                            *t.clone(),
+                            Equation::Variable(Variable::Integer(2)),
+                        ))),
+                    ]),
+                )))))
             }
             Equation::Equals(equals) => Equation::Equals(Box::new((
                 equals.0.differentiate(differentiate_to, step_logger),
