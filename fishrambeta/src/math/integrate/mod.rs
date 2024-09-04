@@ -114,6 +114,9 @@ impl Equation {
             Equation::Cos(ref x) if **x == Equation::Variable(integrate_to.clone()) => Some(
                 Equation::Sin(Box::new(Equation::Variable(integrate_to.clone()))),
             ),
+            Equation::Arcsin(ref _x) => todo!(),
+            Equation::Arccos(ref _x) => todo!(),
+            Equation::Arctan(ref _x) => todo!(),
             _ => None,
         };
         if let Some(step_logger) = step_logger {
@@ -138,6 +141,9 @@ impl Equation {
             }
             Equation::Sin(t) => t.term_is_constant(integrate_to),
             Equation::Cos(t) => t.term_is_constant(integrate_to),
+            Equation::Arcsin(t) => t.term_is_constant(integrate_to),
+            Equation::Arccos(t) => t.term_is_constant(integrate_to),
+            Equation::Arctan(t) => t.term_is_constant(integrate_to),
             Equation::Ln(t) => t.term_is_constant(integrate_to),
             Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
             Equation::Variable(v) => v != integrate_to,

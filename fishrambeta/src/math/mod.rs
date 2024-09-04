@@ -25,6 +25,9 @@ pub enum Equation {
     Equals(Box<(Equation, Equation)>),
     Sin(Box<Equation>),
     Cos(Box<Equation>),
+    Arcsin(Box<Equation>),
+    Arccos(Box<Equation>),
+    Arctan(Box<Equation>),
     Abs(Box<Equation>),
     Derivative((Box<(Equation, Equation)>, bool)),
 }
