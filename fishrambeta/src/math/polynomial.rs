@@ -195,7 +195,8 @@ impl Polynomial {
     }
 
     pub fn from_equation(x: Equation, base: Variable) -> Polynomial {
-        if x.term_is_constant(&base) {
+        debug_assert!(x.is_polynomial(&base));
+        if x.is_constant(&base) {
             return Polynomial {
                 terms: vec![x],
                 base,
@@ -250,7 +251,7 @@ impl Polynomial {
                 }
             }
             Equation::Division(d) => {
-                if d.1.term_is_constant(&base) {
+                if d.1.is_constant(&base) {
                     return Polynomial::constant(
                         Equation::Division(Box::new((
                             Equation::Variable(Variable::Integer(1)),

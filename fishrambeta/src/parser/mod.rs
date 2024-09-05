@@ -20,7 +20,13 @@ impl Equation {
     }
 
     fn from_latex_internal(latex: &str, implicit_multiplication: bool) -> Equation {
-        println!("from latex: {}", latex);
+        if let Some((a, b)) = split_latex_at_operator(latex, &'=') {
+            return Equation::Equals(Box::new((
+                Equation::from_latex_internal(a, implicit_multiplication),
+                Equation::from_latex_internal(b, implicit_multiplication),
+            )));
+        }
+
         if let Some((a, b)) = split_latex_at_operator(latex, &'+') {
             return Equation::Addition(vec![
                 Equation::from_latex_internal(a, implicit_multiplication),
