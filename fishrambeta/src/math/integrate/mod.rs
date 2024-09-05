@@ -18,8 +18,7 @@ impl Equation {
         let mut integrated_equation = Vec::new();
 
         for fixed_term in fixed_terms {
-            if equation_to_integrate.has_factor(&fixed_term)
-                && fixed_term.term_is_constant(integrate_to)
+            if equation_to_integrate.has_factor(&fixed_term) && fixed_term.is_constant(integrate_to)
             {
                 equation_to_integrate = equation_to_integrate
                     .remove_factor(&fixed_term)
@@ -38,7 +37,7 @@ impl Equation {
                 break;
             }
 
-            if equation_to_integrate.is_rational_function(integrate_to) {
+            if equation_to_integrate.is_rational(integrate_to) {
                 equation_to_integrate.integrate_rational(integrate_to, step_logger);
                 break;
             }
@@ -126,76 +125,5 @@ impl Equation {
             }
         }
         result
-    }
-
-    pub fn term_is_constant(&self, integrate_to: &Variable) -> bool {
-        match self {
-            Equation::Addition(a) => a.iter().all(|x| x.term_is_constant(integrate_to)),
-            Equation::Multiplication(m) => m.iter().all(|x| x.term_is_constant(integrate_to)),
-            Equation::Negative(n) => n.term_is_constant(integrate_to),
-            Equation::Division(d) => {
-                d.0.term_is_constant(integrate_to) && d.1.term_is_constant(integrate_to)
-            }
-            Equation::Power(p) => {
-                p.0.term_is_constant(integrate_to) && p.1.term_is_constant(integrate_to)
-            }
-            Equation::Sin(t) => t.term_is_constant(integrate_to),
-            Equation::Cos(t) => t.term_is_constant(integrate_to),
-            Equation::Arcsin(t) => t.term_is_constant(integrate_to),
-            Equation::Arccos(t) => t.term_is_constant(integrate_to),
-            Equation::Arctan(t) => t.term_is_constant(integrate_to),
-            Equation::Ln(t) => t.term_is_constant(integrate_to),
-            Equation::Equals(_) => panic!("Equation containing = cannot be integrated"),
-            Equation::Variable(v) => v != integrate_to,
-            Equation::Abs(a) => a.term_is_constant(integrate_to),
-            Equation::Derivative(_) => {
-                panic!("Derivative cannot be integrated")
-            }
-        }
-    }
-
-    fn is_polynomial(&self, integrate_to: &Variable) -> bool {
-        match self {
-            Equation::Addition(a) => return a.iter().all(|x| x.is_polynomial(integrate_to)),
-            Equation::Power(p) => {
-                (p.0 == Equation::Variable(integrate_to.clone()))
-                    && (p.1.get_integer_or_none().is_some())
-            }
-            Equation::Negative(n) => n.is_polynomial(integrate_to),
-            Equation::Variable(_) => true,
-            Equation::Multiplication(m) => return m.iter().all(|x| x.is_polynomial(integrate_to)),
-            _ => self.term_is_constant(integrate_to),
-        }
-    }
-
-    fn is_rational_function(&self, integrate_to: &Variable) -> bool {
-        self.term_is_rational_function(integrate_to, false)
-    }
-
-    fn term_is_rational_function(&self, integrate_to: &Variable, is_in_division: bool) -> bool {
-        if self.is_polynomial(integrate_to) {
-            return true;
-        }
-        if is_in_division {
-            return self.is_polynomial(integrate_to);
-        }
-
-        match self {
-            Equation::Addition(a) => {
-                return a
-                    .iter()
-                    .all(|x| x.term_is_rational_function(integrate_to, is_in_division))
-            }
-            Equation::Multiplication(m) => {
-                return m
-                    .iter()
-                    .all(|x| x.term_is_rational_function(integrate_to, is_in_division))
-            }
-            Equation::Division(d) => {
-                d.0.term_is_rational_function(integrate_to, true)
-                    && d.1.term_is_rational_function(integrate_to, true)
-            }
-            misc => misc.term_is_constant(integrate_to),
-        }
     }
 }
