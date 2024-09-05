@@ -138,6 +138,14 @@ impl LinearEquationSystem {
 
         for r in 0..m {
             for i in r + 1..m {
+                let mut q = r + 1;
+                while a[r][r] == Equation::Variable(Variable::Integer(0)) {
+                    if q == a.len() {
+                        panic!("Cannot solve system")
+                    }
+                    a.swap(r, q);
+                    q += 1;
+                }
                 let multiplication_factor = Equation::Negative(Box::new(Equation::Division(
                     Box::new((a[i][r].clone(), a[r][r].clone())),
                 )))
@@ -154,8 +162,6 @@ impl LinearEquationSystem {
                     .simplify(&mut None)
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
-
-                println!("{:?}", a);
             }
         }
 
@@ -177,8 +183,6 @@ impl LinearEquationSystem {
                     .simplify(&mut None)
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
-
-                println!("{:?}", a);
             }
         }
 
@@ -240,7 +244,7 @@ mod tests {
         let equation_3 = Equation::from_latex("(-x)+y=2", false);
         let system = LinearEquationSystem::from_equals_equations(
             vec![equation_1, equation_2, equation_3],
-            variables,
+            variables.clone(),
         );
         println!("{:?}", system);
         let solution = system.solve();
@@ -251,6 +255,29 @@ mod tests {
         assert!(approx_equal(
             solution.get(&y).unwrap().clone(),
             Equation::Variable(Variable::Rational(Rational64::new(7, 3)))
+        ));
+        assert!(approx_equal(
+            solution.get(&z).unwrap().clone(),
+            Equation::Variable(Variable::Integer(1))
+        ));
+
+        let equation_1 = Equation::from_latex("2*y+z=6", false);
+        let equation_2 = Equation::from_latex("(-x)+y+z=3", false);
+        let equation_3 = Equation::from_latex("(-x)+y=2", false);
+        let system = LinearEquationSystem::from_equals_equations(
+            vec![equation_1, equation_2, equation_3],
+            variables.clone(),
+        );
+        println!("{:?}", system);
+        let solution = system.solve();
+        //TODO correcte oplossing
+        assert!(approx_equal(
+            solution.get(&x).unwrap().clone(),
+            Equation::Variable(Variable::Rational(Rational64::new(1, 2)))
+        ));
+        assert!(approx_equal(
+            solution.get(&y).unwrap().clone(),
+            Equation::Variable(Variable::Rational(Rational64::new(5, 2)))
         ));
         assert!(approx_equal(
             solution.get(&z).unwrap().clone(),
