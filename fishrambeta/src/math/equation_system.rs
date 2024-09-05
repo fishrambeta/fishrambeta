@@ -73,6 +73,9 @@ impl Equation {
             Equation::Sin(p) => Equation::Sin(Box::new(p.constant_part(variables))),
             Equation::Cos(p) => Equation::Cos(Box::new(p.constant_part(variables))),
             Equation::Abs(p) => Equation::Abs(Box::new(p.constant_part(variables))),
+            Equation::Arcsin(p) => Equation::Arcsin(Box::new(p.constant_part(variables))),
+            Equation::Arccos(p) => Equation::Arccos(Box::new(p.constant_part(variables))),
+            Equation::Arctan(p) => Equation::Arctan(Box::new(p.constant_part(variables))),
             Equation::Equals(_) => panic!("Cannot get constant part of equals"),
             Equation::Derivative(_) => panic!("Cannot get constant part of derivative"),
         }
@@ -138,7 +141,6 @@ impl LinearEquationSystem {
 
         for r in 0..m {
             for i in r + 1..m {
-<<<<<<< HEAD
                 let mut q = r + 1;
                 while a[r][r] == Equation::Variable(Variable::Integer(0)) {
                     if q == a.len() {
@@ -147,8 +149,6 @@ impl LinearEquationSystem {
                     a.swap(r, q);
                     q += 1;
                 }
-=======
->>>>>>> 7ab6078 (Initial implementation of solving linear equation systems)
                 let multiplication_factor = Equation::Negative(Box::new(Equation::Division(
                     Box::new((a[i][r].clone(), a[r][r].clone())),
                 )))
@@ -165,11 +165,6 @@ impl LinearEquationSystem {
                     .simplify(&mut None)
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
-<<<<<<< HEAD
-=======
-
-                println!("{:?}", a);
->>>>>>> 7ab6078 (Initial implementation of solving linear equation systems)
             }
         }
 
@@ -191,11 +186,6 @@ impl LinearEquationSystem {
                     .simplify(&mut None)
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
-<<<<<<< HEAD
-=======
-
-                println!("{:?}", a);
->>>>>>> 7ab6078 (Initial implementation of solving linear equation systems)
             }
         }
 
@@ -257,11 +247,7 @@ mod tests {
         let equation_3 = Equation::from_latex("(-x)+y=2", false);
         let system = LinearEquationSystem::from_equals_equations(
             vec![equation_1, equation_2, equation_3],
-<<<<<<< HEAD
             variables.clone(),
-=======
-            variables,
->>>>>>> 7ab6078 (Initial implementation of solving linear equation systems)
         );
         println!("{:?}", system);
         let solution = system.solve();
@@ -277,7 +263,6 @@ mod tests {
             solution.get(&z).unwrap().clone(),
             Equation::Variable(Variable::Integer(1))
         ));
-<<<<<<< HEAD
 
         let equation_1 = Equation::from_latex("2*y+z=6", false);
         let equation_2 = Equation::from_latex("(-x)+y+z=3", false);
@@ -301,7 +286,5 @@ mod tests {
             solution.get(&z).unwrap().clone(),
             Equation::Variable(Variable::Integer(1))
         ));
-=======
->>>>>>> 7ab6078 (Initial implementation of solving linear equation systems)
     }
 }

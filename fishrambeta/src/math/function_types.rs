@@ -18,6 +18,9 @@ impl Equation {
             Equation::Derivative(_) => {
                 panic!("Derivative cannot be integrated")
             }
+            Equation::Arcsin(t) => t.is_constant(variable),
+            Equation::Arccos(t) => t.is_constant(variable),
+            Equation::Arctan(t) => t.is_constant(variable),
         }
     }
 
