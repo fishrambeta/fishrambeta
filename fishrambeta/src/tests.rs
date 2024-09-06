@@ -6,30 +6,18 @@ const RANDOM_VALUES: [f64; 100] = [217.77919232197257, -35.022747163580675, -283
 
 #[test]
 fn simplify() {
-    let valuedicts = valuedicts();
-
-    assert!(simplified_is_equal("x^2", &valuedicts));
-    assert!(simplified_is_equal("\\frac{x}{x}", &valuedicts));
-    assert!(simplified_is_equal("\\frac{\\frac{-x}{x}}{x}", &valuedicts));
-    assert!(simplified_is_equal(
-        "\\frac{1}{\\left(x+4\\right)^2}",
-        &valuedicts
-    ));
+    assert!(simplified_is_equal("x^2"));
+    assert!(simplified_is_equal("\\frac{x}{x}"));
+    assert!(simplified_is_equal("\\frac{\\frac{-x}{x}}{x}"));
+    assert!(simplified_is_equal("\\frac{1}{\\left(x+4\\right)^2}"));
 }
 
 #[test]
 fn differentiate() {
-    let valuedicts = valuedicts();
-
-    assert!(derivative_is_equal(
-        "\\tan(x)",
-        "\\frac{1}{\\cos(x)^2}",
-        &valuedicts
-    ));
+    assert!(derivative_is_equal("\\tan(x)", "\\frac{1}{\\cos(x)^2}",));
     assert!(derivative_is_equal(
         "\\frac{\\tan(x)}{x^2}",
         "\\frac{x*\\frac{1}{\\cos(x)^2}-2*\\tan(x)}{x^3}",
-        &valuedicts
     ));
 }
 
@@ -37,11 +25,12 @@ fn valuedicts() -> [BTreeMap<Variable, f64>; 30] {
     let mut array: [BTreeMap<Variable, f64>; 30] = Default::default();
     for i in 0..30 {
         let mut valuedict = BTreeMap::new();
-        for j in 0..2 {
+        for j in 0..4 {
             match j {
-                0 => valuedict.insert(Variable::Letter("x".to_string()), RANDOM_VALUES[i * 3 + j]),
-                1 => valuedict.insert(Variable::Letter("x".to_string()), RANDOM_VALUES[i * 3 + j]),
-                2 => valuedict.insert(Variable::Letter("x".to_string()), RANDOM_VALUES[i * 3 + j]),
+                0 => valuedict.insert(Variable::Letter("x".to_string()), RANDOM_VALUES[i + j]),
+                1 => valuedict.insert(Variable::Letter("y".to_string()), RANDOM_VALUES[i + j]),
+                2 => valuedict.insert(Variable::Letter("z".to_string()), RANDOM_VALUES[i + j]),
+                3 => valuedict.insert(Variable::Letter("c".to_string()), RANDOM_VALUES[i + j]),
                 _ => unreachable!(),
             };
         }
@@ -50,31 +39,29 @@ fn valuedicts() -> [BTreeMap<Variable, f64>; 30] {
     array
 }
 
-fn simplified_is_equal(equation: &str, valuedicts: &[BTreeMap<Variable, f64>]) -> bool {
+fn simplified_is_equal(equation: &str) -> bool {
     let parsed = Equation::from_latex(equation, false);
     let simplified = parsed.clone().simplify_until_complete(&mut None);
-
-    valuedicts
-        .iter()
-        .all(|values| approx_equal(parsed.calculate(values), simplified.calculate(values)))
+    approx_equal(parsed, simplified)
 }
 
-fn derivative_is_equal(
-    equation: &str,
-    expected_result: &str,
-    valuedicts: &[BTreeMap<Variable, f64>],
-) -> bool {
+fn derivative_is_equal(equation: &str, expected_result: &str) -> bool {
     let parsed = Equation::from_latex(equation, false);
     let correct = Equation::from_latex(expected_result, false);
     let derivative = parsed
         .differentiate(&Variable::Letter("x".to_string()), &mut None)
         .simplify_until_complete(&mut None);
-    valuedicts
-        .iter()
-        .all(|values| approx_equal(derivative.calculate(values), correct.calculate(values)))
+    approx_equal(derivative, correct)
 }
 
-fn approx_equal(a: f64, b: f64) -> bool {
+pub fn approx_equal(a: Equation, b: Equation) -> bool {
+    println!("Comparing if approx equal: {} and {}", a, b);
+    valuedicts()
+        .iter()
+        .all(|values| float_approx_equal(a.calculate(values), b.calculate(values)))
+}
+
+fn float_approx_equal(a: f64, b: f64) -> bool {
     let p = a / 10000.;
     (a - b).abs() < p.abs()
 }
