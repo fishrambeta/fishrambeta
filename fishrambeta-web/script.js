@@ -64,6 +64,9 @@ function process_operation() {
   var implicit_multiplication = document.getElementById(
     "implicit-multiplication-checkbox",
   ).checked;
+  var scientific_notation = document.getElementById(
+    "scientific-notation-checkbox",
+  ).checked;
   result_mathfield.latex("");
   steps_parent.innerHTML = "";
 
@@ -122,9 +125,33 @@ function process_operation() {
         );
         break;
     }
+    if (operation == "calculate" && scientific_notation) {
+      var result_float = parseFloat(result.latex);
+      var sign = Math.sign(result_float);
+      result_float = Math.abs(result_float);
+      var log = Math.log10(result_float);
+      var characteristic = Math.floor(log);
+      var mantissa = log - characteristic;
+      var mantissa_exponentiated = Math.pow(10, mantissa);
+      switch (sign) {
+        case -1:
+          result.latex =
+            "-" +
+            mantissa_exponentiated +
+            " \\cdot 10^{" +
+            characteristic +
+            "}";
+          break;
+        case 1:
+          result.latex =
+            mantissa_exponentiated + " \\cdot 10^{" + characteristic + "}";
+          break;
+        case 0:
+          result.latex = "0";
+      }
+    }
     result_mathfield.latex(result.latex);
     result_latex_copypaste.value = result.latex;
-    console.log(result.steps);
     var i = 0;
     for (var step of result.steps) {
       steps_parent.insertAdjacentHTML(
@@ -290,6 +317,7 @@ function on_update_latex_checkbox() {
 document
   .getElementById("show-latex-checkbox")
   .addEventListener("change", on_update_latex_checkbox);
+
 on_update_latex_checkbox();
 function on_update_numpy_checkbox() {
   var checkbox = document.getElementById("show-numpy-checkbox");
