@@ -4,6 +4,7 @@ import init, {
   calculate,
   differentiate,
   integrate,
+  taylor_expansion,
   error_analysis,
 } from "./pkg/fishrambeta_wasm.js";
 init().then(() => {
@@ -11,6 +12,7 @@ init().then(() => {
   window.differentiate = differentiate;
   window.simplify = simplify;
   window.integrate = integrate;
+  window.taylor_expansion = taylor_expansion;
   window.error_analysis = error_analysis;
 });
 
@@ -107,6 +109,23 @@ function process_operation() {
           throw new Error("Cannot integrate to empty string");
         }
         result = integrate(input, integrate_to, implicit_multiplication);
+        break;
+      case "taylor-expansion":
+        var taylor_expansion_to = taylor_expansion_to_mathfield.latex();
+        var taylor_expansion_around = taylor_expansion_around_mathfield.latex();
+        var taylor_expansion_degree = Number(
+          taylor_expansion_degree_mathfield.latex(),
+        );
+        if (taylor_expansion_to == "") {
+          throw new Error("Cannot taylor expand to empty string");
+        }
+        result = taylor_expansion(
+          input,
+          taylor_expansion_to,
+          taylor_expansion_around,
+          taylor_expansion_degree,
+          implicit_multiplication,
+        );
         break;
       case "error-analysis":
         var error_variables = get_error_variables();
@@ -226,6 +245,38 @@ var integrate_to_mathfield = MQ.MathField(integrate_to_span, {
   },
 });
 
+var taylor_expansion_to_span = document.getElementById("taylor-expansion-to");
+var taylor_expansion_to_mathfield = MQ.MathField(taylor_expansion_to_span, {
+  spaceBehavesLikeTab: true,
+  handlers: {
+    edit: on_input_changed,
+  },
+});
+var taylor_expansion_around_span = document.getElementById(
+  "taylor-expansion-around",
+);
+var taylor_expansion_around_mathfield = MQ.MathField(
+  taylor_expansion_around_span,
+  {
+    spaceBehavesLikeTab: true,
+    handlers: {
+      edit: on_input_changed,
+    },
+  },
+);
+var taylor_expansion_degree_span = document.getElementById(
+  "taylor-expansion-degree",
+);
+var taylor_expansion_degree_mathfield = MQ.MathField(
+  taylor_expansion_degree_span,
+  {
+    spaceBehavesLikeTab: true,
+    handlers: {
+      edit: on_input_changed,
+    },
+  },
+);
+
 var result_span = document.getElementById("latex-result");
 let result_mathfield = MQ.StaticMath(result_span);
 
@@ -241,6 +292,9 @@ document.addEventListener("DOMContentLoaded", function () {
     "differentiate-options",
   );
   const integrate_options = document.getElementById("integrate-options");
+  const taylor_expansion_options = document.getElementById(
+    "taylor-expansion-options",
+  );
   const error_analysis_options = document.getElementById(
     "error-analysis-options",
   );
@@ -262,6 +316,12 @@ document.addEventListener("DOMContentLoaded", function () {
       integrate_options.style.display = "block";
     } else {
       integrate_options.style.display = "none";
+    }
+
+    if (operation_element.value === "taylor-expansion") {
+      taylor_expansion_options.style.display = "block";
+    } else {
+      taylor_expansion_options.style.display = "none";
     }
 
     if (operation_element.value === "error-analysis") {

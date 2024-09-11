@@ -57,6 +57,7 @@
               <option value="calculate">Calculate</option>
               <option value="differentiate">Differentiate</option>
               <option value="integrate">Integrate</option>
+              <option value="taylor-expansion">Taylor Expansion</option>
               <option value="error-analysis">Error Analysis</option>
             </select>
             <p class="nomargin">
@@ -112,7 +113,27 @@
               </p>
               <span class="latex-key" id="integrate-to">x</span>
             </div>
-            <div id="input-values-container"></div>
+          </div>
+          <div id="taylor-expansion-options">
+            <div>
+              <h4 style="margin-bottom: 0">Taylor Expansion To</h4>
+              <p class="hint">
+                (variable with respect to which the Taylor expansion should be
+                taken)
+              </p>
+              <span class="latex-key" id="taylor-expansion-to">x</span>
+              <h4 style="margin-bottom: 0">Taylor Expansion Around</h4>
+              <p class="hint">
+                (Due to current limitations, x should be interpreted as (x-c))
+              </p>
+              <span class="latex-key" id="taylor-expansion-around">0</span>
+              <h4 style="margin-bottom: 0">Taylor Expansion Degree</h4>
+              <p class="hint">
+                (higher values may slow down browser; values under 4 are
+                recommended)
+              </p>
+              <span class="latex-key" id="taylor-expansion-degree">2</span>
+            </div>
           </div>
           <div id="error-analysis-options">
             <div>
