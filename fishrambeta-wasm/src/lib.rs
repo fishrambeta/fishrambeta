@@ -96,6 +96,33 @@ pub fn calculate(
 }
 
 #[wasm_bindgen]
+pub fn taylor_expansion(
+    equation: &str,
+    variable: &str,
+    around: &str,
+    degree: i32,
+    implicit_multiplication: bool,
+) -> JsValue {
+    let parsed = Equation::from_latex(equation, implicit_multiplication);
+    let around = Equation::from_latex(around, implicit_multiplication);
+    let mut step_logger = Some(StepLogger::new());
+    let taylor_expansion = parsed
+        .taylor_expansion(
+            Variable::Letter(variable.to_string()),
+            around,
+            degree.try_into().unwrap(),
+            &mut step_logger,
+        )
+        .into_equation()
+        .simplify_until_complete(&mut step_logger);
+    serde_wasm_bindgen::to_value(&Result {
+        latex: taylor_expansion.to_latex(),
+        steps: step_logger.unwrap().get_steps_as_strings(),
+    })
+    .unwrap()
+}
+
+#[wasm_bindgen]
 pub fn error_analysis(
     equation: &str,
     error_variables: &str,

@@ -194,6 +194,13 @@ impl Polynomial {
         factors
     }
 
+    pub fn from_coefficients(coefficients: Vec<Equation>, base: Variable) -> Polynomial {
+        Polynomial {
+            terms: coefficients,
+            base,
+        }
+    }
+
     pub fn from_equation(x: Equation, base: Variable) -> Polynomial {
         debug_assert!(x.is_polynomial(&base));
         if x.is_constant(&base) {

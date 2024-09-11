@@ -33,6 +33,7 @@ enum Operation {
     Differentiate,
     Integrate,
     Error,
+    TaylorSeries,
 }
 
 #[derive(Debug)]
@@ -115,6 +116,16 @@ fn process_operation(
                     .simplify_until_complete_with_print(step_logger),
             )
         }
+        Operation::TaylorSeries => Result::Equation(
+            equation
+                .taylor_expansion(
+                    Variable::Letter("x".to_string()),
+                    Equation::Variable(Variable::Integer(0)),
+                    1,
+                    step_logger,
+                )
+                .into_equation(),
+        ),
         _ => {
             panic!("Operation not yet supported")
         }
