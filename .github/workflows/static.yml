@@ -40,7 +40,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Compile wasm
-        run: cd ./fishrambeta-wasm && wasm-pack build --target web
+        run: cd ./fishrambeta-wasm && wasm-pack build --target web --release
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
