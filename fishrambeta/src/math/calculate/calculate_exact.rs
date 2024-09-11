@@ -65,6 +65,22 @@ impl Equation {
                 }
                 None
             }
+            Equation::Sin(t) => {
+                if let Some(i) = t.calculate_exact() {
+                    if i == 0.into() {
+                        return Some(0.into());
+                    }
+                }
+                None
+            }
+            Equation::Cos(t) => {
+                if let Some(i) = t.calculate_exact() {
+                    if i == 0.into() {
+                        return Some(1.into());
+                    }
+                }
+                None
+            }
             _ => None,
         }
     }
