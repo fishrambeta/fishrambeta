@@ -1,6 +1,9 @@
 use crate::math::{Equation, Variable};
 use std::collections::BTreeMap;
 
+mod calculate_exact;
+mod evaluate;
+
 impl Equation {
     pub fn calculate(&self, values: &BTreeMap<Variable, f64>) -> f64 {
         match self {

@@ -1,7 +1,6 @@
 use num_rational::Rational64;
 
 mod calculate;
-mod calculate_exact;
 mod compare;
 mod differentiate;
 mod equation_system;
@@ -13,6 +12,7 @@ mod multiply_by;
 mod polynomial;
 mod simplify;
 pub mod steps;
+mod taylor_series;
 
 ///Represents a generic math object
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Ord, PartialOrd)]
