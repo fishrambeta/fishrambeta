@@ -10,13 +10,8 @@ use wasm_bindgen::prelude::*;
 #[derive(Serialize, Deserialize)]
 pub struct Result {
     latex: String,
+    numpy: String,
     steps: Vec<String>,
-}
-
-#[wasm_bindgen]
-pub fn latex_to_numpy(equation: &str) -> String {
-    let parsed = Equation::from_latex(equation, false);
-    parsed.to_numpy()
 }
 
 #[wasm_bindgen]
@@ -27,6 +22,7 @@ pub fn simplify(equation: &str, implicit_multiplication: bool) -> JsValue {
 
     serde_wasm_bindgen::to_value(&Result {
         latex: simplified.to_latex(),
+        numpy: simplified.to_numpy(),
         steps: step_logger.unwrap().get_steps_as_strings(),
     })
     .unwrap()
@@ -48,6 +44,7 @@ pub fn differentiate(
         .simplify_until_complete(&mut step_logger);
     serde_wasm_bindgen::to_value(&Result {
         latex: differentiated.to_latex(),
+        numpy: differentiated.to_numpy(),
         steps: step_logger.unwrap().get_steps_as_strings(),
     })
     .unwrap()
@@ -66,6 +63,7 @@ pub fn integrate(equation: &str, integrate_to: &str, implicit_multiplication: bo
 
     serde_wasm_bindgen::to_value(&Result {
         latex: integrated.to_latex(),
+        numpy: integrated.to_numpy(),
         steps: step_logger.unwrap().get_steps_as_strings(),
     })
     .unwrap()
@@ -88,6 +86,7 @@ pub fn calculate(
     let result = parsed.calculate(&values);
     serde_wasm_bindgen::to_value(&Result {
         latex: result.to_string(),
+        numpy: result.to_string(),
         steps: vec![
             "\\textbf{I hope you know how to fill in variables in an equation...}".to_string(),
         ],
@@ -117,6 +116,7 @@ pub fn taylor_expansion(
         .simplify_until_complete(&mut step_logger);
     serde_wasm_bindgen::to_value(&Result {
         latex: taylor_expansion.to_latex(),
+        numpy: taylor_expansion.to_numpy(),
         steps: step_logger.unwrap().get_steps_as_strings(),
     })
     .unwrap()
@@ -139,6 +139,7 @@ pub fn error_analysis(
         .simplify_until_complete(&mut step_logger);
     serde_wasm_bindgen::to_value(&Result {
         latex: errors.to_latex(),
+        numpy: errors.to_numpy(),
         steps: step_logger.unwrap().get_steps_as_strings(),
     })
     .unwrap()

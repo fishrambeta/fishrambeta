@@ -71,6 +71,9 @@ fn main() {
     println!("{}", step_logger.unwrap());
     println!("Elapsed: {:.2?}", elapsed);
     println!("{}", result);
+    if let Result::Equation(result) = result {
+        println!("{}", result.to_numpy());
+    }
 }
 
 fn process_operation(

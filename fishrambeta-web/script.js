@@ -1,6 +1,5 @@
 import init, {
   simplify,
-  latex_to_numpy,
   calculate,
   differentiate,
   integrate,
@@ -182,8 +181,7 @@ function process_operation() {
       step_mathfield.latex(step);
       i += 1;
     }
-    var numpy = latex_to_numpy(String(result.latex));
-    result_numpy_copypaste.value = numpy;
+    result_numpy_copypaste.value = result.numpy;
   } catch (error) {
     console.log(error);
     result_mathfield.latex("\\textbf{Invalid LaTeX (" + error + ")}");
