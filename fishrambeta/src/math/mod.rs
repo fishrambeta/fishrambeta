@@ -47,6 +47,7 @@ pub enum Variable {
 pub enum Constant {
     PI,
     E,
+    I,
 }
 
 impl Equation {

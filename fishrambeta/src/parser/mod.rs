@@ -214,6 +214,7 @@ impl Equation {
         match variable {
             "\\pi" => Equation::Variable(Variable::Constant(Constant::PI)),
             "e" => Equation::Variable(Variable::Constant(Constant::E)),
+            "i" => Equation::Variable(Variable::Constant(Constant::I)),
             letter => Equation::Variable(Variable::Letter(letter.to_string())),
         }
     }

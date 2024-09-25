@@ -1,4 +1,4 @@
-use crate::math::steps::StepLogger;
+use crate::math::{steps::StepLogger, Constant};
 
 use super::{Equation, Variable};
 use num::Signed;
@@ -19,6 +19,11 @@ pub(super) fn simplify_power(
     }
 
     match base {
+        Equation::Variable(Variable::Constant(Constant::I)) => {
+            if exponent.get_integer_or_none() == Some(2) {
+                return Equation::Variable(Variable::Integer(-1));
+            }
+        }
         Equation::Multiplication(terms) => {
             let mut simplified_power: Vec<Equation> = vec![];
             for term in terms {

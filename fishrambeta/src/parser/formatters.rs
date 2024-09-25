@@ -11,6 +11,7 @@ impl Equation {
                 Variable::Constant(c) => match c {
                     Constant::PI => "\\pi".to_string(),
                     Constant::E => "e".to_string(),
+                    Constant::I => "i".to_string(),
                 },
                 Variable::Letter(l) => return l.to_string(),
                 Variable::Vector(_) => todo!(),
@@ -93,6 +94,7 @@ impl Equation {
                 Variable::Constant(c) => match c {
                     Constant::PI => "np.pi".to_string(),
                     Constant::E => "np.e".to_string(),
+                    Constant::I => "j".to_string(),
                 },
                 Variable::Letter(l) => return l.to_string(),
                 Variable::Vector(_) => todo!(),
