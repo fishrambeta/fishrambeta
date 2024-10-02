@@ -1,4 +1,7 @@
-use super::{steps::StepLogger, Equation, Variable};
+use super::{
+    steps::{helpers::*, StepLogger},
+    Equation, Variable,
+};
 use num_rational::Rational64;
 
 mod bogointegrate;
@@ -10,9 +13,7 @@ impl Equation {
         integrate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
-        if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Integrate"))
-        }
+        open_step(step_logger, &self, Some("Integrate"));
         let mut equation_to_integrate: Equation = (*self).clone().simplify(step_logger);
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
@@ -46,9 +47,7 @@ impl Equation {
             break;
         }
         let result = Equation::Multiplication(integrated_equation);
-        if let Some(step_logger) = step_logger {
-            step_logger.close_step(result.clone());
-        }
+        close_step(step_logger, &result);
         result
     }
 
@@ -57,14 +56,10 @@ impl Equation {
         integrate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Option<Equation> {
-        if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Apply standard integral"))
-        }
+        open_step(step_logger, &self, Some("Apply standard integral"));
         let result = match self {
             Equation::Addition(addition) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Use addition rule for derivatives")
-                }
+                set_step_message(step_logger, "Use addition rule for integrals");
                 Some(Equation::Addition(
                     addition
                         .iter()
@@ -118,11 +113,9 @@ impl Equation {
             Equation::Arctan(ref _x) => todo!(),
             _ => None,
         };
-        if let Some(step_logger) = step_logger {
-            match result {
-                Some(ref result) => step_logger.close_step(result.clone()),
-                None => step_logger.cancel_step(),
-            }
+        match result {
+            Some(ref result) => close_step(step_logger, &result),
+            None => cancel_step(step_logger),
         }
         result
     }

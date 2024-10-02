@@ -1,4 +1,7 @@
-use crate::math::{steps::StepLogger, Equation, Variable};
+use crate::math::{
+    steps::{helpers::*, StepLogger},
+    Equation, Variable,
+};
 use std::collections::BTreeMap;
 
 mod addition;
@@ -45,9 +48,7 @@ impl Equation {
             };
             return numerical_part;
         }
-        if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Simplify"))
-        }
+        open_step(step_logger, &self, Some("Simplify"));
         let simplified = match self {
             Equation::Variable(variable) => match variable {
                 Variable::Rational(r) => {
@@ -94,9 +95,7 @@ impl Equation {
                 panic!("Derivative cannot be simplified")
             }
         };
-        if let Some(step_logger) = step_logger {
-            step_logger.close_step(simplified.clone())
-        }
+        close_step(step_logger, &simplified);
         simplified
     }
 }

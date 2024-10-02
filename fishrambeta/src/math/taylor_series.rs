@@ -1,4 +1,8 @@
-use super::{polynomial::Polynomial, steps::StepLogger, Equation, Variable};
+use super::{
+    polynomial::Polynomial,
+    steps::{helpers::*, StepLogger},
+    Equation, Variable,
+};
 
 impl Equation {
     pub fn taylor_expansion(
@@ -8,21 +12,18 @@ impl Equation {
         degree: usize,
         step_logger: &mut Option<StepLogger>,
     ) -> Polynomial {
-        if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Calculate taylor series"))
-        }
+        open_step(step_logger, &self, Some("Calculate taylor series"));
         let mut coefficients: Vec<Equation> = Vec::new();
         let mut current_derivative = self;
         while coefficients.len() <= degree {
-            if let Some(step_logger) = step_logger {
-                step_logger.open_step(
-                    current_derivative.clone(),
-                    Some(&format!(
-                        "Calculate n={} coefficient of taylor series",
-                        coefficients.len()
-                    )),
-                )
-            }
+            open_step(
+                step_logger,
+                &current_derivative,
+                Some(&format!(
+                    "Calculate n={} coefficient of taylor series",
+                    coefficients.len()
+                )),
+            );
 
             coefficients.push(Equation::Division(Box::new((
                 current_derivative
@@ -34,14 +35,11 @@ impl Equation {
             current_derivative = current_derivative
                 .differentiate(&variable, step_logger)
                 .simplify_until_complete(step_logger);
-            if let Some(step_logger) = step_logger {
-                step_logger.close_step(coefficients[coefficients.len() - 1].clone())
-            }
+            close_step(step_logger, &coefficients[coefficients.len() - 1]);
         }
         let result = Polynomial::from_coefficients(coefficients, variable);
-        if let Some(step_logger) = step_logger {
-            step_logger.close_step(result.clone().into_equation())
-        }
+
+        close_step(step_logger, &result.clone().into_equation());
         result
     }
 }

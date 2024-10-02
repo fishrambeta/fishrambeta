@@ -1,6 +1,6 @@
 use num::Rational64;
 
-use super::steps::StepLogger;
+use super::steps::{helpers::*, StepLogger};
 use crate::math::{Equation, Variable};
 
 impl Equation {
@@ -9,9 +9,7 @@ impl Equation {
         differentiate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
-        if let Some(step_logger) = step_logger {
-            step_logger.open_step(self.clone(), Some("Differentiate"))
-        }
+        open_step(step_logger, &self, Some("Differentiate"));
         let derivative = match self {
             Equation::Variable(variable) => {
                 if variable == differentiate_to {
@@ -24,9 +22,7 @@ impl Equation {
                 negative.differentiate(differentiate_to, step_logger),
             )),
             Equation::Addition(addition) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by applying the sum rule");
-                }
+                set_step_message(step_logger, "Differentiate by applying the sum rule");
                 Equation::Addition(
                     addition
                         .iter()
@@ -35,9 +31,7 @@ impl Equation {
                 )
             }
             Equation::Multiplication(multiplication) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by applying the product rule")
-                }
+                set_step_message(step_logger, "Differentiate by applying the product rule");
                 Equation::Addition(
                     multiplication
                         .iter()
@@ -57,9 +51,7 @@ impl Equation {
                 .simplify(step_logger)
             }
             Equation::Division(division) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by applying the quotient rule")
-                }
+                set_step_message(step_logger, "Differentiate by applying the quotient rule");
                 let numerator = Equation::Addition(vec![
                     Equation::Multiplication(vec![
                         division.1.clone(),
@@ -77,15 +69,11 @@ impl Equation {
                 Equation::Division(Box::new((numerator, denominator)))
             }
             Equation::Power(power) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by applying the power rule")
-                }
+                set_step_message(step_logger, "Differentiate by applying the power rule");
                 differentiate_power(power, differentiate_to, step_logger).simplify(step_logger)
             }
             Equation::Ln(ln) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                }
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 if ln.clone().simplify_until_complete(&mut None)
                     == Equation::Variable(Variable::Integer(0))
                 {
@@ -99,18 +87,14 @@ impl Equation {
                 )))
             }
             Equation::Sin(sin) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                };
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 Equation::Multiplication(vec![
                     sin.differentiate(differentiate_to, step_logger),
                     Equation::Cos(sin.clone()),
                 ])
             }
             Equation::Cos(sin) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                };
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 Equation::Negative(Box::new(Equation::Multiplication(vec![
                     sin.differentiate(differentiate_to, step_logger),
                     Equation::Sin(sin.clone()),
@@ -118,9 +102,7 @@ impl Equation {
             }
 
             Equation::Arcsin(t) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                };
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 Equation::Division(Box::new((
                     t.differentiate(differentiate_to, step_logger),
                     Equation::Power(Box::new((
@@ -136,9 +118,7 @@ impl Equation {
                 )))
             }
             Equation::Arccos(t) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                };
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 Equation::Negative(Box::new(Equation::Division(Box::new((
                     t.differentiate(differentiate_to, step_logger),
                     Equation::Power(Box::new((
@@ -154,9 +134,7 @@ impl Equation {
                 )))))
             }
             Equation::Arctan(t) => {
-                if let Some(step_logger) = step_logger {
-                    step_logger.set_message("Differentiate by using the chain rule")
-                };
+                set_step_message(step_logger, "Differentiate by using the chain rule");
                 Equation::Negative(Box::new(Equation::Division(Box::new((
                     t.differentiate(differentiate_to, step_logger),
                     Equation::Addition(vec![
@@ -183,9 +161,7 @@ impl Equation {
                 panic!("Cannot differentiate derivative")
             }
         };
-        if let Some(step_logger) = step_logger {
-            step_logger.close_step(derivative.clone())
-        }
+        close_step(step_logger, &derivative);
         derivative
     }
 }
