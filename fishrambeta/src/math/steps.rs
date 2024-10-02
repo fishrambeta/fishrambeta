@@ -15,6 +15,39 @@ pub struct Step {
     message: Option<String>,
 }
 
+pub mod helpers {
+    use super::StepLogger;
+    use crate::math::Equation;
+
+    pub fn open_step(
+        step_logger: &mut Option<StepLogger>,
+        equation_before: &Equation,
+        message: Option<&str>,
+    ) {
+        if let Some(step_logger) = step_logger {
+            step_logger.open_step(equation_before.clone(), message);
+        }
+    }
+
+    pub fn close_step(step_logger: &mut Option<StepLogger>, equation_after: &Equation) {
+        if let Some(step_logger) = step_logger {
+            step_logger.close_step(equation_after.clone());
+        }
+    }
+
+    pub fn cancel_step(step_logger: &mut Option<StepLogger>) {
+        if let Some(step_logger) = step_logger {
+            step_logger.cancel_step();
+        }
+    }
+
+    pub fn set_step_message(step_logger: &mut Option<StepLogger>, message: &str) {
+        if let Some(step_logger) = step_logger {
+            step_logger.set_message(message);
+        }
+    }
+}
+
 impl StepLogger {
     pub fn new() -> Self {
         StepLogger {
