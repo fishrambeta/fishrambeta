@@ -38,8 +38,8 @@ impl Equation {
             Equation::Arccos(t) => Equation::Arccos(Box::new(t.evaluate(variable, replacement))),
             Equation::Arctan(t) => Equation::Arctan(Box::new(t.evaluate(variable, replacement))),
             Equation::Abs(t) => Equation::Abs(Box::new(t.evaluate(variable, replacement))),
-            Equation::Derivative(t) => panic!(),
-            Equation::Equals(t) => panic!(),
+            Equation::Derivative(_) => panic!(),
+            Equation::Equals(_) => panic!(),
         }
     }
 }

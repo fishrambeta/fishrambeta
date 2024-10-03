@@ -15,7 +15,7 @@ impl Equation {
                 }
                 None
             }
-            Equation::Negative(negative) => return Some(-negative.calculate_exact()?),
+            Equation::Negative(negative) => Some(-negative.calculate_exact()?),
             Equation::Addition(addition) => {
                 return addition.iter().map(super::Equation::calculate_exact).sum()
             }

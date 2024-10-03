@@ -48,6 +48,12 @@ pub mod helpers {
     }
 }
 
+impl Default for StepLogger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StepLogger {
     pub fn new() -> Self {
         StepLogger {
@@ -61,10 +67,7 @@ impl StepLogger {
             equation_before,
             equation_after: None,
             sub_steps: Vec::new(),
-            message: match message {
-                Some(message) => Some(message.to_string()),
-                None => None,
-            },
+            message: message.map(std::string::ToString::to_string),
         };
         self.current_step_stack.push(new_step);
     }
@@ -78,7 +81,7 @@ impl StepLogger {
             return;
         }
         closing_step.equation_after = Some(equation_after);
-        if self.current_step_stack.len() == 0 {
+        if self.current_step_stack.is_empty() {
             self.steps.push(closing_step);
         } else {
             self.current_step_stack
@@ -96,7 +99,7 @@ impl StepLogger {
     pub fn get_steps_as_strings(&self) -> Vec<String> {
         self.to_string()
             .lines()
-            .map(|line| line.to_string())
+            .map(std::string::ToString::to_string)
             .collect()
     }
 
@@ -109,10 +112,10 @@ impl fmt::Display for StepLogger {
         let stringified = self
             .steps
             .iter()
-            .map(|step| format!("{}", step))
+            .map(|step| format!("{step}"))
             .collect::<Vec<_>>()
             .join("\n");
-        write!(f, "{}", stringified)
+        write!(f, "{stringified}")
     }
 }
 
@@ -126,7 +129,7 @@ impl Step {
     fn _to_string(&self, depth: usize) -> String {
         let mut stringified = "\\textbf{ ".to_string();
         for _ in 0..depth {
-            stringified.push_str("-");
+            stringified.push('-');
         }
         stringified += "}";
         stringified += &match &self.message {

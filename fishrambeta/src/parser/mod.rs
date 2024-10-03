@@ -311,7 +311,7 @@ fn split_into_variables(latex: &str) -> Vec<&str> {
         split.push(b);
         remaining_latex = a;
     }
-    if remaining_latex != "" {
+    if !remaining_latex.is_empty() {
         split.push(remaining_latex);
     }
     for part in split.into_iter().rev() {

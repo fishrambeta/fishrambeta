@@ -1,7 +1,7 @@
 use crate::math::{Equation, Variable};
 use num::Rational64;
 
-use super::steps::{helpers::*, StepLogger};
+use super::steps::{helpers::{close_step, open_step}, StepLogger};
 
 impl Equation {
     pub fn error_analysis(

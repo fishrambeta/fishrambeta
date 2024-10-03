@@ -1,5 +1,5 @@
 use crate::math::{
-    steps::{helpers::*, StepLogger},
+    steps::{helpers::{close_step, open_step}, StepLogger},
     Equation, Variable,
 };
 use std::collections::BTreeMap;

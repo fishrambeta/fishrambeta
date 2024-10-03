@@ -108,7 +108,7 @@ pub fn taylor_expansion(
     let taylor_expansion = parsed
         .taylor_expansion(
             Variable::Letter(variable.to_string()),
-            around,
+            &around,
             degree.try_into().unwrap(),
             &mut step_logger,
         )

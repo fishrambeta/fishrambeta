@@ -104,12 +104,12 @@ impl LinearEquationSystem {
         equations: Vec<(Equation, Equation)>,
         unknown_variables: Vec<Variable>,
     ) -> Self {
-        equations.iter().for_each(|(a, b)| {
-            unknown_variables.iter().for_each(|v| {
+        for (a, b) in &equations {
+            for v in &unknown_variables {
                 assert!(a.is_linear(v), "Equation wasn't linear");
-                assert!(b.is_linear(v), "Equation wasn't linear")
-            })
-        });
+                assert!(b.is_linear(v), "Equation wasn't linear");
+            }
+        }
 
         let augmented_matrix: Vec<Vec<_>> = equations
             .into_iter()
@@ -143,9 +143,7 @@ impl LinearEquationSystem {
             for i in r + 1..m {
                 let mut q = r + 1;
                 while a[r][r] == Equation::Variable(Variable::Integer(0)) {
-                    if q == a.len() {
-                        panic!("Cannot solve system")
-                    }
+                    assert!(q != a.len(), "Cannot solve system");
                     a.swap(r, q);
                     q += 1;
                 }
@@ -162,7 +160,7 @@ impl LinearEquationSystem {
                         ]),
                     ])
                     .simplify(&mut None)
-                    .simplify(&mut None)
+                    .simplify(&mut None);
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
             }
@@ -183,7 +181,7 @@ impl LinearEquationSystem {
                         ]),
                     ])
                     .simplify(&mut None)
-                    .simplify(&mut None)
+                    .simplify(&mut None);
                 }
                 a[i][r] = Equation::Variable(Variable::Integer(0));
             }

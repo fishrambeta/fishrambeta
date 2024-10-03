@@ -4,12 +4,12 @@ use std::iter;
 #[derive(Debug, Clone)]
 pub struct Polynomial {
     terms: Vec<Equation>,
-    base: Variable,
+    base: Equation,
 }
 
 impl Polynomial {
     pub fn to_latex(&self) -> String {
-        let base = Equation::Variable(self.base.clone()).to_latex();
+        let base = self.base.to_latex();
         let degree = self.terms.len();
         self.terms
             .clone()
@@ -41,7 +41,7 @@ impl Polynomial {
     }
 
     /// Returns a polynomial with a value of 0
-    fn zero(base: Variable, degree: usize) -> Polynomial {
+    fn zero(base: Equation, degree: usize) -> Polynomial {
         Polynomial {
             terms: (0..=degree)
                 .map(|_| Equation::Variable(Variable::Integer(0)))
@@ -51,7 +51,7 @@ impl Polynomial {
     }
 
     /// Returns a polynomial with a value of 1
-    fn one(base: Variable) -> Polynomial {
+    fn one(base: Equation) -> Polynomial {
         Polynomial {
             terms: vec![Equation::Variable(Variable::Integer(1))],
             base,
@@ -59,7 +59,7 @@ impl Polynomial {
     }
 
     /// Returns a polynomial with a value of the passed constant
-    fn constant(constant: Equation, base: Variable) -> Polynomial {
+    fn constant(constant: Equation, base: Equation) -> Polynomial {
         Polynomial {
             terms: vec![constant],
             base,
@@ -95,7 +95,7 @@ impl Polynomial {
         false
     }
 
-    fn single_term_polynomial(term: Equation, exponent: usize, base: Variable) -> Polynomial {
+    fn single_term_polynomial(term: Equation, exponent: usize, base: Equation) -> Polynomial {
         let mut terms: Vec<Equation> = vec![];
         for _ in 0..exponent {
             terms.push(Equation::Variable(Variable::Integer(0)));
@@ -194,7 +194,7 @@ impl Polynomial {
         factors
     }
 
-    pub fn from_coefficients(coefficients: Vec<Equation>, base: Variable) -> Polynomial {
+    pub fn from_coefficients(coefficients: Vec<Equation>, base: Equation) -> Polynomial {
         Polynomial {
             terms: coefficients,
             base,
@@ -206,7 +206,7 @@ impl Polynomial {
         if x.is_constant(&base) {
             return Polynomial {
                 terms: vec![x],
-                base,
+                base: Equation::Variable(base),
             };
         }
 
@@ -216,14 +216,14 @@ impl Polynomial {
                     Polynomial::single_term_polynomial(
                         Equation::Variable(Variable::Integer(1)),
                         1,
-                        base,
+                        Equation::Variable(base),
                     )
                 } else {
                     unreachable!()
                 }
             }
             Equation::Addition(a) => {
-                let mut total = Polynomial::zero(base.clone(), 0);
+                let mut total = Polynomial::zero(Equation::Variable(base.clone()), 0);
                 for polynomial_term in a
                     .into_iter()
                     .map(|x| Polynomial::from_equation(x, base.clone()))
@@ -233,7 +233,7 @@ impl Polynomial {
                 total
             }
             Equation::Multiplication(m) => {
-                let mut total = Polynomial::one(base.clone());
+                let mut total = Polynomial::one(Equation::Variable(base.clone()));
                 for polynomial_term in m
                     .into_iter()
                     .map(|x| Polynomial::from_equation(x, base.clone()))
@@ -248,7 +248,7 @@ impl Polynomial {
                         Polynomial::single_term_polynomial(
                             Equation::Variable(Variable::Integer(1)),
                             exponent.try_into().unwrap(),
-                            base,
+                            Equation::Variable(base),
                         )
                     } else {
                         unreachable!()
@@ -264,14 +264,16 @@ impl Polynomial {
                             Equation::Variable(Variable::Integer(1)),
                             d.1,
                         ))),
-                        base.clone(),
+                        Equation::Variable(base.clone()),
                     ) * Polynomial::from_equation(d.0, base);
                 }
                 unreachable!()
             }
             Equation::Negative(n) => {
-                Polynomial::constant(Equation::Variable(Variable::Integer(-1)), base.clone())
-                    * Polynomial::from_equation(*n, base)
+                Polynomial::constant(
+                    Equation::Variable(Variable::Integer(-1)),
+                    Equation::Variable(base.clone()),
+                ) * Polynomial::from_equation(*n, base)
             }
 
             a => unreachable!("{}", a),
@@ -284,7 +286,7 @@ impl Polynomial {
             let new_term = Equation::Multiplication(vec![
                 equation,
                 Equation::Power(Box::new((
-                    Equation::Variable(self.base.clone()),
+                    self.base.clone(),
                     Equation::Variable(Variable::Integer(exponent.try_into().unwrap())),
                 ))),
             ]);

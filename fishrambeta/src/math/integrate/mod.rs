@@ -1,5 +1,5 @@
 use super::{
-    steps::{helpers::*, StepLogger},
+    steps::{helpers::{cancel_step, close_step, open_step, set_step_message}, StepLogger},
     Equation, Variable,
 };
 use num_rational::Rational64;
@@ -13,7 +13,7 @@ impl Equation {
         integrate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
-        open_step(step_logger, &self, Some("Integrate"));
+        open_step(step_logger, self, Some("Integrate"));
         let mut equation_to_integrate: Equation = (*self).clone().simplify(step_logger);
         let fixed_terms = equation_to_integrate.get_factors();
         let mut integrated_equation = Vec::new();
@@ -56,7 +56,7 @@ impl Equation {
         integrate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Option<Equation> {
-        open_step(step_logger, &self, Some("Apply standard integral"));
+        open_step(step_logger, self, Some("Apply standard integral"));
         let result = match self {
             Equation::Addition(addition) => {
                 set_step_message(step_logger, "Use addition rule for integrals");
@@ -114,7 +114,7 @@ impl Equation {
             _ => None,
         };
         match result {
-            Some(ref result) => close_step(step_logger, &result),
+            Some(ref result) => close_step(step_logger, result),
             None => cancel_step(step_logger),
         }
         result

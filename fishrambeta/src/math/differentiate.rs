@@ -1,6 +1,9 @@
 use num::Rational64;
 
-use super::steps::{helpers::*, StepLogger};
+use super::steps::{
+    helpers::{close_step, open_step, set_step_message},
+    StepLogger,
+};
 use crate::math::{Equation, Variable};
 
 impl Equation {
@@ -9,7 +12,7 @@ impl Equation {
         differentiate_to: &Variable,
         step_logger: &mut Option<StepLogger>,
     ) -> Equation {
-        open_step(step_logger, &self, Some("Differentiate"));
+        open_step(step_logger, self, Some("Differentiate"));
         let derivative = match self {
             Equation::Variable(variable) => {
                 if variable == differentiate_to {
@@ -79,6 +82,7 @@ impl Equation {
                 {
                     //TODO:
                     //this can probably be done better
+                    #[allow(clippy::no_effect)]
                     Equation::Variable(Variable::Integer(0));
                 }
                 Equation::Division(Box::new((

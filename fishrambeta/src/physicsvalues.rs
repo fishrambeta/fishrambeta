@@ -20,7 +20,7 @@ pub fn physics_values() -> BTreeMap<Variable, f64> {
     values.insert(Variable::Letter("k_B".to_string()), 1.380_649e-23);
     values.insert(Variable::Letter("\\sigma".to_string()), 5.670_374_419e-8);
     values.insert(Variable::Letter("R".to_string()), 8.314_462_618_153_24);
-    values.insert(Variable::Letter("M_{\\odot}".to_string()), 1.988416e30);
+    values.insert(Variable::Letter("M_{\\odot}".to_string()), 1.988_416e30);
     values.insert(Variable::Letter("R_{\\odot}".to_string()), 6.95700e8);
     values.insert(Variable::Letter("M_{\\oplus}".to_string()), 5.972e24);
     values.insert(Variable::Letter("R_{\\oplus}".to_string()), 6371e3);

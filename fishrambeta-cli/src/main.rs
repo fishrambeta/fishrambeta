@@ -123,7 +123,7 @@ fn process_operation(
             equation
                 .taylor_expansion(
                     Variable::Letter("x".to_string()),
-                    Equation::Variable(Variable::Integer(0)),
+                    &Equation::Variable(Variable::Integer(0)),
                     1,
                     step_logger,
                 )
