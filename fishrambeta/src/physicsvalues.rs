@@ -6,6 +6,9 @@ pub fn physics_values() -> BTreeMap<Variable, f64> {
     values.insert(Variable::Letter("g".to_string()), 9.81);
     values.insert(Variable::Letter("\\hbar".to_string()), 1.054_571_817e-34);
     values.insert(Variable::Letter("m_e".to_string()), 9.109_383_701_5e-31);
+    values.insert(Variable::Letter("m_p".to_string()), 1.672_621_58e-27);
+    values.insert(Variable::Letter("m_n".to_string()), 1.674_927_498_04e-27);
+
     values.insert(Variable::Letter("e_0".to_string()), 1.602_176_634e-19);
     values.insert(Variable::Letter("a_0".to_string()), 5.291_772_109_03e-11);
     values.insert(
