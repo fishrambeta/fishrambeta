@@ -63,6 +63,9 @@ impl Equation {
                 if **ln == Equation::Variable(Variable::Constant(Constant::E)) {
                     return Some(1.into());
                 }
+                if **ln == Equation::Variable(Variable::Integer(1)) {
+                    return Some(0.into());
+                }
                 None
             }
             Equation::Sin(t) => {
