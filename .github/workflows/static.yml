@@ -42,7 +42,7 @@ jobs:
       - name: Compile wasm
         run: cd ./fishrambeta-wasm && wasm-pack build --target web --release
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: './fishrambeta-web'
