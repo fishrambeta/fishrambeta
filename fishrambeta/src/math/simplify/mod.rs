@@ -1,11 +1,15 @@
 use crate::math::{
-    steps::{helpers::{close_step, open_step}, StepLogger},
+    steps::{
+        helpers::{close_step, open_step},
+        StepLogger,
+    },
     Equation, Variable,
 };
 use std::collections::BTreeMap;
 
 mod addition;
 mod division;
+mod logarithm;
 mod multiplication;
 mod power;
 
@@ -80,7 +84,7 @@ impl Equation {
             }
             Equation::Division(division) => division::simplify_division(*division, &mut None),
             Equation::Power(power) => power::simplify_power(*power, &mut None),
-            Equation::Ln(ln) => Equation::Ln(Box::new(ln.simplify(&mut None))),
+            Equation::Ln(ln) => logarithm::simplify_ln(*ln, &mut None),
             Equation::Sin(sin) => Equation::Sin(Box::new(sin.simplify(&mut None))),
             Equation::Cos(cos) => Equation::Cos(Box::new(cos.simplify(&mut None))),
             Equation::Arcsin(sin) => Equation::Arcsin(Box::new(sin.simplify(&mut None))),
