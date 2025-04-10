@@ -253,6 +253,7 @@ var input_mathfield = MQ.MathField(input_span, {
     edit: on_input_changed,
   },
 });
+input_mathfield.focus();
 
 var differentiate_to_span = document.getElementById("differentiate-to");
 var differentiate_to_mathfield = MQ.MathField(differentiate_to_span, {
