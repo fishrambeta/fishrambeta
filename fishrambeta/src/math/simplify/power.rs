@@ -18,6 +18,12 @@ pub(super) fn simplify_power(
         }
     }
 
+    if let Some(base) = base.get_number_or_none() {
+        if base == 0.into() {
+            return Equation::Variable(Variable::Integer(0));
+        }
+    }
+
     match base {
         Equation::Multiplication(terms) => {
             let mut simplified_power: Vec<Equation> = vec![];
